@@ -1,8 +1,8 @@
 import styled, { css } from 'styled-components';
 import logoQuadrada from '../assets/logoQuadrada.svg';
-import { FiLinkedin } from "react-icons/fi";
-import { FiInstagram } from "react-icons/fi";
-import { FiFacebook } from "react-icons/fi";
+import { FiLinkedin } from 'react-icons/fi';
+import { FiInstagram } from 'react-icons/fi';
+import { FiFacebook } from 'react-icons/fi';
 
 const FooterContainer = styled.footer`
     background-color: #383838;
@@ -33,7 +33,7 @@ const Logo = styled.img`
 const Descricao = styled.p`
     font-size: 13px;
     line-height: 1.6;
-    color: #FFFFFF;
+    color: #ffffff;
     max-width: 200px;
     margin: 0;
 `;
@@ -52,7 +52,7 @@ const FooterLink = styled.a`
     transition: color 0.2s;
 
     &:hover {
-        color: #ffffff
+        color: #ffffff;
     }
 `;
 
@@ -66,7 +66,7 @@ const RedesSocias = styled.a`
     transition: color 0.2s;
 
     &:hover {
-        color: #ffffff
+        color: #ffffff;
     }
 `;
 
@@ -84,17 +84,18 @@ const TextoCopyright = styled.p`
 
 function Footer() {
     return (
-        <FooterContainer id='contatos'>
+        <FooterContainer id="contatos">
             <FooterConteudo>
                 <FooterColuna>
-                    <Logo src={logoQuadrada} alt='Logo Nexo'/>
+                    <Logo src={logoQuadrada} alt="Logo Nexo" />
                     <Descricao>
-                        Conectando estudantes com eficiência, promovendo colaboração e aprendizado de qualidade.
+                        Conectando estudantes com eficiência, promovendo
+                        colaboração e aprendizado de qualidade.
                     </Descricao>
                 </FooterColuna>
 
                 <FooterColuna>
-                    <TituloColuna>Navegação</TituloColuna> 
+                    <TituloColuna>Navegação</TituloColuna>
                     <FooterLink href="#inicio">Início</FooterLink>
                     <FooterLink href="#como-funciona">Como Funciona</FooterLink>
                     <FooterLink href="#sobre-nos">Sobre nós</FooterLink>
@@ -108,30 +109,43 @@ function Footer() {
 
                 <FooterColuna>
                     <TituloColuna>Suporte/Contato</TituloColuna>
-                    <FooterLink href="mailto:nexo.org@hotmail.com">Email: nexo.org@hotmail.com</FooterLink>
+                    <FooterLink href="mailto:nexo.org@hotmail.com">
+                        Email: nexo.org@hotmail.com
+                    </FooterLink>
                 </FooterColuna>
 
                 <FooterColuna>
                     <TituloColuna>Redes Sociais</TituloColuna>
-                    <RedesSocias href="#" target="_blank" rel="noonpener noreferrer">
-                        <FiLinkedin size={20}/> LinkedIn
+                    <RedesSocias
+                        href="#"
+                        target="_blank"
+                        rel="noonpener noreferrer"
+                    >
+                        <FiLinkedin size={20} /> LinkedIn
                     </RedesSocias>
-                    <RedesSocias href="#" target="_blank" rel="noonpener noreferrer">
-                        <FiInstagram size={20}/> Instagram
+                    <RedesSocias
+                        href="#"
+                        target="_blank"
+                        rel="noonpener noreferrer"
+                    >
+                        <FiInstagram size={20} /> Instagram
                     </RedesSocias>
-                    <RedesSocias href="#" target="_blank" rel="noonpener noreferrer">
-                        <FiFacebook size={20}/> Facebook
+                    <RedesSocias
+                        href="#"
+                        target="_blank"
+                        rel="noonpener noreferrer"
+                    >
+                        <FiFacebook size={20} /> Facebook
                     </RedesSocias>
                 </FooterColuna>
             </FooterConteudo>
 
-            <Divisoria/>
+            <Divisoria />
 
             <TextoCopyright>
                 © 2025 NEXO. Todos os direitos reservados.
             </TextoCopyright>
         </FooterContainer>
-
     );
 }
 

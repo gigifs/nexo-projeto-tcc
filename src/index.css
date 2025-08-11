@@ -1,35 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
-body{
-  background-color: #E6EBF0;
-  margin: 0;
-  font-family: 'Roboto', poppins;
+body {
+    background-color: #e6ebf0;
+    margin: 0;
+    font-family: 'Roboto', poppins;
 }
 
 html {
-  scroll-behavior: smooth;
+    scroll-behavior: smooth;
 }
 
 /* === ESTILIZAÇÃO DA BARRA DE ROLAGEM === */
 
 /* Define a largura da barra de rolagem */
 ::-webkit-scrollbar {
-  width: 10px;
+    width: 10px;
 }
 
 /* Define o fundo da trilha (o caminho) */
 ::-webkit-scrollbar-track {
-  background: none; /* Um cinza bem claro, quase branco */
-  border-radius: 10px;
+    background: none; /* Um cinza bem claro, quase branco */
+    border-radius: 10px;
 }
 
 /* Define o estilo da barra móvel (o "polegar") */
 ::-webkit-scrollbar-thumb {
-  background: #cccccc; /* Um cinza um pouco mais escuro */
-  border-radius: 10px;
+    background: #cccccc; /* Um cinza um pouco mais escuro */
+    border-radius: 10px;
 }
 
 /* Adiciona um efeito ao passar o mouse sobre a barra móvel */
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8; /* Um cinza mais escuro para o hover */
+    background: #a8a8a8; /* Um cinza mais escuro para o hover */
 }

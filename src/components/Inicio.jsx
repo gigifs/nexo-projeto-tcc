@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styled, { css } from 'styled-components';
-import Botao from "./Botao";
+import Botao from './Botao';
 import logoQuadrada from '../assets/logoQuadrada.svg';
 import detalhes from '../assets/detalhes.svg';
 
@@ -15,7 +15,7 @@ const DetalhesBackground = styled.img`
 `;
 
 const InicioEstilizado = styled.section`
-    background-color: #F5FAFC;
+    background-color: #f5fafc;
     position: relative;
     overflow: hidden;
     width: 100%;
@@ -88,17 +88,17 @@ const FormCadastro = styled.form`
     width: 100%;
     max-width: 700px; /* Garante que não fique maior que o conteúdo esquerdo */
 
-    @media(max-width: 768px){
-      flex-direction: column;
-      width: 100%;
-      gap: 30px;
+    @media (max-width: 768px) {
+        flex-direction: column;
+        width: 100%;
+        gap: 30px;
     }
 `;
 
 const InputEmail = styled.input`
     padding: 0 15px;
     font-size: 24px;
-    border: 1px solid #0A528ACC;
+    border: 1px solid #0a528acc;
     border-radius: 50px;
     width: 100%;
     height: 60px;
@@ -106,19 +106,18 @@ const InputEmail = styled.input`
     box-sizing: border-box; /* Garante que o padding não aumente o tamanho total */
 
     &::placeholder {
-        color: #0A528A;
+        color: #0a528a;
     }
 
     &:focus {
-        border-color: #0A528ACC;
-        box-shadow: 0 0 0 2px #0A528ACC;
+        border-color: #0a528acc;
+        box-shadow: 0 0 0 2px #0a528acc;
     }
 
-    @media(max-width:768px){
-      font-size: 20px;
-      height: 45px; 
+    @media (max-width: 768px) {
+        font-size: 20px;
+        height: 45px;
     }
-
 `;
 
 const LogoInicio = styled.img`
@@ -126,8 +125,7 @@ const LogoInicio = styled.img`
     height: auto;
     user-select: none;
 
-
-    @media(max-width: 768px){
+    @media (max-width: 768px) {
         display: none;
     }
 `;
@@ -139,10 +137,10 @@ function Inicio({ onSignupClick }) {
     const handleSubmit = (evento) => {
         evento.preventDefault();
         onSignupClick(email);
-    }
+    };
 
     return (
-        <InicioEstilizado id='inicio'>
+        <InicioEstilizado id="inicio">
             <DetalhesBackground src={detalhes} alt="Detalhes de fundo" />
 
             <ConteudoInicio>
@@ -151,16 +149,18 @@ function Inicio({ onSignupClick }) {
                     <Subtitulo>Conecte-se, colabore, conquiste.</Subtitulo>
                     <FormCadastro onSubmit={handleSubmit}>
                         <InputEmail
-                            type='email'
-                            placeholder='E-mail...'
+                            type="email"
+                            placeholder="E-mail..."
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                        <Botao variant="CadastrarSecaoInicio" type='submit'>Cadastrar</Botao>
+                        <Botao variant="CadastrarSecaoInicio" type="submit">
+                            Cadastrar
+                        </Botao>
                     </FormCadastro>
                 </ConteudoEsquerdo>
 
-                <LogoInicio src={logoQuadrada} alt='Logo Nexo' />
+                <LogoInicio src={logoQuadrada} alt="Logo Nexo" />
             </ConteudoInicio>
         </InicioEstilizado>
     );

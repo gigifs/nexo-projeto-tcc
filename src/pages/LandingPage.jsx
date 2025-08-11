@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import Header from '../components/header.jsx'
-import Inicio from '../components/Inicio.jsx'
-import ComoFunciona from '../components/ComoFunciona.jsx'
-import CallToAction from '../components/CallToAction.jsx'
+import Header from '../components/header.jsx';
+import Inicio from '../components/Inicio.jsx';
+import ComoFunciona from '../components/ComoFunciona.jsx';
+import CallToAction from '../components/CallToAction.jsx';
 import SobreNos from '../components/SobreNos.jsx';
 import Footer from '../components/Footer.jsx';
 import Modal from '../components/Modal.jsx';
@@ -46,7 +46,7 @@ function LandingPage() {
                 }}
             />
             {/* recebe função para lidar com o form */}
-            <Inicio onSignupClick={handleHeroSignup}/>
+            <Inicio onSignupClick={handleHeroSignup} />
             <ComoFunciona />
             {/* tambem pode abrir o modal cadastro */}
             <CallToAction
@@ -59,7 +59,11 @@ function LandingPage() {
             <Footer />
 
             {/* modal de login: visibilidade controlada pelo estado loginModalOpen */}
-            <Modal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} size="small">
+            <Modal
+                isOpen={loginModalOpen}
+                onClose={() => setLoginModalOpen(false)}
+                size="small"
+            >
                 <FormularioLogin
                     onSwitchToSignup={switchToSignup}
                     onSuccess={() => setLoginModalOpen(false)} // fecha o modal em caso de sucesso
@@ -67,7 +71,11 @@ function LandingPage() {
             </Modal>
 
             {/* modal de cadastro: visibilidade controlada pelo estado signupModalOpen */}
-            <Modal isOpen={signupModalOpen} onClose={() => setSignupModalOpen(false)} size="large">
+            <Modal
+                isOpen={signupModalOpen}
+                onClose={() => setSignupModalOpen(false)}
+                size="large"
+            >
                 <FormularioCadastro
                     onSwitchToLogin={switchToLogin}
                     initialEmail={initialEmail}

@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Botao from './Botao.jsx';
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from 'firebase/auth';
+import {
+    createUserWithEmailAndPassword,
+    sendEmailVerification,
+    signOut,
+} from 'firebase/auth';
 import { auth, db } from '../firebase.js';
 import { doc, setDoc } from 'firebase/firestore';
 
@@ -48,7 +52,7 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-    background-color: #F5FAFC;
+    background-color: #f5fafc;
     padding: 12px 15px;
     font-size: 16px;
     font-weight: 400;
@@ -57,7 +61,9 @@ const Input = styled.input`
     border-radius: 10px;
     outline: none;
     margin-bottom: 15px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 
     &::placeholder {
         color: #999999;
@@ -65,7 +71,7 @@ const Input = styled.input`
     }
 
     &:focus {
-        border-color: #5B82E9; 
+        border-color: #5b82e9;
         box-shadow: 0 0 0 3px #5b81e948;
     }
 `;
@@ -80,7 +86,7 @@ const TextoTermos = styled.p`
     line-height: 1.2;
 
     a {
-        color: #7C2256; /* Cor de destaque */
+        color: #7c2256; /* Cor de destaque */
         font-weight: 500;
         text-decoration: none;
         cursor: pointer;
@@ -93,7 +99,7 @@ const TextoTermos = styled.p`
 const ButtonContainer = styled.div`
     display: flex;
     align-items: center;
-    margin: auto; 
+    margin: auto;
 `;
 
 const JaTemConta = styled.p`
@@ -105,7 +111,7 @@ const JaTemConta = styled.p`
     font-weight: 300;
 
     a {
-        color: #7C2256;
+        color: #7c2256;
         font-weight: 700;
         cursor: pointer;
         text-decoration: none;
@@ -116,16 +122,15 @@ const JaTemConta = styled.p`
 `;
 
 const MensagemErro = styled.p`
-  color: #D32F2F; /* vermelho para erros */
-  font-size: 14px;
-  font-weight: 400;
-  text-align: center;
-  margin-top: 0; 
+    color: #d32f2f; /* vermelho para erros */
+    font-size: 14px;
+    font-weight: 400;
+    text-align: center;
+    margin-top: 0;
 `;
 
 //initialEmail é para permitir que o email seja previamente preenchido na tela inicial
-function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
-
+function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
     // o hook useState é para o react redesenhar na tela sempre que a variavel mudar
     const [nome, setNome] = useState('');
     const [sobrenome, setSobrenome] = useState('');
@@ -146,15 +151,15 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
         setErro(''); // Limpa erros antigos antes de tentar de novo
 
         //verificação dominio do email
-        const dominioPermitido = "@cs.unicid.edu.br";
-        if(!email.endsWith(dominioPermitido)){
+        const dominioPermitido = '@cs.unicid.edu.br';
+        if (!email.endsWith(dominioPermitido)) {
             setErro(`Cadastro permitido apenas para e-mails institucionais.`);
             return;
         }
 
         //validação de senha simples, pode aumentar
         if (senha !== confirmaSenha) {
-            setErro("As senhas não coincidem!");
+            setErro('As senhas não coincidem!');
             return;
         }
 
@@ -162,7 +167,11 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
         try {
             // a função é o que pega o email e senha e tenta criar um usuario
             //usar o await para esperar a resposta do Firebase
-            const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                email,
+                senha
+            );
 
             //Se o cadastro deu certo
             const user = userCredential.user;
@@ -170,10 +179,10 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
             // aqui é a conexão com o firestore
             // estamos criando uma referencia para um local no banco de dados
             // db = banco de dados; users = uma coleção; user.uid = identificador unico
-            await setDoc(doc(db, "users", user.uid), {
-              nome: nome,
-              sobrenome: sobrenome,
-              email: user.email // salvar email pra facilitar identificação
+            await setDoc(doc(db, 'users', user.uid), {
+                nome: nome,
+                sobrenome: sobrenome,
+                email: user.email, // salvar email pra facilitar identificação
             });
 
             const actionCodeSettings = {
@@ -187,10 +196,13 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
             alert(`Bem-vindo(a), ${nome}! Sua conta foi criada com sucesso.`);
             onSuccess();
             //no futuro, aqui vamos levar o usuario para a tela aguardando confirmação de email
-
         } catch (error) {
             //Se o Firebase retornou um erro
-            console.error("Erro ao cadastrar no Firebase:", error.code, error.message);
+            console.error(
+                'Erro ao cadastrar no Firebase:',
+                error.code,
+                error.message
+            );
 
             //traduzindo os erros mais comuns do Firebase para o usuário
             if (error.code === 'auth/email-already-in-use') {
@@ -208,7 +220,10 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
     return (
         <FormularioContainer onSubmit={handleSubmit}>
             <Titulo>Crie sua conta</Titulo>
-            <SubTitulo>Para prosseguir com o cadastro, certifique-se de preencher todos os campos indicados.</SubTitulo>
+            <SubTitulo>
+                Para prosseguir com o cadastro, certifique-se de preencher todos
+                os campos indicados.
+            </SubTitulo>
 
             <ContainerNomes>
                 <InputGroup>
@@ -235,7 +250,9 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
                 </InputGroup>
             </ContainerNomes>
 
-            <InputGroup style={{ flex: 'none' }}> {/* Evita que este InputGroup tente se esticar */}
+            <InputGroup style={{ flex: 'none' }}>
+                {' '}
+                {/* Evita que este InputGroup tente se esticar */}
                 <Label htmlFor="signup-email">E-mail</Label>
                 <Input
                     type="email"
@@ -274,12 +291,16 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess  }) {
             {erro && <MensagemErro>{erro}</MensagemErro>}
 
             <TextoTermos>
-                Ao preencher o formulário acima você concorda com os nossos <br />
-                <a href="#">Termos de uso</a> e nossa <a href="#">Política de Privacidade</a>
+                Ao preencher o formulário acima você concorda com os nossos{' '}
+                <br />
+                <a href="#">Termos de uso</a> e nossa{' '}
+                <a href="#">Política de Privacidade</a>
             </TextoTermos>
 
             <ButtonContainer>
-                <Botao variant="Modal" type="submit">Cadastrar</Botao>
+                <Botao variant="Modal" type="submit">
+                    Cadastrar
+                </Botao>
             </ButtonContainer>
 
             <JaTemConta>

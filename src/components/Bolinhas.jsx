@@ -7,11 +7,9 @@ export const BolinhasContainer = styled.div`
     margin-top: 48px;
 `;
 
-
 export const Bolinha = styled.div`
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background-color: ${(props) => props.color || '#cccccc'};
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: ${(props) => props.color || '#cccccc'};
 `;
-

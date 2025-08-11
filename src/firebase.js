@@ -1,17 +1,17 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // 1. Importa o Firestore
+import { getFirestore } from "firebase/firestore"; 
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAu2ytgbjm3ZxnL2RsW1wYIT3k8-XAw2Qg",
-    authDomain: "teste-tcc-711f8.firebaseapp.com",
-    projectId: "teste-tcc-711f8",
-    storageBucket: "teste-tcc-711f8.firebasestorage.app",
-    messagingSenderId: "602961631765",
-    appId: "1:602961631765:web:27fed5fd8708bb926c8c1c"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app); // 2. Exporta a instância do banco de dados
+export const db = getFirestore(app); 

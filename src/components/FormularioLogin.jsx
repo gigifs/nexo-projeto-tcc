@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Botao from './Botao.jsx';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -136,6 +137,7 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
     const [senha, setSenha] = useState('');
     const [lembrar, setLembrar] = useState(false);
     const [erroLogin, setErroLogin] = useState(''); // estado para erros de login
+    const navigate = useNavigate(); // inicializa o hook de navegação
 
     const handleSubmit = async (evento) => {
         evento.preventDefault(); // Impede que a página recarregue ao enviar
@@ -155,9 +157,11 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
             //verificação importante: o email foi verificado?
             if (user.emailVerified) {
                 //se sim, login bem sucedido
-                alert(`Bem-vindo(a) de volta!`);
-                onSuccess();
-                //no futuro, redirecionaremos para a pagina principal
+                console.log(
+                    'Login bem-sucedido, redirecionando para o dashboard...'
+                );
+                navigate('/dashboard');
+                //redirecionando para a pagina principal
             } else {
                 //se nao, impede o login e avisa
                 setErroLogin(

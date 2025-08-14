@@ -8,6 +8,8 @@ import Footer from '../components/Footer.jsx';
 import Modal from '../components/Modal.jsx';
 import FormularioLogin from '../components/FormularioLogin.jsx';
 import FormularioCadastro from '../components/FormularioCadastro.jsx';
+import MeusInteresses from '../components/MeusInteresses.jsx';
+import EditarInteressesModal from '../components/EditarInteressesModal.jsx';
 
 function LandingPage() {
     //controla a visibilidade do modal login
@@ -16,6 +18,8 @@ function LandingPage() {
     const [signupModalOpen, setSignupModalOpen] = useState(false);
     // guarda o email digitado no form da seção inicio
     const [initialEmail, setInitialEmail] = useState('');
+
+    const [interessesModalOpen, setInteressesModalOpen] = useState(false);
 
     //função que troca o modal login pelo de cadastro
     const switchToSignup = () => {
@@ -47,6 +51,19 @@ function LandingPage() {
             />
             {/* recebe função para lidar com o form */}
             <Inicio onSignupClick={handleHeroSignup} />
+            {/* 2. Adicione seu componente aqui dentro de uma div para visualização */}
+            <div
+                style={{
+                    padding: '50px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    backgroundColor: '#E6EBF0',
+                }}
+            >
+                <MeusInteresses
+                    onEditClick={() => setInteressesModalOpen(true)}
+                />
+            </div>
             <ComoFunciona />
             {/* tambem pode abrir o modal cadastro */}
             <CallToAction
@@ -81,6 +98,13 @@ function LandingPage() {
                     initialEmail={initialEmail}
                     onSuccess={() => setSignupModalOpen(false)} // fecha o modal em caso de sucesso
                 />
+            </Modal>
+            <Modal
+                isOpen={interessesModalOpen}
+                onClose={() => setInteressesModalOpen(false)}
+                size="large"
+            >
+                <EditarInteressesModal />
             </Modal>
         </>
     );

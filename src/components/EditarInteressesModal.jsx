@@ -1,105 +1,233 @@
-// Em src/components/EditarInteressesModal.jsx
-import styled from 'styled-components';
+import { useState, useEffect } from 'react';
+import styled, { css } from 'styled-components';
 import Botao from './Botao.jsx';
-import { FiPlus, FiX } from 'react-icons/fi';
+import { FiX } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { db } from '../firebase.js';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 const ModalContent = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    margin: 0 10px 0 10px;
 `;
 
 const Titulo = styled.h2`
-    font-size: 28px;
-    font-weight: bold;
-    color: #333;
-    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    color: #000000;
+    margin: 10px 0 15px 0;
 `;
 
 const Subtitulo = styled.p`
-    font-size: 16px;
-    color: #666;
-    margin: -10px 0 10px 0;
-    line-height: 1.5;
+    font-size: 20px;
+    font-weight: 400;
+    color: #000000cc;
+    line-height: 1.2;
+    margin: 0 0 15px 0;
 `;
 
 const Section = styled.div`
     display: flex;
     flex-direction: column;
     gap: 10px;
+    width: 100%;
 `;
 
 const SectionTitulo = styled.h3`
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
+    font-size: 20px;
+    font-weight: 500;
+    color: #000000cc;
     margin: 0;
     text-align: left;
 `;
 
-const InputContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 10px;
-`;
-
 const Input = styled.input`
-    flex-grow: 1;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #F5FAFC;
     padding: 12px 15px;
     font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    font-weight: 400;
+    color: #333333;
+    border: 1px solid #00000060;
+    border-radius: 10px;
     outline: none;
-`;
+    margin: 0;
+    transition: border-color 0.2s, box-shadow 0.2s;
 
-const BotaoAdicionar = styled.button`
-    background-color: #0a528a;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    &::placeholder {
+        color: #999999;
+        opacity: 1;
+
+    &:focus {
+        border-color: #5B82E9; 
+        box-shadow: 0 0 0 3px #5b82e948;
+    }
 `;
 
 const TagsSelecionadasContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    min-height: 30px; /* Garante um espaço mesmo quando vazio */
+    gap: 5px;
+    min-height: 15px; /* Garante um espaço mesmo quando vazio */
 `;
 
 const Tag = styled.span`
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    font-weight: 500;
+    gap: 3px;
+    padding: 8px 8px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
 
     background-color: ${(props) =>
-        props.tipo === 'habilidade' ? '#dbeafe' : '#fce7f3'};
-    color: ${(props) => (props.tipo === 'habilidade' ? '#1e40af' : '#9d174d')};
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 
     button {
         background: none;
         border: none;
+        padding: 0;
+        margin: 0;
         cursor: pointer;
         color: inherit;
+        display: flex; /* Essencial para centralizar o ícone!!! */
+        align-items: center;
+        justify-content: center;
         opacity: 0.7;
+
         &:hover {
             opacity: 1;
         }
     }
 `;
 
-function EditarInteressesModal() {
-    // Por enquanto, usaremos dados de exemplo para construir o visual
-    const habilidadesSelecionadas = ['Java', 'React', 'C++'];
-    const interessesSelecionados = ['Pesquisa', 'Gestão'];
+const AutoCompleteWrapper = styled.div`
+    position: relative;
+    width: 100%;
+`;
+
+const SugestoesContainer = styled.div`
+    position: absolute;
+    width: 100%;
+    top: 100%;
+    margin-top: 2px;
+    left: 0;
+    z-index: 10;
+    background-color: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const SugestaoItem = styled.div`
+    padding: 10px 15px;
+    cursor: pointer;
+    &:hover {
+        background-color: #f5f5f5;
+    }
+`;
+
+const ButtonContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    margin-bottom: 10px;
+`;
+
+function EditarInteressesModal({ onSuccess }) {
+    const { currentUser, userData, refreshUserData } = useAuth();
+    const [habilidades, setHabilidades] = useState(userData?.habilidades || []);
+    const [interesses, setInteresses] = useState(userData?.interesses || []);
+    const [todasAsHabilidades, setTodasAsHabilidades] = useState([]);
+    const [todosOsInteresses, setTodosOsInteresses] = useState([]);
+    const [buscaHabilidade, setBuscaHabilidade] = useState('');
+    const [buscaInteresse, setBuscaInteresse] = useState('');
+
+    // O useEffect busca todas as tags do Firestore QUANDO o modal abre
+    useEffect(() => {
+        const buscarTags = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'tags'));
+                const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
+                // Separa as tags em duas listas
+                setTodasAsHabilidades(
+                    tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')
+                );
+                setTodosOsInteresses(
+                    tagsDoBanco.filter((tag) => tag.tipo === 'interesse')
+                );
+            } catch (error) {
+                console.error('Erro ao buscar tags:', error);
+            }
+        };
+        buscarTags();
+    }, []); // O array vazio [] garante que isso só roda uma vez
+
+    // Funções para adicionar e remover HABILIDADES
+    const adicionarHabilidade = (habilidade) => {
+        if (!habilidades.includes(habilidade.nome)) {
+            setHabilidades([...habilidades, habilidade.nome]);
+        }
+        setBuscaHabilidade(''); // Limpa a busca
+    };
+    const removerHabilidade = (habilidadeNome) => {
+        setHabilidades(habilidades.filter((h) => h !== habilidadeNome));
+    };
+
+    // Funções para adicionar e remover INTERESSES
+    const adicionarInteresse = (interesse) => {
+        if (!interesses.includes(interesse.nome)) {
+            setInteresses([...interesses, interesse.nome]);
+        }
+        setBuscaInteresse('');
+    };
+    const removerInteresse = (interesseNome) => {
+        setInteresses(interesses.filter((i) => i !== interesseNome));
+    };
+
+    // Lógica de filtro para as sugestões
+    const habilidadesFiltradas = buscaHabilidade
+        ? todasAsHabilidades.filter((h) =>
+              h.nome.toLowerCase().includes(buscaHabilidade.toLowerCase())
+          )
+        : [];
+
+    const interessesFiltrados = buscaInteresse
+        ? todosOsInteresses.filter((i) =>
+              i.nome.toLowerCase().includes(buscaInteresse.toLowerCase())
+          )
+        : [];
+
+    // Função para salvar conectada com o firebase
+    const handleSalvar = async () => {
+        if (!currentUser) {
+            console.error('Nenhum usuário logado para salvar.');
+            return;
+        }
+        // Cria a referência para o documento do usuário logado
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        try {
+            // Atualiza o documento no Firestore com as novas listas
+            await updateDoc(userDocRef, {
+                habilidades: habilidades,
+                interesses: interesses,
+            });
+
+            // Atualiza nosso "cérebro" (AuthContext) com os novos dados
+            await refreshUserData();
+
+            console.log('Perfil atualizado com sucesso!');
+            onSuccess(); // Fecha o modal
+        } catch (error) {
+            console.error('Erro ao atualizar o perfil:', error);
+        }
+    };
 
     return (
         <ModalContent>
@@ -108,50 +236,81 @@ function EditarInteressesModal() {
                 Edite suas habilidades (hard skills) e interesses (soft skills)
                 para melhorar suas recomendações.
             </Subtitulo>
-
+            {/* SEÇÃO DE HABILIDADES */}
             <Section>
                 <SectionTitulo>Habilidades</SectionTitulo>
-                <InputContainer>
-                    <Input placeholder="Ex. JavaScript, Python" />
-                    <BotaoAdicionar>
-                        <FiPlus size={20} />
-                    </BotaoAdicionar>
-                </InputContainer>
+                <AutoCompleteWrapper>
+                    <Input
+                        placeholder="Pesquisar habilidade..."
+                        value={buscaHabilidade}
+                        onChange={(e) => setBuscaHabilidade(e.target.value)}
+                    />
+                    {/* EXIBE A LISTA DE SUGESTÕES FILTRADAS */}
+                    {habilidadesFiltradas.length > 0 && (
+                        <SugestoesContainer>
+                            {habilidadesFiltradas.map((h) => (
+                                <SugestaoItem
+                                    key={h.nome}
+                                    onClick={() => adicionarHabilidade(h)}
+                                >
+                                    {h.nome}
+                                </SugestaoItem>
+                            ))}
+                        </SugestoesContainer>
+                    )}
+                </AutoCompleteWrapper>
                 <TagsSelecionadasContainer>
-                    {habilidadesSelecionadas.map((h) => (
-                        <Tag key={h} tipo="habilidade">
-                            {h}{' '}
-                            <button>
-                                <FiX size={14} />
+                    {habilidades.map((h) => (
+                        <Tag key={h} $tipo="habilidade">
+                            {h}
+                            <button onClick={() => removerHabilidade(h)}>
+                                <FiX size={16} strokeWidth={3} />
                             </button>
                         </Tag>
                     ))}
                 </TagsSelecionadasContainer>
             </Section>
 
-            <Section>
+            {/* SEÇÃO DE INTERESSES */}
+            <Section style={{ marginTop: '15px' }}>
                 <SectionTitulo>Interesses</SectionTitulo>
-                <InputContainer>
-                    <Input placeholder="Ex. Design, Hackathon" />
-                    <BotaoAdicionar>
-                        <FiPlus size={20} />
-                    </BotaoAdicionar>
-                </InputContainer>
+                <AutoCompleteWrapper>
+                    <Input
+                        placeholder="Pesquisar interesse..."
+                        value={buscaInteresse}
+                        onChange={(e) => setBuscaInteresse(e.target.value)}
+                    />
+                    {/* EXIBE A LISTA DE SUGESTÕES FILTRADAS */}
+                    {interessesFiltrados.length > 0 && (
+                        <SugestoesContainer>
+                            {interessesFiltrados.map((i) => (
+                                <SugestaoItem
+                                    key={i.nome}
+                                    onClick={() => adicionarInteresse(i)}
+                                >
+                                    {i.nome}
+                                </SugestaoItem>
+                            ))}
+                        </SugestoesContainer>
+                    )}
+                </AutoCompleteWrapper>
                 <TagsSelecionadasContainer>
-                    {interessesSelecionados.map((i) => (
-                        <Tag key={i} tipo="interesse">
-                            {i}{' '}
-                            <button>
-                                <FiX size={14} />
+                    {interesses.map((i) => (
+                        <Tag key={i} $tipo="interesse">
+                            {i}
+                            <button onClick={() => removerInteresse(i)}>
+                                <FiX size={16} strokeWidth={3} />
                             </button>
                         </Tag>
                     ))}
                 </TagsSelecionadasContainer>
             </Section>
 
-            <div style={{ marginTop: '20px' }}>
-                <Botao variant="Modal">Salvar Habilidades e Interesses</Botao>
-            </div>
+            <ButtonContainer>
+                <Botao variant="hab-int" onClick={handleSalvar}>
+                    Salvar Habilidades e Interesses
+                </Botao>
+            </ButtonContainer>
         </ModalContent>
     );
 }

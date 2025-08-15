@@ -47,13 +47,13 @@ const TagsContainer = styled.div`
 
 const Tag = styled.span`
     padding: 8px 8px;
-    border-radius: 15px;
+    border-radius: 20px;
     font-size: 16px;
     font-weight: 600;
 
     background-color: ${(props) =>
-        props.tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
-    color: ${(props) => (props.tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 
 function MeusInteresses({ onEditClick }) {
@@ -83,7 +83,7 @@ function MeusInteresses({ onEditClick }) {
             <TagsContainer>
                 {todasAsTags.length > 0 ? (
                     todasAsTags.map((tag) => (
-                        <Tag key={tag.nome} tipo={tag.tipo}>
+                        <Tag key={tag.nome} $tipo={tag.tipo}>
                             {tag.nome}
                         </Tag>
                     ))

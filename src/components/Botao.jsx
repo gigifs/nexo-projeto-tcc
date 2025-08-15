@@ -14,6 +14,19 @@ const BotaoEstilizado = styled.button`
 
     ${(props) => {
         switch (props.$variant) {
+            case 'hab-int':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 10px;
+                    padding: 8px 16px;
+                    font-size: 20px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
             //Novo botão: para a janela modal 'FormularioCriarProjeto.jsx'
             case 'AdicionarHabilidade':
                 return css`
@@ -27,7 +40,6 @@ const BotaoEstilizado = styled.button`
                         background-color: #661745ff;
                     }
                 `;
-
             //Novo botão: para a janela modal 'FormularioCriarProjeto.jsx'
             case 'Cancelar':
                 return css`

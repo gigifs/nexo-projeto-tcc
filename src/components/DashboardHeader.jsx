@@ -1,21 +1,20 @@
 import styled from 'styled-components';
-import Botao from './Botao'; 
+import Botao from './Botao';
 import { useAuth } from '../contexts/AuthContext'; //Para pegar os dados do Firebase
 
 const HeaderContainer = styled.div`
-    background-color: #F5FAFC;
+    background-color: #f5fafc;
     padding: 20px 30px 20px 30px;
     border-radius: 20px;
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0px 1px 3px 0px #0000004D;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    width: 100%;
 `;
 
-const HeaderText = styled.div`
-
-`;
+const HeaderText = styled.div``;
 
 const Titulo = styled.h2`
     margin: 0;
@@ -41,10 +40,14 @@ function DashboardHeader({ onCriarProjetoClick }) {
         <HeaderContainer>
             <HeaderText>
                 <Titulo>Bem-vindo(a), {nomeUsuario}!</Titulo>
-                <Subtitulo>Descubra um mundo de possibilidades ao seu alcance.</Subtitulo>
+                <Subtitulo>
+                    Descubra um mundo de possibilidades ao seu alcance.
+                </Subtitulo>
             </HeaderText>
             {/*Sugestão, colocar ícone do '+'*/}
-            <Botao variant="Modal" onClick={onCriarProjetoClick}>+ Criar Projeto</Botao>
+            <Botao variant="Modal" onClick={onCriarProjetoClick}>
+                + Criar Projeto
+            </Botao>
         </HeaderContainer>
     );
 }

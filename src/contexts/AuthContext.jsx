@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from 'react'; // importante: useEffect é para interagir com sistemas externos - Firebase
+import React, {
+    createContext,
+    useState,
+    useEffect,
+    useContext,
+    useCallback,
+} from 'react'; // importante: useEffect é para interagir com sistemas externos - Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // função de autenticação em tempo real
 import { auth, db } from '../firebase'; // aqui sao as instancias de autenticação e banco de dados
 import { doc, getDoc } from 'firebase/firestore'; // ferramentas que leem dados para o firebase
@@ -19,34 +25,36 @@ export function AuthProvider({ children }) {
     const [userData, setUserData] = useState(null); // guarda dados do perfil
     const [loading, setLoading] = useState(true); // estado de carregamento para evitar que a tela pisque conteudo errado
 
+    // logica de busca extraida para ser reutilizavel
+    const fetchUserData = useCallback(async (user) => {
+        // logica para buscar dados do perfil
+        if (user) {
+            // Se um usuário está logado
+            // cria uma referencia ao documento do usuario usando o UID para encontra-lo na coleçao
+            const userDocRef = doc(db, 'users', user.uid);
+            // faz uma copia do documento
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                // Se o documento existe
+                // guarda os dados nesse novo estado
+                setUserData(userDocSnap.data());
+            } else {
+                // se o documento nao foi encontrado, o estado é limpo
+                setUserData(null);
+            }
+        } else {
+            // se não há usuário, o estado é limpo
+            setUserData(null);
+        }
+    }, []);
+
     // é o hook que atualiza a tela em real
     useEffect(() => {
         //instala um "ouvinte" que dispara a função sempre que o estado de login mudar
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             // async significa que vamos buscar dados no banco
             setCurrentUser(user); //atualiza o estado com a informação do banco em user(ou um usuario ou null)
-
-            // logica para buscar dados do perfil
-            if (user) {
-                // Se um usuário está logado
-                // cria uma referencia ao documento do usuario usando o UID para encontra-lo na coleçao
-                const userDocRef = doc(db, 'users', user.uid);
-                // faz uma copia do documento
-                const userDocSnap = await getDoc(userDocRef);
-
-                if (userDocSnap.exists()) {
-                    // Se o documento existe
-                    // guarda os dados nesse novo estado
-                    setUserData(userDocSnap.data());
-                } else {
-                    // se o documento nao foi encontrado, o estado é limpo
-                    setUserData(null);
-                }
-            } else {
-                // se não há usuário, o estado é limpo
-                setUserData(null);
-            }
-
+            await fetchUserData(user); // Chama a função centralizada
             setLoading(false); // nessa altura ja temos uma resposta definitiva do status do usuario, por isso false
         });
 
@@ -57,6 +65,7 @@ export function AuthProvider({ children }) {
     const value = {
         currentUser,
         userData,
+        refreshUserData: () => fetchUserData(currentUser),
     };
 
     // se nao estiver carregando, mostra o resto da aplicação. evita a tela piscar

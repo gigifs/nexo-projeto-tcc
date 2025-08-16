@@ -64,10 +64,7 @@ function LandingPage() {
                 onClose={() => setLoginModalOpen(false)}
                 size="small"
             >
-                <FormularioLogin
-                    onSwitchToSignup={switchToSignup}
-                    onSuccess={() => setLoginModalOpen(false)} // fecha o modal em caso de sucesso
-                />
+                <FormularioLogin onSwitchToSignup={switchToSignup} />
             </Modal>
 
             {/* modal de cadastro: visibilidade controlada pelo estado signupModalOpen */}

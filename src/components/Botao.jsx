@@ -14,6 +14,49 @@ const BotaoEstilizado = styled.button`
 
     ${(props) => {
         switch (props.$variant) {
+            case 'hab-int':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 10px;
+                    padding: 8px 16px;
+                    font-size: 20px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
+            //Novo botão: para a janela modal 'FormularioCriarProjeto.jsx'
+            case 'AdicionarHabilidade':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 10px;
+                    font-size: 20px;
+                    font-weight: bold;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
+            //Novo botão: para a janela modal 'FormularioCriarProjeto.jsx'
+            case 'Cancelar':
+                return css`
+                    background-color: #f5fafc;
+                    color: #000000ff;
+                    border: 1px solid #00000067;
+                    border-radius: 10px;
+                    padding: 8px 50px;
+                    font-size: 20px;
+                    font-weight: 400;
+
+                    &:hover {
+                        background-color: #661745ff;
+                        color: #f5fafc;
+                    }
+                `;
+
             case 'Modal':
                 return css`
                     background-color: #7c2256;
@@ -78,7 +121,7 @@ const BotaoEstilizado = styled.button`
                     background-color: #0a528a1a;
                     color: #0a528a;
                     border: 1px solid #0a528a;
-                    height: 45px;
+                    height: 60px;
 
                     &:hover {
                         background-color: #0a528a;

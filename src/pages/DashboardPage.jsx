@@ -7,6 +7,10 @@ import FormularioCriarProjeto from '../components/FormularioCriarProjeto.jsx';
 import MeusInteresses from '../components/MeusInteresses.jsx';
 import EditarInteressesModal from '../components/EditarInteressesModal.jsx';
 import Menu from '../components/Menu.jsx';
+import ProjectTabs from '../components/ProjectTabs.jsx'; //Retângulo de abas
+import ProjectList from '../components/ProjectList.jsx'; //Lista de projetos
+//Importei o card para visuzalização dos dados mocados
+import ProjectCard from '../components/ProjectCard.jsx';
 
 const PageLayout = styled.div`
     display: flex;
@@ -43,9 +47,32 @@ const ColunaDireita = styled.div`
     flex-grow: 1; /* Faz esta coluna ocupar todo o espaço restante */
 `;
 
+//Tirar essa const assim que os componentes do Anthony forem integrados
+const MeusProjetosPlaceholder = styled.div`
+    text-align: center;
+    padding: 60px;
+    color: #888;
+    background-color: #f5fafc;
+    border-radius: 20px;
+    border: 2px dashed #ccc;
+`;
+
+//Dados Mocados para a visualização do Card
+const mockProject = {
+    id: '123',
+    nome: 'Melhor site de aprendizado de estrutura de dados já visto',
+    descricao: 'Site que te ensina estrutura de dados. É bom pq tem estrutura de dados I e estrutura de dados II, ambas são muito difíceis e de alta complexidade. Por isso esse site é muito bom!Site que te ensina estrutura de dados. É bom pq tem estrutura de dados I e estrutura de dados II, ambas são muito difíceis e de alta complexidade. Por isso esse site é muito bom!',
+    dono: 'Giovana Celestino',
+    status: 'Aberto para Candidaturas',
+    curso: 'Design Gráfico',
+    habilidades: ['Habilidade', 'Habilidade', 'Habilidade'],
+    interesses: ['Interesse', 'Interesse'],
+};
+
 function DashboardPage() {
     const [isModalOpen, setModalOpen] = useState(false);
     const [interessesModalOpen, setInteressesModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('recomendados'); //Estado para a aba ativa
 
     return (
         <PageLayout>
@@ -63,7 +90,23 @@ function DashboardPage() {
                         <DashboardHeader
                             onCriarProjetoClick={() => setModalOpen(true)}
                         />
-                        {/*Menu, cards ... */}
+                        
+                        {/*Lógica das abas*/}
+                        <ProjectTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+                        {activeTab === 'recomendados' ? (
+                            <ProjectList />
+                        ) : (
+                            //Placeholder temporário!
+                            <MeusProjetosPlaceholder>
+                                <h3>Área de "Meus Projetos"</h3>
+                                <p>Componente do Anthony.</p>
+                            </MeusProjetosPlaceholder>
+                        )}
+                        {/*Card com dados mocados para visualização*/}
+                        <div style={{ maxWidth: '450px' }}>
+                            <ProjectCard projeto={mockProject} />
+                        </div>
+
                     </ColunaDireita>
                 </LayoutDashboard>
             </MainContent>

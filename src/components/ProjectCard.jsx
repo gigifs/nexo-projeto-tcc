@@ -12,7 +12,7 @@ const CardWrapper = styled.div`
     gap: 15px;
     transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
-    height: 340px; /*Atura máxima do card*/
+    min-height: 340px;
     position: relative;
 
     &:hover {
@@ -34,12 +34,10 @@ const TituloProjeto = styled.h3`
     color: #000;
     margin: 0;
     line-height: 1.2;
-
-    /*Limita a quantidade de linhas do titulo*/
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /*Título terá no máx 2 linhas*/
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 `;
 
@@ -49,8 +47,8 @@ const StatusTag = styled.span`
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
-    background-color: ${props => props.color || '#e0e0e0'};
-    color: ${props => props.textColor || '#000'};
+    background-color: ${(props) => props.color || '#e0e0e0'};
+    color: ${(props) => props.textColor || '#000'};
 `;
 
 const DescricaoProjeto = styled.p`
@@ -58,39 +56,37 @@ const DescricaoProjeto = styled.p`
     color: #333;
     line-height: 1.4;
     margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 3; /*Limite de linhas para a descrição*/
-    -webkit-box-orient: vertical;
+    /* --- CORREÇÃO APLICADA AQUI --- */
+    /* Garante que textos longos sem espaços quebrem a linha */
+    overflow-wrap: break-word;
+    word-wrap: break-word; /* Suporte para navegadores mais antigos */
 `;
 
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    max-height: 30px;
+    max-height: 60px;
     overflow: hidden;
 `;
 
-//Tags com cores condicionais de acordo com o tipo
 const Tag = styled.span`
     padding: 6px 12px;
     border-radius: 16px;
     font-size: 14px;
     font-weight: 500;
-    /*Define a cor com base na propriedade '$tipo'*/
-    background-color: ${props => (props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced')};
-    color: ${props => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
+    background-color: ${(props) =>
+        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
 `;
 
 const CardFooter = styled.div`
     display: flex;
     justify-content: space-between;
-    align-items: flex-end; 
-    margin-top: auto; /*Empurra o rodapé pro final do card*/
+    align-items: flex-end;
+    margin-top: auto;
     padding-top: 10px;
-    border-top: 1px solid #eee; /*Barra entre tags e curso, pode tirar caso não gostem*/
+    border-top: 1px solid #eee;
 `;
 
 const OwnerDetails = styled.div`
@@ -107,7 +103,6 @@ const FooterText = styled.div`
     color: #333;
 `;
 
-//Avatar com as iniciais do criador do projeto
 const Avatar = styled.div`
     width: 35px;
     height: 35px;
@@ -119,7 +114,7 @@ const Avatar = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0; /*Impede que o avatar encolha*/
+    flex-shrink: 0;
 `;
 
 const DetalhesBotao = styled(Botao)`
@@ -128,7 +123,6 @@ const DetalhesBotao = styled(Botao)`
     border-radius: 10px;
 `;
 
-//Pega as iniciais do nome de quem criou o projeto, e as deixam maiúsculas.
 const getInitials = (nome) => {
     if (!nome) return '?';
     const parts = nome.split(' ');
@@ -138,7 +132,6 @@ const getInitials = (nome) => {
     return nome.substring(0, 2).toUpperCase();
 };
 
-//Condição para a cor da tag de status do projeto
 const getStatusStyle = (status) => {
     switch (status) {
         case 'Aberto para Candidaturas':
@@ -151,38 +144,60 @@ const getStatusStyle = (status) => {
 };
 
 function ProjectCard({ projeto }) {
-    const { nome, descricao, dono, curso, status, habilidades, interesses } = projeto;
+    const {
+        nome,
+        descricao,
+        dono,
+        cursoDono,
+        status,
+        habilidades,
+        interesses,
+    } = projeto;
     const statusStyle = getStatusStyle(status);
 
     return (
         <CardWrapper>
             <CardHeader>
                 <TituloProjeto>{nome}</TituloProjeto>
-                {status && <StatusTag color={statusStyle.color} textColor={statusStyle.textColor}>{status}</StatusTag>}
+                {status && (
+                    <StatusTag
+                        color={statusStyle.color}
+                        textColor={statusStyle.textColor}
+                    >
+                        {status}
+                    </StatusTag>
+                )}
             </CardHeader>
 
             <DescricaoProjeto>{descricao}</DescricaoProjeto>
 
             <TagsContainer>
-                {/*Renderiza tags de habilidade com seu tipo*/}
-                {habilidades?.map(h => <Tag key={h} $tipo="habilidade">{h}</Tag>)}
-                {/*Renderiza tags de interesse com seu tipo*/}
-                {interesses?.map(i => <Tag key={i} $tipo="interesse">{i}</Tag>)}
+                {habilidades?.map((h) => (
+                    <Tag key={h} $tipo="habilidade">
+                        {h}
+                    </Tag>
+                ))}
+                {interesses?.map((i) => (
+                    <Tag key={i} $tipo="interesse">
+                        {i}
+                    </Tag>
+                ))}
             </TagsContainer>
 
             <CardFooter>
                 <OwnerDetails>
                     <FooterText>
                         <FaGraduationCap size={20} color="#555" />
-                        <span>{curso || 'Curso não informado'}</span>
+                        <span>{cursoDono || 'Curso não informado'}</span>
                     </FooterText>
                     <FooterText>
                         <Avatar>{getInitials(dono)}</Avatar>
                         <span>{dono || 'Nome do Dono'}</span>
                     </FooterText>
                 </OwnerDetails>
-                {/*Tirar o alerta assim que o modal 'VerDetalhes' for integrado.*/}
-                <DetalhesBotao onClick={() => alert(`Detalhes do projeto: ${descricao}`)}>
+                <DetalhesBotao
+                    onClick={() => alert(`Detalhes do projeto: ${descricao}`)}
+                >
                     Ver Detalhes
                 </DetalhesBotao>
             </CardFooter>

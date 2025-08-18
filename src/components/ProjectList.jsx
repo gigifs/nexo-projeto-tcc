@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs } from 'firebase/firestore'; // Removido o 'where' que não será usado
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import ProjectCard from './ProjectCard';
@@ -34,15 +34,29 @@ function ProjectList() {
             setError('');
             try {
                 const projetosRef = collection(db, 'projetos');
-                //A query busca projetos onde o dono NÃO É o usuário atual
-                const q = query(projetosRef, where('donoId', '!=', currentUser.uid));
+                // 1. A query agora busca TODOS os projetos, sem filtros.
+                const q = query(projetosRef);
 
                 const querySnapshot = await getDocs(q);
-                const projetosList = querySnapshot.docs.map(doc => ({
+                const todosOsProjetos = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
-                setProjetos(projetosList);
+
+                // 2. Filtramos a lista para excluir projetos do usuário atual.
+                const projetosFiltrados = todosOsProjetos.filter(projeto => {
+                    // Garante que participantIds seja um array antes de verificar
+                    const isParticipant = Array.isArray(projeto.participantIds) 
+                        ? projeto.participantIds.includes(currentUser.uid) 
+                        : false;
+                    
+                    // Retorna 'false' se o usuário for o dono OU um participante,
+                    // removendo o projeto da lista final.
+                    return projeto.donoId !== currentUser.uid && !isParticipant;
+                });
+
+                setProjetos(projetosFiltrados);
+
             } catch (err) {
                 console.error("Erro ao buscar projetos:", err);
                 setError('Não foi possível carregar os projetos.');
@@ -52,11 +66,10 @@ function ProjectList() {
         };
 
         fetchProjetosRecomendados();
-    }, [currentUser]); //Roda a busca apenas quando o usuário é definido
+    }, [currentUser]);
 
     if (loading) return <MensagemFeedback>Carregando projetos...</MensagemFeedback>;
     if (error) return <MensagemFeedback>{error}</MensagemFeedback>;
-    //Se não houver nenhum projeto criado, aparece essa menssagem
     if (projetos.length === 0) return <MensagemFeedback>Nenhum projeto encontrado para você no momento.</MensagemFeedback>;
 
     return (

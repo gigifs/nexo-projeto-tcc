@@ -176,8 +176,8 @@ const SugestaoItem = styled.li`
 `;
 
 function FormularioCriarProjeto({ onClose }) {
-    //Pega a informação do usuário logado
-    const { currentUser } = useAuth();
+    //Pega a informação do usuário logado e os dados do perfil
+    const { currentUser, userData } = useAuth();
 
     //Estados para os campos do formulário
     const [nomeProjeto, setNomeProjeto] = useState('');
@@ -274,7 +274,7 @@ function FormularioCriarProjeto({ onClose }) {
         evento.preventDefault();
         setErro('');
 
-        if (!currentUser) {
+        if (!currentUser || !userData) {
             setErro('Você precisa estar logado para criar um projeto.');
             return;
         }
@@ -294,7 +294,19 @@ function FormularioCriarProjeto({ onClose }) {
                 descricao: descricao,
                 area: area,
                 habilidades: habilidades,
+                interesses: [],
                 donoId: currentUser.uid,
+                dono: `${userData.nome} ${userData.sobrenome}`,
+                cursoDono: userData.curso || 'Curso não informado',
+                participantIds: [currentUser.uid],
+                participantes: [
+                    {
+                        uid: currentUser.uid,
+                        nome: userData.nome,
+                        sobrenome: userData.sobrenome,
+                    },
+                ],
+                status: 'Novo',
                 criadoEm: serverTimestamp(),
             });
             alert('Projeto criado com sucesso!');

@@ -11,7 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const MenuEstilizado = styled.aside`
     width: 360px;
-    height: 427px;
+    height: 450px;
     background-color: #f5fafc;
     border: 1px solid #e0e0e0;
     border-radius: 20px;
@@ -76,8 +76,8 @@ const MenuItem = styled.li`
     gap: 12px;
     height: 50px;
     border-radius: 20px;
-    background-color: ${({ ativo }) => (ativo ? '#E6F0FA' : 'transparent')};
-    color: ${({ ativo }) => (ativo ? '#1976D2' : '#000')};
+    background-color: ${({ $ativo }) => ($ativo ? '#E6F0FA' : 'transparent')};
+    color: ${({ $ativo }) => ($ativo ? '#1976D2' : '#000')};
     font-size: 24px;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -91,22 +91,19 @@ const MenuItem = styled.li`
 
 function Menu() {
     const { userData } = useAuth();
-
     const [itemAtivo, setItemAtivo] = useState('Home');
 
-    const getInitials = (name) => {
-        if (!name) return '';
-        const names = name.split(' ');
-        if (names.length > 1) {
-            return `${names[0][0]}${names[1][0]}`.toUpperCase();
-        }
-        return name.substring(0, 2).toUpperCase();
+    // 1. A função 'getInitials' foi corrigida
+    const getInitials = (nome, sobrenome) => {
+        if (!nome || !sobrenome) return '?';
+        return `${nome[0]}${sobrenome[0]}`.toUpperCase();
     };
 
     return (
         <MenuEstilizado>
             <PerfilEstilizado>
-                <Avatar>{userData ? getInitials(userData.nome) : 'US'}</Avatar>
+                {/* 2. A chamada da função foi ajustada para passar nome E sobrenome */}
+                <Avatar>{userData ? getInitials(userData.nome, userData.sobrenome) : 'US'}</Avatar>
                 <PerfilInfo>
                     <Nome>{userData?.nome || 'Nome'}</Nome>
                     <Curso>{userData?.curso || 'Curso não informado'}</Curso>

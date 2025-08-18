@@ -1,26 +1,30 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage.jsx';
-import DashboardPage from './pages/DashboardPage.jsx';
-import ProtetorRota from './components/ProtetorRota.jsx';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import DashboardPage from './pages/DashboardPage';
+import ProtetorRota from './components/ProtetorRota';
+import { AuthProvider } from './contexts/AuthContext';
+import MyProjectDashboardPage from './pages/MyProjectDashboardPage';
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                {/* rota principal */}
-                <Route path="/" element={<LandingPage />} />
-                {/* rota depois de logado */}
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtetorRota>
-                            <DashboardPage />
-                        </ProtetorRota>
-                    }
-                />
-                {/* no futuro, adicionaremos outras rotas aqui */}
-            </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    {/* Rota pública para a página inicial */}
+                    <Route path="/" element={<LandingPage />} />
+
+                    {/* Rota protegida para o dashboard */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtetorRota>
+                                <MyProjectDashboardPage />
+                            </ProtetorRota>
+                        }
+                    />
+                </Routes>
+            </Router>
+        </AuthProvider>
     );
 }
 

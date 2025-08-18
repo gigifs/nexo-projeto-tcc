@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Botao from './Botao.jsx';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase.js';
 
 const FormularioContainer = styled.form`
@@ -163,7 +163,9 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
                 navigate('/dashboard');
                 //redirecionando para a pagina principal
             } else {
-                //se nao, impede o login e avisa
+                // Se o e-mail não for verificado, desconectamos o utilizador
+                // antes de mostrar a mensagem de erro.
+                await signOut(auth);
                 setErroLogin(
                     'Você precisa verificar seu e-mail antes de fazer o login.'
                 );

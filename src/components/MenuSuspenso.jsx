@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { FiUser, FiMessageSquare, FiSettings, FiLogOut } from 'react-icons/fi';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase.js';
+import { useAuth } from '../contexts/AuthContext';
 
 const MenuContainer = styled.div`
     position: absolute;
@@ -20,7 +19,7 @@ const MenuContainer = styled.div`
     gap: 15px;
 `;
 
-const MenuItem = styled.a`
+const MenuItem = styled.div`
     position: relative;
     z-index: 1;
     font-size: 20px;
@@ -76,8 +75,12 @@ const Separator = styled.hr`
 function DropdownMenu() {
     const navigate = useNavigate();
 
+    const { logout } = useAuth();
+
     const handleLogout = async () => {
-        await signOut(auth);
+        console.log('Botão Sair clicado. A chamar a função logout...');
+        await logout();
+        console.log('Logout concluído. A navegar para a página inicial...');
         navigate('/'); // Redireciona aqui
     };
 

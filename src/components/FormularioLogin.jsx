@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Botao from './Botao.jsx';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import {
+    signInWithEmailAndPassword,
+    signOut,
+    setPersistence,
+    browserSessionPersistence,
+    browserLocalPersistence,
+} from 'firebase/auth';
 import { auth } from '../firebase.js';
 
 const FormularioContainer = styled.form`
@@ -138,12 +144,23 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
     const [lembrar, setLembrar] = useState(false);
     const [erroLogin, setErroLogin] = useState(''); // estado para erros de login
     const navigate = useNavigate(); // inicializa o hook de navegação
+    const [loading, setLoading] = useState(false); // estado de loading
 
     const handleSubmit = async (evento) => {
         evento.preventDefault(); // Impede que a página recarregue ao enviar
         setErroLogin(''); // limpa erros antigos
 
+        // Impede o envio se já estiver a carregar
+        if (loading) return;
+
+        setLoading(true); // ativa o loading e garante que ele seja desativado no fim
         try {
+            // Isto garante que a escolha atual do utilizador seja usada para ESTA tentativa.
+            await setPersistence(
+                auth,
+                lembrar ? browserLocalPersistence : browserSessionPersistence
+            );
+
             //tenta fazer o login
             const userCredential = await signInWithEmailAndPassword(
                 auth,
@@ -156,14 +173,19 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
 
             //verificação importante: o email foi verificado?
             if (user.emailVerified) {
-                //se sim, login bem sucedido
-                console.log(
-                    'Login bem-sucedido, redirecionando para o dashboard...'
+                // Se sim, login bem sucedido
+                // Após o sucesso do login, guardamos a preferência no localStorage.
+                localStorage.setItem(
+                    'firebasePersistence',
+                    lembrar ? 'local' : 'session'
                 );
+
                 navigate('/dashboard');
                 //redirecionando para a pagina principal
             } else {
-                //se nao, impede o login e avisa
+                // Se o e-mail não for verificado, desconectamos o utilizador
+                // antes de mostrar a mensagem de erro.
+                await signOut(auth);
                 setErroLogin(
                     'Você precisa verificar seu e-mail antes de fazer o login.'
                 );
@@ -180,6 +202,8 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
             } else {
                 setErroLogin('Ocorreu um erro ao tentar fazer o login.');
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -227,8 +251,8 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
             {erroLogin && <MensagemErro>{erroLogin}</MensagemErro>}
 
             <ButtonContainer>
-                <Botao variant="Modal" type="submit">
-                    Entrar
+                <Botao variant="Modal" type="submit" disabled={loading}>
+                    {loading ? 'Entrando...' : 'Entrar'}
                 </Botao>
             </ButtonContainer>
 

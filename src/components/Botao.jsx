@@ -139,6 +139,17 @@ const BotaoEstilizado = styled.button`
                         color: #f5fafc; /* Texto branco */
                     }
                 `;
+            case 'Verificacao':
+                return css`
+                    border-radius: 10px;
+                    padding: 8px 16px;
+                    font-size: 24px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
             case 'Entrar':
             default:
                 // Estilos para o botão primário (e o padrão, caso nenhuma variant seja passada)

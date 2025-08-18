@@ -5,7 +5,7 @@ import React, {
     useContext,
     useCallback,
 } from 'react'; // importante: useEffect é para interagir com sistemas externos - Firebase
-import { onAuthStateChanged } from 'firebase/auth'; // função de autenticação em tempo real
+import { onAuthStateChanged, signOut } from 'firebase/auth'; // função de autenticação em tempo real
 import { auth, db } from '../firebase'; // aqui sao as instancias de autenticação e banco de dados
 import { doc, getDoc } from 'firebase/firestore'; // ferramentas que leem dados para o firebase
 
@@ -61,10 +61,22 @@ export function AuthProvider({ children }) {
         return unsubscribe; // limpa o ouvinte quando ele for removido da tela, previne vazamento de memoria
     }, []); // [] = garante que o trecho so seja executado uma vez
 
+    // função de logout
+    const logout = async () => {
+        try {
+            await signOut(auth); // Desconecta do Firebase
+            // Limpa a nossa chave de persistência
+            localStorage.removeItem('firebasePersistence');
+        } catch (error) {
+            console.error('Erro ao fazer logout:', error);
+        }
+    };
+
     // cria um objeto e agrupa todos os dados que vamos compartilhar com o resto da aplicação
     const value = {
         currentUser,
         userData,
+        logout,
         refreshUserData: () => fetchUserData(currentUser),
     };
 

@@ -19,7 +19,7 @@ const CorpoDaPagina = styled.div`
     display: flex;
     flex-grow: 1;
     overflow: hidden;
-    padding: 20px 40px;
+    padding: 40px 20px 0 40px;
     gap: 30px;
 `;
 
@@ -34,6 +34,7 @@ const ColunaEsquerda = styled.aside`
 const ColunaDireita = styled.main`
     flex-grow: 1;
     overflow-y: auto;
+    padding: 0 20px 0 20px;
 `;
 
 function DashboardLayout() {

@@ -1,17 +1,23 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Botao from './Botao';
-import { useAuth } from '../contexts/AuthContext'; //Para pegar os dados do Firebase
 
 const HeaderContainer = styled.div`
-    background-color: #f5fafc;
-    padding: 20px 30px 20px 30px;
-    border-radius: 20px;
-    margin-bottom: 20px;
+    /* Estilos que se aplicam sempre */
+    padding: 35px 40px 35px 40px;
+    margin-bottom: 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     width: 100%;
+
+    /* Estilos que SÓ se aplicam se a prop '$semFundo' NÃO for passada */
+    ${(props) =>
+        !props.$semFundo &&
+        css`
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        `}
 `;
 
 const HeaderText = styled.div``;
@@ -30,24 +36,27 @@ const Subtitulo = styled.p`
     font-weight: 300;
 `;
 
-function DashboardHeader({ onCriarProjetoClick }) {
-    //O hook 'useAuth' pega os dados reais do Firebase
-    const { userData } = useAuth();
-    // O '?' para o caso de o userData ainda não ter carregado
-    const nomeUsuario = userData?.nome || 'Usuário';
-
+// O componente está mais flexível
+function DashboardHeader({
+    titulo,
+    children,
+    botaoTexto,
+    onBotaoClick,
+    semFundo,
+}) {
     return (
-        <HeaderContainer>
+        <HeaderContainer $semFundo={semFundo}>
             <HeaderText>
-                <Titulo>Bem-vindo(a), {nomeUsuario}!</Titulo>
-                <Subtitulo>
-                    Descubra um mundo de possibilidades ao seu alcance.
-                </Subtitulo>
+                <Titulo>{titulo}</Titulo>
+                <Subtitulo>{children}</Subtitulo>
             </HeaderText>
-            {/*Sugestão, colocar ícone do '+'*/}
-            <Botao variant="Modal" onClick={onCriarProjetoClick}>
-                + Criar Projeto
-            </Botao>
+
+            {/* O botão só é renderizado SE a prop 'botaoTexto' existir */}
+            {botaoTexto && (
+                <Botao variant="header" onClick={onBotaoClick}>
+                    {botaoTexto}
+                </Botao>
+            )}
         </HeaderContainer>
     );
 }

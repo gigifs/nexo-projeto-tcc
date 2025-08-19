@@ -1,5 +1,24 @@
+import styled from 'styled-components';
+import DashboardHeader from '../components/DashboardHeader';
+
+const HomeContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
+
 function ConfiguracoesPage() {
-    // O conteúdo da "Tela Configurações" virá aqui.
-    return <h1>Conteúdo da Página Configurações</h1>;
+    return (
+        <HomeContainer>
+            <DashboardHeader titulo={`Configurações`}>
+                Aqui você edita suas informações pessoais e de segurança.
+            </DashboardHeader>
+            <div>
+                <h2>
+                    Abas de Navegação (Informações Pessoais / Privacidade e
+                    Segurança)
+                </h2>
+            </div>
+        </HomeContainer>
+    );
 }
 export default ConfiguracoesPage;

@@ -71,6 +71,18 @@ const BotaoEstilizado = styled.button`
                     }
                 `;
 
+            case 'header':
+                return css`
+                    border-radius: 10px;
+                    padding: 8px 16px;
+                    font-size: 24px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
+
             case 'CadastrarMenuHamburguer':
                 return css`
                     font-size: 24px;

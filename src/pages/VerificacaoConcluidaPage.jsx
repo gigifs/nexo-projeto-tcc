@@ -4,7 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { applyActionCode } from 'firebase/auth';
 import { auth } from '../firebase';
 import Botao from '../components/Botao';
-import HeaderSemLogin from '../components/headerSemLogin';
+import HeaderSemLogin from '../components/headerApp';
+import MyProjectCard from '../components/MyProjectCard';
+import MyProjectsList from '../components/MyProjectList';
+import Menu from '../components/Menu';
 
 const PaginaContainer = styled.div`
     background-color: #e6ebf0;

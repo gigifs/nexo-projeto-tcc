@@ -11,7 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const MenuEstilizado = styled.aside`
     width: 360px;
-    height: 427px;
+    height: 450px;
     background-color: #f5fafc;
     border: 1px solid #e0e0e0;
     border-radius: 20px;

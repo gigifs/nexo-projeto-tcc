@@ -1,55 +1,51 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-import HeaderApp from '../components/headerApp.jsx';
-import DashboardHeader from '../components/DashboardHeader.jsx';
-import Modal from '../components/Modal.jsx';
-import FormularioCriarProjeto from '../components/FormularioCriarProjeto.jsx';
-import MeusInteresses from '../components/MeusInteresses.jsx';
-import EditarInteressesModal from '../components/EditarInteressesModal.jsx';
-import Menu from '../components/Menu.jsx';
-import ProjectTabs from '../components/ProjectTabs.jsx'; //Retângulo de abas
-import ProjectList from '../components/ProjectList.jsx'; //Lista de projetos
+import HeaderApp from '../components/headerApp';
+import DashboardHeader from '../components/DashboardHeader';
 import MyProjectList from '../components/MyProjectList';
+import ProjectList from '../components/ProjectList';
+import Modal from '../components/Modal';
+import FormularioCriarProjeto from '../components/FormularioCriarProjeto';
+import Menu from '../components/Menu';
+import MeusInteresses from '../components/MeusInteresses';
+import EditarInteressesModal from '../components/EditarInteressesModal';
+import ProjectTabs from '../components/ProjectTabs';
 
 const PageLayout = styled.div`
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     background-color: #e6ebf0;
-    overflow: hidden;
 `;
 
 const MainContent = styled.main`
     flex-grow: 1;
-    overflow-y: auto;
-    padding: 50px 40px;
+    padding: 20px 40px;
 `;
 
 const LayoutDashboard = styled.div`
-    display: flex;
-    gap: 50px;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 20px;
+    width: 100%;
 `;
 
-const ColunaEsquerda = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    width: 360px;
-    flex-shrink: 0; /* Impede que a coluna encolha */
-`;
-
-const ColunaDireita = styled.div`
+const ColunaEsquerda = styled.aside`
     display: flex;
     flex-direction: column;
-    gap: 30px; /* Espaço para futuros componentes */
-    flex-grow: 1; /* Faz esta coluna ocupar todo o espaço restante */
+    gap: 20px;
 `;
 
-function DashboardPage() {
+const ColunaDireita = styled.section`
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+`;
+
+function MyProjectsPage() {
     const [isModalOpen, setModalOpen] = useState(false);
     const [interessesModalOpen, setInteressesModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState('recomendados'); //Estado para a aba ativa
+    const [activeTab, setActiveTab] = useState('meus-projetos');
 
     return (
         <PageLayout>
@@ -64,18 +60,20 @@ function DashboardPage() {
                     </ColunaEsquerda>
 
                     <ColunaDireita>
+                        {/* -> Passa os textos personalizados para o cabeçalho, mudança realizada no DashboardHeader */}
                         <DashboardHeader
                             onCriarProjetoClick={() => setModalOpen(true)}
+                            titulo="Meus Projetos"
+                            subtitulo="Comece a criar ou continue o que já está em andamento!"
                         />
                         
-                        {/*Lógica das abas*/}
                         <ProjectTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-                        {activeTab === 'recomendados' ? (
-                            <ProjectList />
-                        ) : (
-                            <MyProjectList/>
-                        )}
 
+                        {activeTab === 'recomendados' ? (
+                            <ProjectList /> 
+                        ) : (
+                            <MyProjectList />
+                        )}
                     </ColunaDireita>
                 </LayoutDashboard>
             </MainContent>
@@ -87,6 +85,7 @@ function DashboardPage() {
             >
                 <FormularioCriarProjeto onClose={() => setModalOpen(false)} />
             </Modal>
+            
             <Modal
                 isOpen={interessesModalOpen}
                 onClose={() => setInteressesModalOpen(false)}
@@ -100,4 +99,4 @@ function DashboardPage() {
     );
 }
 
-export default DashboardPage;
+export default MyProjectsPage;

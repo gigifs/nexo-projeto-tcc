@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import MyProjectsPage from './pages/MyProjectPage.jsx';
 import ProtetorRota from './components/ProtetorRota.jsx';
 import AguardandoVerificacaoPage from './pages/AguardandoVerificacaoPage.jsx';
 import VerificacaoConcluidaPage from './pages/VerificacaoConcluidaPage.jsx';
+
 
 function App() {
     return (
@@ -26,11 +28,12 @@ function App() {
                     path="/dashboard"
                     element={
                         <ProtetorRota>
-                            <DashboardPage />
+
+                            <MyProjectsPage/>
                         </ProtetorRota>
                     }
                 />
-                {/* no futuro, adicionaremos outras rotas aqui */}
+                
             </Routes>
         </BrowserRouter>
     );

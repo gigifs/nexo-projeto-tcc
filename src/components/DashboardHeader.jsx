@@ -30,21 +30,23 @@ const Subtitulo = styled.p`
     font-weight: 300;
 `;
 
-function DashboardHeader({ onCriarProjetoClick }) {
-    //O hook 'useAuth' pega os dados reais do Firebase
+// --->> ALTERAÇÃO AQUI <<---
+// 1 -> O componente aceita 'titulo' e 'subtitulo'
+function DashboardHeader({ onCriarProjetoClick, titulo, subtitulo }) {
     const { userData } = useAuth();
-    // O '?' para o caso de o userData ainda não ter carregado
     const nomeUsuario = userData?.nome || 'Usuário';
+
+    // -> Defini o texto padrão caso não tenha parametro
+    const tituloExibido = titulo || `Bem-vindo(a), ${nomeUsuario}!`;
+    const subtituloExibido =
+        subtitulo || 'Descubra um mundo de possibilidades ao seu alcance.';
 
     return (
         <HeaderContainer>
             <HeaderText>
-                <Titulo>Bem-vindo(a), {nomeUsuario}!</Titulo>
-                <Subtitulo>
-                    Descubra um mundo de possibilidades ao seu alcance.
-                </Subtitulo>
+                <Titulo>{tituloExibido}</Titulo>
+                <Subtitulo>{subtituloExibido}</Subtitulo>
             </HeaderText>
-            {/*Sugestão, colocar ícone do '+'*/}
             <Botao variant="Modal" onClick={onCriarProjetoClick}>
                 + Criar Projeto
             </Botao>

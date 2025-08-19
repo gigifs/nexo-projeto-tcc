@@ -1,72 +1,31 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-import HeaderApp from '../components/headerApp.jsx';
-import DashboardHeader from '../components/DashboardHeader.jsx';
-import Modal from '../components/Modal.jsx';
-import FormularioCriarProjeto from '../components/FormularioCriarProjeto.jsx';
-import MeusInteresses from '../components/MeusInteresses.jsx';
-import EditarInteressesModal from '../components/EditarInteressesModal.jsx';
-import Menu from '../components/Menu.jsx';
+import DashboardHeader from '../components/DashboardHeader';
+import Modal from '../components/Modal';
+import FormularioCriarProjeto from '../components/FormularioCriarProjeto';
 
-const PageLayout = styled.div`
+// Styled Components para o conteúdo específico desta página
+const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    background-color: #e6ebf0;
-    overflow: hidden;
+    gap: 24px;
 `;
 
-const MainContent = styled.main`
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 50px 40px;
-`;
-
-const LayoutDashboard = styled.div`
-    display: flex;
-    gap: 50px;
-    align-items: flex-start;
-`;
-
-const ColunaEsquerda = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    width: 360px;
-    flex-shrink: 0; /* Impede que a coluna encolha */
-`;
-
-const ColunaDireita = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 30px; /* Espaço para futuros componentes */
-    flex-grow: 1; /* Faz esta coluna ocupar todo o espaço restante */
-`;
-
-function DashboardPage() {
+function HomeDashboardPage() {
+    // A lógica de modais que pertencem apenas a esta página (como o de Criar Projeto) fica aqui.
     const [isModalOpen, setModalOpen] = useState(false);
-    const [interessesModalOpen, setInteressesModalOpen] = useState(false);
 
     return (
-        <PageLayout>
-            <HeaderApp />
-            <MainContent>
-                <LayoutDashboard>
-                    <ColunaEsquerda>
-                        <Menu />
-                        <MeusInteresses
-                            onEditClick={() => setInteressesModalOpen(true)}
-                        />
-                    </ColunaEsquerda>
+        <HomeContainer>
+            <DashboardHeader onCriarProjetoClick={() => setModalOpen(true)} />
 
-                    <ColunaDireita>
-                        <DashboardHeader
-                            onCriarProjetoClick={() => setModalOpen(true)}
-                        />
-                        {/*Menu, cards ... */}
-                    </ColunaDireita>
-                </LayoutDashboard>
-            </MainContent>
+            {/* Aqui entrarão as abas e os cards de projetos da Home */}
+            <div>
+                <h2>
+                    Abas de Navegação (Projetos Recomendados / Meus Projetos)
+                </h2>
+                {/* O conteúdo dos cards virá aqui */}
+            </div>
 
             <Modal
                 isOpen={isModalOpen}
@@ -75,17 +34,8 @@ function DashboardPage() {
             >
                 <FormularioCriarProjeto onClose={() => setModalOpen(false)} />
             </Modal>
-            <Modal
-                isOpen={interessesModalOpen}
-                onClose={() => setInteressesModalOpen(false)}
-                size="hab-int"
-            >
-                <EditarInteressesModal
-                    onSuccess={() => setInteressesModalOpen(false)}
-                />
-            </Modal>
-        </PageLayout>
+        </HomeContainer>
     );
 }
 
-export default DashboardPage;
+export default HomeDashboardPage;

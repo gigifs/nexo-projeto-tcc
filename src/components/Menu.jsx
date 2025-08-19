@@ -1,48 +1,52 @@
-import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import {
-    FaHome,
-    FaSearch,
-    FaBriefcase,
-    FaComment,
-    FaCog,
-} from 'react-icons/fa';
+    FiHome,
+    FiSearch,
+    FiBriefcase,
+    FiMessageSquare,
+    FiSettings,
+} from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 
 const MenuEstilizado = styled.aside`
-    width: 360px;
-    height: 427px;
     background-color: #f5fafc;
-    border: 1px solid #e0e0e0;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     width: 100%;
-    padding: 16px;
+    padding: 25px;
     display: flex;
     flex-direction: column;
     font-family: 'Roboto', sans-serif;
 `;
 
 const PerfilEstilizado = styled.div`
-    width: 290px;
-    height: 60px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin: 27px 0 24px 27px;
+    gap: 20px;
+    padding: 8px 6px;
+    margin-bottom: 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+        background-color: #238cd74d; /* Cor de fundo azul clara do hover */
+    }
 `;
 
 const Avatar = styled.div`
     width: 60px;
     height: 60px;
-    background-color: #1976d2;
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
+    background-color: #0a528a;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 30px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 `;
 
 const PerfilInfo = styled.div`
@@ -51,14 +55,15 @@ const PerfilInfo = styled.div`
 `;
 
 const Nome = styled.span`
-    font-weight: 600;
+    font-weight: 400;
     font-size: 20px;
     color: #000;
 `;
 
 const Curso = styled.span`
-    font-size: 16px;
-    color: #777;
+    font-size: 20px;
+    font-weight: 300;
+    color: #000;
 `;
 
 const MenuLista = styled.ul`
@@ -67,82 +72,105 @@ const MenuLista = styled.ul`
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 `;
 
 const MenuItem = styled.li`
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     height: 50px;
+    padding: 0 20px;
     border-radius: 20px;
-    background-color: ${({ ativo }) => (ativo ? '#E6F0FA' : 'transparent')};
-    color: ${({ ativo }) => (ativo ? '#1976D2' : '#000')};
     font-size: 24px;
     cursor: pointer;
-    transition: background-color 0.2s;
-    padding-left: 27px;
+    transition: all 0.2s ease-in-out;
+
+    /* Lógica para o item ativo */
+    background-color: ${({ $ativo }) => ($ativo ? '#238cd74d' : 'transparent')};
+    color: ${({ $ativo }) => ($ativo ? '#000' : '#000')};
+    font-weight: ${({ $ativo }) => ($ativo ? '500' : '300')};
+
+    /* O ícone também muda de cor */
+    svg {
+        color: ${({ $ativo }) => ($ativo ? '#0A528A' : '#000')};
+        stroke-width: ${({ $ativo }) => ($ativo ? '2.5px' : '2px')};
+    }
 
     &:hover {
-        background-color: #e6f0fa;
-        color: #1976d2;
+        background-color: #238cd74d;
+        color: #000;
+        font-weight: 500;
+
+        svg {
+            color: #0a528a;
+            stroke-width: 3px;
+        }
     }
 `;
+
+// Função para pegar as iniciais do nome
+const getInitials = (nome, sobrenome) => {
+    if (!nome || !sobrenome) return '?';
+    return `${nome[0]}${sobrenome[0]}`.toUpperCase();
+};
 
 function Menu() {
     const { userData } = useAuth();
 
-    const [itemAtivo, setItemAtivo] = useState('Home');
-
-    const getInitials = (name) => {
-        if (!name) return '';
-        const names = name.split(' ');
-        if (names.length > 1) {
-            return `${names[0][0]}${names[1][0]}`.toUpperCase();
-        }
-        return name.substring(0, 2).toUpperCase();
-    };
+    const navigate = useNavigate();
+    const location = useLocation();
 
     return (
         <MenuEstilizado>
-            <PerfilEstilizado>
-                <Avatar>{userData ? getInitials(userData.nome) : 'US'}</Avatar>
+            <PerfilEstilizado
+                $ativo={location.pathname === '/dashboard/perfil'}
+                onClick={() => navigate('/dashboard/perfil')}
+            >
+                <Avatar>
+                    {userData
+                        ? getInitials(userData.nome, userData.sobrenome)
+                        : 'US'}
+                </Avatar>
                 <PerfilInfo>
-                    <Nome>{userData?.nome || 'Nome'}</Nome>
+                    <Nome>
+                        {userData?.nome || 'Nome do Usuário'}{' '}
+                        {userData?.sobrenome}
+                    </Nome>
                     <Curso>{userData?.curso || 'Curso não informado'}</Curso>
                 </PerfilInfo>
             </PerfilEstilizado>
 
             <MenuLista>
                 <MenuItem
-                    $ativo={itemAtivo === 'Home'}
-                    onClick={() => setItemAtivo('Home')}
+                    $ativo={location.pathname === '/dashboard'}
+                    onClick={() => navigate('/dashboard')}
                 >
-                    <FaHome size={24} /> Home
+                    <FiHome size={32} /> Home
                 </MenuItem>
                 <MenuItem
-                    $ativo={itemAtivo === 'Buscar Projetos'}
-                    onClick={() => setItemAtivo('Buscar Projetos')}
+                    $ativo={location.pathname === '/dashboard/buscar-projetos'}
+                    onClick={() => navigate('/dashboard/buscar-projetos')}
                 >
-                    <FaSearch size={24} /> Buscar Projetos
+                    <FiSearch size={32} /> Buscar Projetos
                 </MenuItem>
                 <MenuItem
-                    $ativo={itemAtivo === 'Meus Projetos'}
-                    onClick={() => setItemAtivo('Meus Projetos')}
+                    $ativo={location.pathname === '/dashboard/meus-projetos'}
+                    onClick={() => navigate('/dashboard/meus-projetos')}
                 >
-                    <FaBriefcase size={24} /> Meus Projetos
+                    <FiBriefcase size={32} /> Meus Projetos
                 </MenuItem>
                 <MenuItem
-                    $ativo={itemAtivo === 'Mensagens'}
-                    onClick={() => setItemAtivo('Mensagens')}
+                    $ativo={location.pathname === '/dashboard/mensagens'}
+                    onClick={() => navigate('/dashboard/mensagens')}
                 >
-                    <FaComment size={24} /> Mensagens
+                    <FiMessageSquare size={32} /> Mensagens
                 </MenuItem>
                 <MenuItem
-                    $ativo={itemAtivo === 'Configurações'}
-                    onClick={() => setItemAtivo('Configurações')}
+                    $ativo={location.pathname === '/dashboard/configuracoes'}
+                    onClick={() => navigate('/dashboard/configuracoes')}
                 >
-                    <FaCog size={24} /> Configurações
+                    <FiSettings size={32} /> Configurações
                 </MenuItem>
             </MenuLista>
         </MenuEstilizado>

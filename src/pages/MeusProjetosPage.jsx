@@ -1,32 +1,27 @@
-import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
 import styled from 'styled-components';
 import DashboardHeader from '../components/DashboardHeader';
+import { Outlet } from 'react-router-dom';
+import NavegacaoAbas from '../components/NavegacaoAbas';
 import Modal from '../components/Modal';
 import FormularioCriarProjeto from '../components/FormularioCriarProjeto';
-import { useAuth } from '../contexts/AuthContext';
-import NavegacaoAbas from '../components/NavegacaoAbas';
 
-// Styled Components para o conteúdo específico desta página
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
 `;
 
-// Este seria o componente que busca e exibe os cards de projetos recomendados
-const ListaProjetosRecomendados = () => {
-    return <h3>Conteúdo dos Projetos Recomendados...</h3>;
+// Este seria o componente que busca e exibe os cards dos projetos do próprio utilizador
+const ListaMeusProjetos = () => {
+    return <h3>Conteúdo dos Meus Projetos...</h3>;
 };
 
-function DashboardPage() {
+function MeusProjetosPage() {
     // A lógica de modais que pertencem apenas a esta página (como o de Criar Projeto) fica aqui.
     const [isModalOpen, setModalOpen] = useState(false);
 
-    const { userData } = useAuth();
-    const nomeUsuario = userData?.nome || 'Usuário';
-
-    // Define as abas que esta página irá mostrar
-    const abasDaHome = [
+    // As abas são as mesmas, para manter a consistência na navegação
+    const abasDoMeusProjetos = [
         { label: 'Projetos Recomendados', path: '/dashboard' },
         { label: 'Meus Projetos', path: '/dashboard/meus-projetos' },
     ];
@@ -34,17 +29,17 @@ function DashboardPage() {
     return (
         <HomeContainer>
             <DashboardHeader
-                titulo={`Bem-vindo(a), ${nomeUsuario}!`}
+                titulo={`Meus Projetos`}
                 botaoTexto="+ Criar Projeto"
                 onBotaoClick={() => setModalOpen(true)}
             >
-                Descubra um mundo de possibilidades ao seu alcance.
+                Comece a criar ou continue o que já está em andamento!
             </DashboardHeader>
 
-            <NavegacaoAbas abas={abasDaHome} />
+            <NavegacaoAbas abas={abasDoMeusProjetos} />
 
-            {/* O conteúdo específico desta página (Home) é renderizado aqui */}
-            <ListaProjetosRecomendados />
+            {/* O conteúdo específico desta página (Meus Projetos) é renderizado aqui */}
+            <ListaMeusProjetos />
 
             <Modal
                 isOpen={isModalOpen}
@@ -56,5 +51,4 @@ function DashboardPage() {
         </HomeContainer>
     );
 }
-
-export default DashboardPage;
+export default MeusProjetosPage;

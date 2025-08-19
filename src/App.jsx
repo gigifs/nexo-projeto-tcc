@@ -1,9 +1,15 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage.jsx';
-import DashboardPage from './pages/DashboardPage.jsx';
 import ProtetorRota from './components/ProtetorRota.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 import AguardandoVerificacaoPage from './pages/AguardandoVerificacaoPage.jsx';
 import VerificacaoConcluidaPage from './pages/VerificacaoConcluidaPage.jsx';
+import DashboardLayout from './pages/DashboardLayout';
+import DashboardPage from './pages/DashboardPage.jsx';
+import BuscarProjetosPage from './pages/BuscarProjetosPage';
+import MeusProjetosPage from './pages/MeusProjetosPage.jsx';
+import MensagensPage from './pages/MensagensPage.jsx';
+import ConfiguracoesPage from './pages/ConfiguracoesPage.jsx';
+import PerfilPage from './pages/PerfilPage.jsx';
 
 function App() {
     return (
@@ -21,16 +27,31 @@ function App() {
                     element={<VerificacaoConcluidaPage />}
                 />
 
-                {/* rota depois de logado */}
                 <Route
                     path="/dashboard"
                     element={
                         <ProtetorRota>
-                            <DashboardPage />
+                            <DashboardLayout />
                         </ProtetorRota>
                     }
-                />
-                {/* no futuro, adicionaremos outras rotas aqui */}
+                >
+                    {/* As rotas filhas são renderizadas dentro do <Outlet> */}
+                    <Route index element={<DashboardPage />} />
+                    <Route
+                        path="buscar-projetos"
+                        element={<BuscarProjetosPage />}
+                    />
+                    <Route
+                        path="meus-projetos"
+                        element={<MeusProjetosPage />}
+                    />
+                    <Route path="mensagens" element={<MensagensPage />} />
+                    <Route
+                        path="configuracoes"
+                        element={<ConfiguracoesPage />}
+                    />
+                    <Route path="perfil" element={<PerfilPage />} />
+                </Route>
             </Routes>
         </BrowserRouter>
     );

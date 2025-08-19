@@ -32,6 +32,11 @@ const ModalBox = styled.div`
                 return css`
                     max-width: 560px;
                 `;
+            case 'hab-int':
+                return css`
+                    border-radius: 20px;
+                    max-width: 560px;
+                `;
             default:
                 // Tamanho padrão se nenhuma prop 'size' for passada
                 return css`

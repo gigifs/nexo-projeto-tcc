@@ -25,3 +25,6 @@ dist-ssr
 
 # Variáveis de Ambiente (NÃO ENVIAR PARA O GITHUB)
 .env*
+
+# Ignorar scripts e chaves de serviço
+scripts/

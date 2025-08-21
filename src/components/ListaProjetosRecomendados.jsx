@@ -7,7 +7,7 @@ import ProjectCard from './ProjectCard';
 
 const ListWrapper = styled.div`
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(2, 1fr); /*cria duas colunas de tamanho = 1fr (uma fração do espaço disponível)*/
     gap: 30px;
     width: 100%;
 `;
@@ -29,20 +29,21 @@ function ListaProjetosRecomendados() {
     useEffect(() => {
         const fetchProjetosRecomendados = async () => {
             if (!currentUser) return;
-
             setLoading(true);
             setError('');
+            
             try {
                 const projetosRef = collection(db, 'projetos');
                 //A query busca projetos onde o dono NÃO É o usuário atual
                 const q = query(projetosRef, where('donoId', '!=', currentUser.uid));
-
                 const querySnapshot = await getDocs(q);
                 const projetosList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
+
                 setProjetos(projetosList);
+
             } catch (err) {
                 console.error("Erro ao buscar projetos:", err);
                 setError('Não foi possível carregar os projetos.');

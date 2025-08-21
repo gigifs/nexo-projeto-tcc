@@ -12,7 +12,7 @@ const CardWrapper = styled.div`
     gap: 15px;
     transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
-    height: 340px; /*Atura máxima do card*/
+    height: 295px; /*Atura máxima do card*/
     position: relative;
 
     &:hover {
@@ -49,8 +49,8 @@ const StatusTag = styled.span`
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
-    background-color: ${props => props.color || '#e0e0e0'};
-    color: ${props => props.textColor || '#000'};
+    background-color: ${props => props.$color || '#e0e0e0'};
+    color: ${props => props.$textColor || '#000'};
 `;
 
 const DescricaoProjeto = styled.p`
@@ -141,24 +141,30 @@ const getInitials = (nome) => {
 //Condição para a cor da tag de status do projeto
 const getStatusStyle = (status) => {
     switch (status) {
-        case 'Aberto para Candidaturas':
-            return { color: '#E8DFF5', textColor: '#6A1B9A' };
         case 'Novo':
-            return { color: '#FFE0B2', textColor: '#E65100' };
+            return { $color: '#FFE0B2', $textColor: '#E65100' };
         default:
-            return { color: '#e0e0e0', textColor: '#000' };
+            return { $color: '#e0e0e0', $textColor: '#000' };
     }
 };
 
 function ProjectCard({ projeto }) {
-    const { nome, descricao, dono, curso, status, habilidades, interesses } = projeto;
+    const { nome, descricao, donoNome, donoSobrenome, curso, status, habilidades, interesses } = projeto;
     const statusStyle = getStatusStyle(status);
+    const nomeCompletoDono = `${donoNome || ''} ${donoSobrenome || ""}`.trim();
 
     return (
         <CardWrapper>
             <CardHeader>
                 <TituloProjeto>{nome}</TituloProjeto>
-                {status && <StatusTag color={statusStyle.color} textColor={statusStyle.textColor}>{status}</StatusTag>}
+                {status && (
+                    <StatusTag 
+                        $color={statusStyle.$color} 
+                        $textColor={statusStyle.$textColor}
+                    >
+                        {status}
+                    </StatusTag>
+                )}
             </CardHeader>
 
             <DescricaoProjeto>{descricao}</DescricaoProjeto>
@@ -177,8 +183,8 @@ function ProjectCard({ projeto }) {
                         <span>{curso || 'Curso não informado'}</span>
                     </FooterText>
                     <FooterText>
-                        <Avatar>{getInitials(dono)}</Avatar>
-                        <span>{dono || 'Nome do Dono'}</span>
+                        <Avatar>{getInitials(nomeCompletoDono)}</Avatar>
+                        <span>{nomeCompletoDono || 'Nome do Dono'}</span>
                     </FooterText>
                 </OwnerDetails>
                 {/*Tirar o alerta assim que o modal 'VerDetalhes' for integrado.*/}

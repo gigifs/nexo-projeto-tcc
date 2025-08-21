@@ -4,7 +4,6 @@ import Botao from './Botao';
 const HeaderContainer = styled.div`
     /* Estilos que se aplicam sempre */
     padding: 35px 40px 35px 40px;
-    margin-bottom: 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;

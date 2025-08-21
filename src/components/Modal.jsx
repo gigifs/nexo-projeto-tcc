@@ -37,6 +37,15 @@ const ModalBox = styled.div`
                     border-radius: 20px;
                     max-width: 560px;
                 `;
+            case 'excluir':
+                return css`
+                    max-width: 460px;
+                    min-height: 300px;
+                    border-radius: 30px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                `;
             default:
                 // Tamanho padrão se nenhuma prop 'size' for passada
                 return css`

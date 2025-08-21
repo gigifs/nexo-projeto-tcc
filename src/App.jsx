@@ -8,8 +8,10 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import BuscarProjetosPage from './pages/BuscarProjetosPage';
 import MeusProjetosPage from './pages/MeusProjetosPage.jsx';
 import MensagensPage from './pages/MensagensPage.jsx';
-import ConfiguracoesPage from './pages/ConfiguracoesPage.jsx';
+import ConfiguracoesPessoaisPage from './pages/ConfiguracoesPessoaisPage.jsx';
+import ConfiguracoesSegurancaPage from './pages/ConfiguracoesSegurancaPage.jsx';
 import PerfilPage from './pages/PerfilPage.jsx';
+import EsqueciSenhaPage from './pages/EsqueciSenhaPage.jsx';
 
 function App() {
     return (
@@ -26,6 +28,7 @@ function App() {
                     path="/verificacao-concluida"
                     element={<VerificacaoConcluidaPage />}
                 />
+                <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />
 
                 <Route
                     path="/dashboard"
@@ -48,7 +51,11 @@ function App() {
                     <Route path="mensagens" element={<MensagensPage />} />
                     <Route
                         path="configuracoes"
-                        element={<ConfiguracoesPage />}
+                        element={<ConfiguracoesPessoaisPage />}
+                    />
+                    <Route
+                        path="configuracoes/seguranca"
+                        element={<ConfiguracoesSegurancaPage />}
                     />
                     <Route path="perfil" element={<PerfilPage />} />
                 </Route>

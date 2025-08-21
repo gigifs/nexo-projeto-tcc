@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import Botao from './Botao';
-import { FaCommentDots, FaCog } from 'react-icons/fa';
+import { FiMessageSquare, FiSettings } from 'react-icons/fi';
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -12,7 +12,7 @@ const CardWrapper = styled.div`
     gap: 15px;
     transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
-    min-height: 340px;
+    height: 295px;
     position: relative;
     &:hover {
         transform: translateY(-5px);
@@ -55,8 +55,11 @@ const DescricaoProjeto = styled.p`
     color: #333;
     line-height: 1.4;
     margin: 0;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /*Limite de linhas para a descrição*/
+    -webkit-box-orient: vertical;
 `;
 
 const TagsContainer = styled.div`
@@ -166,12 +169,10 @@ const getInitials = (nome, sobrenome) => {
 
 const getStatusStyle = (status) => {
     switch (status) {
-        case 'Aberto para Candidaturas':
-            return { color: '#E8DFF5', textColor: '#6A1B9A' };
         case 'Novo':
-            return { color: '#FFE0B2', textColor: '#E65100' };
+            return { $color: '#FFE0B2', $textColor: '#E65100' };
         default:
-            return { color: '#e0e0e0', textColor: '#000' };
+            return { $color: '#e0e0e0', $textColor: '#000' };
     }
 };
 
@@ -194,8 +195,8 @@ function MyProjectCard({ projeto, currentUserId }) {
             <CardHeader>
                 <TituloProjeto>{nome}</TituloProjeto>
                 <StatusTag
-                    color={statusStyle.color}
-                    textColor={statusStyle.textColor}
+                    $color={statusStyle.$color}
+                    $textColor={statusStyle.$textColor}
                 >
                     {status}
                 </StatusTag>
@@ -237,7 +238,7 @@ function MyProjectCard({ projeto, currentUserId }) {
                     <IconButton
                         onClick={() => alert('Abrir chat do projeto!')}
                     >
-                        <FaCommentDots size={20} /> Chat
+                        <FiMessageSquare size={20} /> Chat
                     </IconButton>
 
                     {isOwner ? (
@@ -246,7 +247,7 @@ function MyProjectCard({ projeto, currentUserId }) {
                                 alert('Abrir modal de gerenciamento!')
                             }
                         >
-                            <FaCog style={{ marginRight: '5px' }} /> Gerenciar
+                            <FiSettings style={{ marginRight: '5px' }} /> Gerenciar
                         </ActionButton>
                     ) : (
                         <ActionButton

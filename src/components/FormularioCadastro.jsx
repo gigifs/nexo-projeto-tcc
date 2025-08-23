@@ -156,13 +156,6 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
         evento.preventDefault(); //impede que o navegador recarregue a pagina
         setErro(''); // Limpa erros antigos antes de tentar de novo
 
-        //verificação dominio do email
-        const dominioPermitido = '@cs.unicid.edu.br';
-        if (!email.endsWith(dominioPermitido)) {
-            setErro(`Cadastro permitido apenas para e-mails institucionais.`);
-            return;
-        }
-
         //validação de senha simples, pode aumentar
         if (senha !== confirmaSenha) {
             setErro('As senhas não coincidem!');

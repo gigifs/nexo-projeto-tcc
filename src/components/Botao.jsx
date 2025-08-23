@@ -14,6 +14,21 @@ const BotaoEstilizado = styled.button`
 
     ${(props) => {
         switch (props.$variant) {
+            case 'excluir':
+                return css`
+                    background-color: #f6171a33;
+                    color: #f6171a;
+                    border-radius: 10px;
+                    padding: 8px 20px;
+                    font-size: 22px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #f6171a88;
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+
             case 'hab-int':
                 return css`
                     background-color: #7c2256;
@@ -25,6 +40,21 @@ const BotaoEstilizado = styled.button`
 
                     &:hover {
                         background-color: #661745ff;
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+            case 'cancelar-excluir':
+                return css`
+                    background-color: #f5fafc;
+                    color: #7c2256;
+                    border-radius: 10px;
+                    border: 1px solid #00000066;
+                    padding: 8px 16px;
+                    font-size: 20px;
+                    font-weight: 500;
+
+                    &:hover {
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                     }
                 `;
             //Novo botão: para a janela modal 'FormularioCriarProjeto.jsx'

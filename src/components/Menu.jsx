@@ -167,7 +167,9 @@ function Menu() {
                     <FiMessageSquare size={32} /> Mensagens
                 </MenuItem>
                 <MenuItem
-                    $ativo={location.pathname === '/dashboard/configuracoes'}
+                    $ativo={location.pathname.startsWith(
+                        '/dashboard/configuracoes'
+                    )}
                     onClick={() => navigate('/dashboard/configuracoes')}
                 >
                     <FiSettings size={32} /> Configurações

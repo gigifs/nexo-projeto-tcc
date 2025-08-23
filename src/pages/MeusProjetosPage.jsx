@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import DashboardHeader from '../components/DashboardHeader';
+import { Outlet } from 'react-router-dom';
 import NavegacaoAbas from '../components/NavegacaoAbas';
 import Modal from '../components/Modal';
 import FormularioCriarProjeto from '../components/FormularioCriarProjeto';
-import ListaMeusProjetos from '../components/ListaMeusProjetos';
 
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
 `;
+
+// Este seria o componente que busca e exibe os cards dos projetos do próprio utilizador
+const ListaMeusProjetos = () => {
+    return <h3>Conteúdo dos Meus Projetos...</h3>;
+};
 
 function MeusProjetosPage() {
     // A lógica de modais que pertencem apenas a esta página (como o de Criar Projeto) fica aqui.

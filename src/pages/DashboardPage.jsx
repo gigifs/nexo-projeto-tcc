@@ -1,3 +1,4 @@
+import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
 import styled from 'styled-components';
 import DashboardHeader from '../components/DashboardHeader';
@@ -5,14 +6,17 @@ import Modal from '../components/Modal';
 import FormularioCriarProjeto from '../components/FormularioCriarProjeto';
 import { useAuth } from '../contexts/AuthContext';
 import NavegacaoAbas from '../components/NavegacaoAbas';
-import ListaProjetosRecomendados from '../components/ListaProjetosRecomendados';
 
 // Styled Components para o conteúdo específico desta página
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
 `;
+
+// Este seria o componente que busca e exibe os cards de projetos recomendados
+const ListaProjetosRecomendados = () => {
+    return <h3>Conteúdo dos Projetos Recomendados...</h3>;
+};
 
 function DashboardPage() {
     // A lógica de modais que pertencem apenas a esta página (como o de Criar Projeto) fica aqui.

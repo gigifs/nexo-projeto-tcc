@@ -177,7 +177,7 @@ const SugestaoItem = styled.li`
 
 function FormularioCriarProjeto({ onClose }) {
     //Pega a informação do usuário logado
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth();
 
     //Estados para os campos do formulário
     const [nomeProjeto, setNomeProjeto] = useState('');
@@ -295,7 +295,10 @@ function FormularioCriarProjeto({ onClose }) {
                 area: area,
                 habilidades: habilidades,
                 donoId: currentUser.uid,
+                donoNome: userData.nome,
+                donoSobrenome: userData.sobrenome,
                 criadoEm: serverTimestamp(),
+                status: 'Novo',
             });
             alert('Projeto criado com sucesso!');
             onClose();

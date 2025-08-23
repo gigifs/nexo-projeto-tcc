@@ -10,7 +10,8 @@ import {
     updatePassword,
     deleteUser,
 } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 const LayoutContainer = styled.div`
     background-color: #f5fafc;
@@ -112,7 +113,7 @@ function PrivacidadeSeguranca() {
     // Usamos o 'logout' do nosso AuthContext para deslogar o usuário após a exclusão
     const { currentUser, logout } = useAuth();
 
-    // --- ESTADOS PARA O FORMULÁRIO DE ALTERAR SENHA ---
+    // ESTADOS PARA O FORMULÁRIO DE ALTERAR SENHA
     const [senhaAtual, setSenhaAtual] = useState('');
     const [novaSenha, setNovaSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -120,7 +121,7 @@ function PrivacidadeSeguranca() {
     const [mensagemSenha, setMensagemSenha] = useState('');
     const [sucessoSenha, setSucessoSenha] = useState(false);
 
-    // --- ESTADOS PARA O MODAL DE EXCLUSÃO ---
+    // ESTADOS PARA O MODAL DE EXCLUSÃO
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteError, setDeleteError] = useState('');
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -151,19 +152,19 @@ function PrivacidadeSeguranca() {
         setLoadingSenha(true); // Ativa o estado de carregamento
 
         try {
-            // 1. Cria a "credencial" para verificar a identidade do usuário com a senha atual
+            // Cria a "credencial" para verificar a identidade do usuário com a senha atual
             const credencial = EmailAuthProvider.credential(
                 currentUser.email,
                 senhaAtual
             );
 
-            // 2. Reautentica o usuário para garantir que é ele mesmo
+            // Reautentica o usuário para garantir que é ele mesmo
             await reauthenticateWithCredential(currentUser, credencial);
 
-            // 3. Se a reautenticação for bem-sucedida, atualiza a senha
+            // Se a reautenticação for bem-sucedida, atualiza a senha
             await updatePassword(currentUser, novaSenha);
 
-            // 4. Feedback de sucesso
+            // Feedback de sucesso
             setSucessoSenha(true);
             setMensagemSenha('Senha atualizada com sucesso!');
             setSenhaAtual('');
@@ -194,28 +195,33 @@ function PrivacidadeSeguranca() {
         setDeleteLoading(true);
 
         try {
-            // 1. Reautentica o usuário para confirmar a identidade antes da exclusão
+            // Reautentica o usuário para confirmar a identidade antes da exclusão
             const credencial = EmailAuthProvider.credential(
                 currentUser.email,
                 senhaParaExcluir
             );
             await reauthenticateWithCredential(currentUser, credencial);
 
-            // 2. Se a reautenticação der certo, exclui o usuário
+            // Cria uma referência para o documento do usuário na coleção 'usuarios'
+            const userDocRef = doc(db, 'users', currentUser.uid);
+
+            await deleteDoc(userDocRef);
+
+            // Se a reautenticação der certo, exclui o usuário
             await deleteUser(currentUser);
 
-            // 3. Se a exclusão der certo, fecha o modal e desloga
+            // Se a exclusão der certo, fecha o modal e desloga
             alert('Sua conta foi excluída com sucesso.');
             setShowDeleteModal(false);
             await logout();
-            // Aqui você também poderia redirecionar o usuário para a página inicial
-            // navigate('/');
         } catch (error) {
             console.error('Erro ao excluir conta:', error);
             if (error.code === 'auth/wrong-password') {
                 setDeleteError('A senha está incorreta.');
             } else {
-                setDeleteError('Ocorreu um erro ao tentar excluir a conta.');
+                setDeleteError(
+                    'Ocorreu um erro. A conta pode não ter sido excluída completamente.'
+                );
             }
         } finally {
             setDeleteLoading(false);
@@ -322,8 +328,8 @@ function PrivacidadeSeguranca() {
                 size="excluir"
             >
                 <FormularioExcluirConta
-                    onConfirm={handleConfirmarExclusao}
-                    onCancel={() => setShowDeleteModal(false)}
+                    onConfirmDelete={handleConfirmarExclusao}
+                    onClose={() => setShowDeleteModal(false)}
                     error={deleteError}
                     loading={deleteLoading}
                 />

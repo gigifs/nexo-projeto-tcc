@@ -40,7 +40,6 @@ const ModalBox = styled.div`
             case 'excluir':
                 return css`
                     max-width: 460px;
-                    min-height: 300px;
                     border-radius: 30px;
                     display: flex;
                     flex-direction: column;

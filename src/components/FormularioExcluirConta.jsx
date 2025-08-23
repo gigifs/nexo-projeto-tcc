@@ -2,49 +2,61 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import Botao from './Botao';
 
-// ANTES: chamava-se ModalContainer. AGORA: é um container de conteúdo.
 const FormContainer = styled.div`
-    /* Os estilos aqui devem ser apenas para o conteúdo interno */
-    padding: 20px;
+    padding: 20px 0;
     text-align: center;
-    display: flex; /* Adicionado para centralizar melhor o conteúdo */
-    flex-direction: column; /* Adicionado para alinhar verticalmente */
-    justify-content: center; /* Adicionado para centralizar */
-    height: 100%; /* Ocupa a altura do ModalBox */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
 `;
 
 const Titulo = styled.h2`
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 600;
-    margin: 10px 0 15px 0;
+    margin: 0;
+    margin-bottom: 16px;
 `;
 
 const Paragrafo = styled.p`
-    font-size: 16px;
-    line-height: 1.5;
-    color: #3c3c3e;
-    margin-bottom: 24px;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: #000;
+    margin-bottom: 10px;
+    margin-top: 0;
 `;
 
 const Input = styled.input`
-    padding: 10px 12px;
-    font-size: 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
     width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 24px;
+    background-color: #f5fafc;
+    padding: 12px 15px;
+    font-size: 20px;
+    color: #333333;
+    border: 1px solid #00000060;
+    border-radius: 10px;
     outline: none;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+    box-sizing: border-box;
+
+    &::placeholder {
+        color: #999999;
+        opacity: 1;
+    }
+
     &:focus {
-        border-color: #c62828;
-        box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.2);
+        border-color: #e95b5bff;
+        box-shadow: 0 0 0 3px #e95b5b48;
     }
 `;
 
 const ButtonGroup = styled.div`
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 20px;
+    margin-top: 8px;
 `;
 
 const MensagemErro = styled.p`
@@ -64,21 +76,20 @@ function FormularioExcluirConta({ onClose, onConfirmDelete, loading, error }) {
         onConfirmDelete(senha);
     };
 
-    // --- ETAPA 1: Confirmação inicial ---
     if (step === 1) {
         return (
             <FormContainer>
                 <Titulo>Excluir Conta?</Titulo>
+                <Paragrafo>A exclusão da sua conta será permanente.</Paragrafo>
                 <Paragrafo>
-                    A exclusão da sua conta será permanente. Quando você excluir
-                    sua conta do NEXO, seu perfil e projetos serão removidos
-                    permanentemente.
+                    Quando você excluir sua conta do NEXO, seu perfil e projetos
+                    serão removidos permanentemente.
                 </Paragrafo>
                 <ButtonGroup>
-                    <Botao variant="cancelar" onClick={onClose}>
+                    <Botao variant="cancelar-excluir" onClick={onClose}>
                         Cancelar
                     </Botao>
-                    <Botao variant="excluir" onClick={() => setStep(2)}>
+                    <Botao variant="hab-int" onClick={() => setStep(2)}>
                         Continuar
                     </Botao>
                 </ButtonGroup>
@@ -86,15 +97,12 @@ function FormularioExcluirConta({ onClose, onConfirmDelete, loading, error }) {
         );
     }
 
-    // --- ETAPA 2: Confirmação com senha ---
     if (step === 2) {
         return (
             <FormContainer>
                 <form onSubmit={handleSubmit}>
-                    <Titulo>Confirmar Exclusão</Titulo>
-                    <Paragrafo>
-                        Para sua segurança, digite sua senha para confirmar.
-                    </Paragrafo>
+                    <Titulo>Excluir Conta</Titulo>
+                    <Paragrafo>Digite sua senha para confirmar.</Paragrafo>
                     <Input
                         type="password"
                         placeholder="Digite sua senha"
@@ -106,20 +114,18 @@ function FormularioExcluirConta({ onClose, onConfirmDelete, loading, error }) {
                     <MensagemErro>{error}</MensagemErro>
                     <ButtonGroup>
                         <Botao
-                            variant="cancelar"
+                            variant="cancelar-excluir"
                             type="button"
                             onClick={() => setStep(1)}
                         >
-                            Voltar
+                            Cancelar
                         </Botao>
                         <Botao
                             variant="excluir"
                             type="submit"
                             disabled={loading}
                         >
-                            {loading
-                                ? 'A excluir...'
-                                : 'Excluir Permanentemente'}
+                            {loading ? 'Excluindo...' : 'Excluir'}
                         </Botao>
                     </ButtonGroup>
                 </form>

@@ -6,6 +6,7 @@ import HeaderSemLogin from '../components/headerSemLogin';
 const PaginaContainer = styled.div`
     background-color: #e6ebf0;
 `;
+
 const BoxCentral = styled.div`
     background-color: #f5fafc;
     padding: 60px 70px;

@@ -47,25 +47,28 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  background-color: #F5FAFC;
-  padding: 12px 15px;
-  font-size: 16px;
-  font-weight: 400;
-  color: #333333;
-  border: 1px solid #00000060;
-  border-radius: 10px;
-  outline: none;
-  margin-bottom: 15px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: #f5fafc;
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #333333;
+    border: 1px solid #00000060;
+    border-radius: 10px;
+    outline: none;
+    margin-bottom: 15px;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 
-  &::placeholder {
-    color: #999999; /* cor do placeholder!! */
-    opacity: 1;
+    &::placeholder {
+        color: #999999; /* cor do placeholder!! */
+        opacity: 1;
+    }
 
-  &:focus {
-    border-color: #5B82E9; 
-    box-shadow: 0 0 0 3px #5b82e948;
-  }
+    &:focus {
+        border-color: #5b82e9;
+        box-shadow: 0 0 0 3px #5b82e948;
+    }
 `;
 
 const OptionsContainer = styled.div`
@@ -245,7 +248,14 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
                         Lembrar de mim
                     </LembrarDeMim>
                 </CheckboxGroup>
-                <LinkEsqueciSenha href="#">Esqueceu a senha?</LinkEsqueciSenha>
+                <LinkEsqueciSenha
+                    onClick={() => {
+                        onSuccess(); // Fecha o modal de login
+                        navigate('/esqueci-senha'); // Navega para a nova página
+                    }}
+                >
+                    Esqueceu a senha?
+                </LinkEsqueciSenha>
             </OptionsContainer>
 
             {erroLogin && <MensagemErro>{erroLogin}</MensagemErro>}

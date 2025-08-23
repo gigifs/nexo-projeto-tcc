@@ -42,78 +42,21 @@ const Paragrafo = styled.p`
 
 function VerificacaoConcluidaPage() {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState('verificando');
-    const effectRan = useRef(false);
-
-    useEffect(() => {
-        if (effectRan.current === false) {
-            const actionCode = searchParams.get('oobCode');
-
-            if (actionCode) {
-                applyActionCode(auth, actionCode)
-                    .then(() => {
-                        setStatus('sucesso');
-                    })
-                    .catch((error) => {
-                        console.error('Erro ao verificar e-mail:', error);
-                        setStatus('erro');
-                    });
-            } else {
-                setStatus('erro');
-            }
-        }
-        // Isto garante que na segunda execução do Strict Mode, o nosso 'if' falhe.
-        return () => {
-            effectRan.current = true;
-        };
-    }, [searchParams]);
-
-    const renderContent = () => {
-        switch (status) {
-            case 'sucesso':
-                return (
-                    <>
-                        <Titulo>E-mail Verificado com Sucesso!</Titulo>
-                        <Paragrafo>
-                            Parabéns! Seu e-mail foi confirmado e sua conta no
-                            NEXO está agora ativa. Agora você já pode fazer
-                            login para começar a criar e colaborar em projetos
-                            académicos.
-                        </Paragrafo>
-                        <Botao
-                            variant="Verificacao"
-                            onClick={() => navigate('/')}
-                        >
-                            Voltar para a Tela Inicial
-                        </Botao>
-                    </>
-                );
-            case 'erro':
-                return (
-                    <>
-                        <Titulo>Ocorreu um Erro</Titulo>
-                        <Paragrafo>
-                            O link de verificação é inválido, já foi utilizado
-                            ou expirou. Por favor, tente registar-se novamente.
-                        </Paragrafo>
-                        <Botao
-                            variant="Verificacao"
-                            onClick={() => navigate('/')}
-                        >
-                            Voltar para a Tela Inicial
-                        </Botao>
-                    </>
-                );
-            default:
-                return <Paragrafo>A verificar o seu e-mail...</Paragrafo>;
-        }
-    };
 
     return (
         <PaginaContainer>
             <HeaderSemLogin />
-            <BoxCentral>{renderContent()}</BoxCentral>
+            <BoxCentral>
+                <Titulo>E-mail Verificado com Sucesso!</Titulo>
+                <Paragrafo>
+                    Parabéns! Sua conta no NEXO está agora ativa. Agora você já
+                    pode fazer login para começar a criar e colaborar em
+                    projetos académicos.
+                </Paragrafo>
+                <Botao variant="Verificacao" onClick={() => navigate('/')}>
+                    Voltar para a Tela Inicial
+                </Botao>
+            </BoxCentral>
         </PaginaContainer>
     );
 }

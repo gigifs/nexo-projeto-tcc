@@ -25,6 +25,7 @@ const TabLink = styled(NavLink)`
     color: #000000ff; /* Cor padrão para inativo */
     text-decoration: none;
     transition: all 0.2s ease-in-out;
+    white-space: nowrap;
 
     &:hover {
         color: #7c2256; /* Cor roxa no hover */

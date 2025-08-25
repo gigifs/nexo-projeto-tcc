@@ -2,8 +2,17 @@ import styled from 'styled-components';
 import Botao from './Botao';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { doc, setDoc, collection, getDoc } from 'firebase/firestore';
+import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
+import {
+    doc,
+    setDoc,
+    collection,
+    getDoc,
+    addDoc,
+    updateDoc, 
+    arrayRemove, 
+} from 'firebase/firestore';
 
 const ModalWrapper = styled.div`
     padding: 10px 30px 20px 30px;
@@ -107,6 +116,45 @@ const IntegranteItem = styled.div`
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative; /* Essencial para o posicionamento do menu */
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: #d8e0e8;
+    }
+
+`;
+
+const DropdownMenu = styled.div`
+    position: absolute;
+    top: 100%; /* Aparece logo abaixo do item */
+    left: 50px; /* Alinhado com o nome */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    z-index: 10;
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+`;
+
+const DropdownItem = styled.div`
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &:hover {
+        background-color: #f0f0f0;
+    }
 `;
 
 const Avatar = styled.div`
@@ -149,21 +197,21 @@ const Footer = styled.div`
     border-top: 2px solid #eee;
 `;
 
-function VerDetalhesModal({ projeto, projetoId }) {
-    // Hooks para controlar estado do formulário e autenticação
+function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
+    const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
 
-    // Desestruturação dos dados do projeto para usar no JSX
     const {
         nome,
+        donoId,
         donoNome,
         donoSobrenome,
         descricao,
         habilidades = [],
-        interesses = [],
         area,
+        participantes = [],
     } = projeto;
 
     // A lógica para o botão "Candidatar-se"
@@ -209,6 +257,59 @@ function VerDetalhesModal({ projeto, projetoId }) {
             setLoading(false);
         }
     };
+
+        const handleSairDoProjeto = async () => {
+        if (
+            !window.confirm(
+                'Tem a certeza de que deseja sair deste projeto?'
+            )
+        ) {
+            return;
+        }
+
+        setLoading(true);
+        setFeedback('');
+
+        try {
+            const projetoRef = doc(db, 'projetos', projetoId);
+
+            // Remove o ID do utilizador do array 'participantIds'
+            await updateDoc(projetoRef, {
+                participantIds: arrayRemove(currentUser.uid),
+            });
+
+            // Remove o objeto completo do utilizador do array 'participantes'
+            const participanteParaRemover = participantes.find(
+                (p) => p.uid === currentUser.uid
+            );
+            if (participanteParaRemover) {
+                await updateDoc(projetoRef, {
+                    participantes: arrayRemove(participanteParaRemover),
+                });
+            }
+
+            setFeedback('Você saiu do projeto.');
+            // Idealmente, fecharia o modal após um segundo
+            setTimeout(() => {
+                // se a função onClose for passada, chame-a aqui
+            }, 1500);
+        } catch (error) {
+            console.error('Erro ao sair do projeto:', error);
+            setFeedback('Ocorreu um erro ao tentar sair do projeto.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const toggleMenuIntegrante = (uid) => {
+        setIntegranteAberto(integranteAberto === uid ? null : uid);
+    };
+
+    // Combina dono e participantes numa lista única para exibição
+    const todosOsIntegrantes = [
+        { uid: donoId, nome: donoNome, sobrenome: donoSobrenome, isDono: true },
+        ...participantes,
+    ];
 
     return (
         <ModalWrapper>
@@ -256,21 +357,40 @@ function VerDetalhesModal({ projeto, projetoId }) {
                     <Secao>
                         <SecaoTitulo>INTEGRANTES</SecaoTitulo>
                         <IntegrantesLista>
-                            {/* Dono do projeto */}
-                            <IntegranteItem>
-                                <Avatar>{`${donoNome?.[0] || ''}${donoSobrenome?.[0] || ''}`.toUpperCase()}</Avatar>
-                                <NomeIntegrante>
-                                    {donoNome} {donoSobrenome} (Dono)
-                                </NomeIntegrante>
-                            </IntegranteItem>
-
-                            {/* Mapeia e exibe outros participantes */}
-                            {projeto.participantes?.map((p) => (
-                                <IntegranteItem key={p.uid}>
-                                    <Avatar>{`${p.nome?.[0] || ''}${p.sobrenome?.[0] || ''}`.toUpperCase()}</Avatar>
+                            {todosOsIntegrantes.map((p) => (
+                                <IntegranteItem
+                                    key={p.uid}
+                                    onClick={() => toggleMenuIntegrante(p.uid)}
+                                >
+                                    <Avatar>{`${p.nome?.[0] || ''}${
+                                        p.sobrenome?.[0] || ''
+                                    }`.toUpperCase()}</Avatar>
                                     <NomeIntegrante>
-                                        {p.nome} {p.sobrenome}
+                                        {p.nome} {p.sobrenome}{' '}
+                                        {p.isDono && '(Dono)'}
                                     </NomeIntegrante>
+                                    <FiChevronDown style={{ marginLeft: 'auto' }} />
+
+                                    {/* menu suspenso pra quem ta no projeto */}
+                                    {integranteAberto === p.uid && (
+                                        <DropdownMenu>
+                                            <DropdownItem
+                                                onClick={() =>
+                                                    alert(`Ver perfil de ${p.nome}`)
+                                                }
+                                            >
+                                                <FiUser /> Ver Perfil
+                                            </DropdownItem>
+                                            <DropdownItem
+                                                onClick={() =>
+                                                    alert(`Enviar mensagem para ${p.nome}`)
+                                                }
+                                            >
+                                                <FiMessageSquare /> Enviar
+                                                Mensagem
+                                            </DropdownItem>
+                                        </DropdownMenu>
+                                    )}
                                 </IntegranteItem>
                             ))}
                         </IntegrantesLista>
@@ -284,9 +404,23 @@ function VerDetalhesModal({ projeto, projetoId }) {
             </DescricaoContainer>
 
             <Footer>
-                <Botao variant="hab-int" onClick={handleCandidatura} disabled={loading}>
-                    {loading ? 'A enviar...' : 'Candidatar-se'}
-                </Botao>
+                {tipo === 'participante' ? (
+                    <Botao
+                        variant="excluir"
+                        onClick={handleSairDoProjeto}
+                        disabled={loading}
+                    >
+                        {loading ? 'A sair...' : 'Sair do Projeto'}
+                    </Botao>
+                ) : (
+                    <Botao
+                        variant="hab-int"
+                        onClick={handleCandidatura}
+                        disabled={loading}
+                    >
+                        {loading ? 'A enviar...' : 'Candidatar-se'}
+                    </Botao>
+                )}
                 {feedback && <p style={{ marginTop: '10px' }}>{feedback}</p>}
             </Footer>
         </ModalWrapper>

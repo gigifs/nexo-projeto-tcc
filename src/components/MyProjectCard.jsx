@@ -1,5 +1,8 @@
 import styled from 'styled-components';
 import Botao from './Botao';
+import { useState } from 'react';
+import Modal from './Modal';
+import VerDetalhesModal from './VerDetalhesModal';
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -151,6 +154,8 @@ const getStatusStyle = (status) => {
 };
 
 function MyProjectCard({ projeto, currentUserId }) {
+    const [modalAberto, setModalAberto] = useState(false);
+
     const {
         nome = 'Projeto sem nome',
         descricao = 'Sem descrição disponível.',
@@ -165,72 +170,81 @@ function MyProjectCard({ projeto, currentUserId }) {
     const isOwner = currentUserId === donoId;
 
     return (
-        <CardWrapper>
-            <CardHeader>
-                <TituloProjeto>{nome}</TituloProjeto>
-                <StatusTag
-                    $color={statusStyle.$color}
-                    $textColor={statusStyle.$textColor}
-                >
-                    {status}
-                </StatusTag>
-            </CardHeader>
+        <>
+            <CardWrapper>
+                <CardHeader>
+                    <TituloProjeto>{nome}</TituloProjeto>
+                    <StatusTag
+                        $color={statusStyle.$color}
+                        $textColor={statusStyle.$textColor}
+                    >
+                        {status}
+                    </StatusTag>
+                </CardHeader>
 
-            <DescricaoProjeto>{descricao}</DescricaoProjeto>
+                <DescricaoProjeto>{descricao}</DescricaoProjeto>
 
-            <TagsContainer>
-                {habilidades.map((h) => (
-                    <Tag key={h} $tipo="habilidade">
-                        {h}
-                    </Tag>
-                ))}
-                {interesses.map((i) => (
-                    <Tag key={i} $tipo="interesse">
-                        {i}
-                    </Tag>
-                ))}
-            </TagsContainer>
+                <TagsContainer>
+                    {habilidades.map((h) => (
+                        <Tag key={h} $tipo="habilidade">
+                            {h}
+                        </Tag>
+                    ))}
+                    {interesses.map((i) => (
+                        <Tag key={i} $tipo="interesse">
+                            {i}
+                        </Tag>
+                    ))}
+                </TagsContainer>
 
-            <CardFooter>
-                {participantes && participantes.length > 0 ? (
-                    <TeamDetails>
-                        <TeamTitle>Sua Equipe:</TeamTitle>
-                        <TeamContainer>
-                            {participantes.map((p) => (
-                                <TeamMemberAvatar
-                                    key={p.uid}
-                                    title={`${p.nome} ${p.sobrenome}`}
-                                >
-                                    {getInitials(p.nome, p.sobrenome)}
-                                </TeamMemberAvatar>
-                            ))}
-                        </TeamContainer>
-                    </TeamDetails>
-                ) : (
-                    //Se a condição for falsa, renderiza o placeholder
-                    <div />
-                )}
+                <CardFooter>
+                    {participantes && participantes.length > 0 ? (
+                        <TeamDetails>
+                            <TeamTitle>Sua Equipe:</TeamTitle>
+                            <TeamContainer>
+                                {participantes.map((p) => (
+                                    <TeamMemberAvatar
+                                        key={p.uid}
+                                        title={`${p.nome} ${p.sobrenome}`}
+                                    >
+                                        {getInitials(p.nome, p.sobrenome)}
+                                    </TeamMemberAvatar>
+                                ))}
+                            </TeamContainer>
+                        </TeamDetails>
+                    ) : (
+                        //Se a condição for falsa, renderiza o placeholder
+                        <div />
+                    )}
 
-                <ActionButtonsContainer>
-                    <DetalhesBotao onClick={() => alert('Abrir chat do projeto!')}>
-                        Chat
-                    </DetalhesBotao>
+                    <ActionButtonsContainer>
+                        <DetalhesBotao onClick={() => alert('Abrir chat do projeto!')}>
+                            Chat
+                        </DetalhesBotao>
 
-                        {isOwner ? (
-                            <DetalhesBotao onClick={() => alert('Abrir modal de gerenciamento!')}>
-                                Gerenciar Projeto
-                            </DetalhesBotao>
-                            
-                        ) : (
-                            
-                            <DetalhesBotao onClick={() => alert('Ver detalhes do projeto!')}>
-                                Ver Detalhes
-                            </DetalhesBotao>            
-                        )}
-                    </ActionButtonsContainer>
+                            {isOwner ? (
+                                <DetalhesBotao onClick={() => alert('Abrir modal de gerenciamento!')}>
+                                    Gerenciar Projeto
+                                </DetalhesBotao>
+                                
+                            ) : (
+                                
+                                <DetalhesBotao onClick={() => setModalAberto(true)}>
+                                    Ver Detalhes
+                                </DetalhesBotao>            
+                            )}
+                        </ActionButtonsContainer>
 
-            </CardFooter>
-        </CardWrapper>
+                </CardFooter>
+            </CardWrapper>
+            <Modal isOpen={modalAberto} onClose={() => setModalAberto(false)}>
+                <VerDetalhesModal
+                    projeto={projeto}
+                    projetoId={projeto.id}
+                    tipo="participante"
+                />
+            </Modal>
+        </>
     );
 }
 

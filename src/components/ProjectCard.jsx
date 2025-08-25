@@ -214,7 +214,7 @@ function ProjectCard({ projeto }) {
                 isOpen={modalAberto}
                 onClose={() => setModalAberto(false)}
             >
-                    <VerDetalhesModal projeto={projeto} />
+                    <VerDetalhesModal projeto={projeto} projetoId={projeto.id} />
             </Modal>
         </>
     );

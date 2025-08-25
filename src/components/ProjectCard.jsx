@@ -1,6 +1,9 @@
 import styled from 'styled-components';
 import Botao from './Botao';
 import { FaGraduationCap } from 'react-icons/fa';
+import { useState } from 'react';
+import Modal from './Modal';
+import VerDetalhesModal from './VerDetalhesModal';
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -149,50 +152,71 @@ const getStatusStyle = (status) => {
 };
 
 function ProjectCard({ projeto }) {
-    const { nome, descricao, donoNome, donoSobrenome, curso, status, habilidades, interesses } = projeto;
+    const [modalAberto, setModalAberto] = useState(false);
+
+    const {
+        nome,
+        descricao,
+        donoNome,
+        donoSobrenome,
+        curso,
+        status,
+        habilidades,
+        interesses,
+    } = projeto;
+
     const statusStyle = getStatusStyle(status);
     const nomeCompletoDono = `${donoNome || ''} ${donoSobrenome || ""}`.trim();
 
     return (
-        <CardWrapper>
-            <CardHeader>
-                <TituloProjeto>{nome}</TituloProjeto>
-                {status && (
-                    <StatusTag 
-                        $color={statusStyle.$color} 
-                        $textColor={statusStyle.$textColor}
-                    >
-                        {status}
-                    </StatusTag>
-                )}
-            </CardHeader>
+        <>
+            <CardWrapper>
+                <CardHeader>
+                    <TituloProjeto>{nome}</TituloProjeto>
+                    {status && (
+                        <StatusTag 
+                            $color={statusStyle.$color} 
+                            $textColor={statusStyle.$textColor}
+                        >
+                            {status}
+                        </StatusTag>
+                    )}
+                </CardHeader>
 
-            <DescricaoProjeto>{descricao}</DescricaoProjeto>
+                <DescricaoProjeto>{descricao}</DescricaoProjeto>
 
-            <TagsContainer>
-                {/*Renderiza tags de habilidade com seu tipo*/}
-                {habilidades?.map(h => <Tag key={h} $tipo="habilidade">{h}</Tag>)}
-                {/*Renderiza tags de interesse com seu tipo*/}
-                {interesses?.map(i => <Tag key={i} $tipo="interesse">{i}</Tag>)}
-            </TagsContainer>
+                <TagsContainer>
+                    {/*Renderiza tags de habilidade com seu tipo*/}
+                    {habilidades?.map(h => <Tag key={h} $tipo="habilidade">{h}</Tag>)}
+                    {/*Renderiza tags de interesse com seu tipo*/}
+                    {interesses?.map(i => <Tag key={i} $tipo="interesse">{i}</Tag>)}
+                </TagsContainer>
 
-            <CardFooter>
-                <OwnerDetails>
-                    <FooterText>
-                        <FaGraduationCap size={20} color="#555" />
-                        <span>{curso || 'Curso não informado'}</span>
-                    </FooterText>
-                    <FooterText>
-                        <Avatar>{getInitials(nomeCompletoDono)}</Avatar>
-                        <span>{nomeCompletoDono || 'Nome do Dono'}</span>
-                    </FooterText>
-                </OwnerDetails>
-                {/*Tirar o alerta assim que o modal 'VerDetalhes' for integrado.*/}
-                <DetalhesBotao onClick={() => alert(`Detalhes do projeto: ${descricao}`)}>
-                    Ver Detalhes
-                </DetalhesBotao>
-            </CardFooter>
-        </CardWrapper>
+                <CardFooter>
+                    <OwnerDetails>
+                        <FooterText>
+                            <FaGraduationCap size={20} color="#555" />
+                            <span>{curso || 'Curso não informado'}</span>
+                        </FooterText>
+                        <FooterText>
+                            <Avatar>{getInitials(nomeCompletoDono)}</Avatar>
+                            <span>{nomeCompletoDono || 'Nome do Dono'}</span>
+                        </FooterText>
+                    </OwnerDetails>
+                    {/*Tirar o alerta assim que o modal 'VerDetalhes' for integrado.*/}
+                    <DetalhesBotao onClick={() => setModalAberto(true)}>
+                        Ver Detalhes
+                    </DetalhesBotao>
+                </CardFooter>
+            </CardWrapper>
+
+            <Modal 
+                isOpen={modalAberto}
+                onClose={() => setModalAberto(false)}
+            >
+                    <VerDetalhesModal projeto={projeto} />
+            </Modal>
+        </>
     );
 }
 

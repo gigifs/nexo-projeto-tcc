@@ -14,7 +14,7 @@ const CardWrapper = styled.div`
     gap: 15px;
     transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
-    height: 295px;
+    height: 310px;
     position: relative;
     &:hover {
         transform: translateY(-5px);
@@ -68,8 +68,8 @@ const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    max-height: 60px;
-    overflow-y: auto;
+    max-height: 50px;
+    overflow: hidden;
 `;
 
 const Tag = styled.span`

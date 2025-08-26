@@ -15,7 +15,7 @@ const CardWrapper = styled.div`
     gap: 15px;
     transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
-    height: 295px; /*Atura máxima do card*/
+    height: 310px; /*Atura máxima do card*/
     position: relative;
 
     &:hover {
@@ -72,7 +72,7 @@ const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    max-height: 30px;
+    max-height: 50px;
     overflow: hidden;
 `;
 
@@ -92,7 +92,6 @@ const CardFooter = styled.div`
     justify-content: space-between;
     align-items: flex-end; 
     margin-top: auto; /*Empurra o rodapé pro final do card*/
-    padding-top: 10px;
     border-top: 1px solid #eee; /*Barra entre tags e curso, pode tirar caso não gostem*/
 `;
 

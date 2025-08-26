@@ -7,9 +7,7 @@ import { db } from '../firebase';
 import {
     doc,
     setDoc,
-    collection,
     getDoc,
-    addDoc,
     updateDoc, 
     arrayRemove, 
 } from 'firebase/firestore';
@@ -272,30 +270,32 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
 
         try {
             const projetoRef = doc(db, 'projetos', projetoId);
-
-            // Remove o ID do utilizador do array 'participantIds'
-            await updateDoc(projetoRef, {
-                participantIds: arrayRemove(currentUser.uid),
-            });
-
-            // Remove o objeto completo do utilizador do array 'participantes'
             const participanteParaRemover = participantes.find(
                 (p) => p.uid === currentUser.uid
             );
+
+            // Se encontrarmos o objeto do participante, realizamos uma única atualização atômica
             if (participanteParaRemover) {
                 await updateDoc(projetoRef, {
+                    participantIds: arrayRemove(currentUser.uid),
                     participantes: arrayRemove(participanteParaRemover),
+                });
+            } else {
+                // Fallback caso o objeto completo não seja encontrado por algum motivo
+                 await updateDoc(projetoRef, {
+                    participantIds: arrayRemove(currentUser.uid),
                 });
             }
 
-            setFeedback('Você saiu do projeto.');
+
+            setFeedback('Você saiu do projeto com sucesso.');
             // Idealmente, fecharia o modal após um segundo
             setTimeout(() => {
                 // se a função onClose for passada, chame-a aqui
             }, 1500);
         } catch (error) {
             console.error('Erro ao sair do projeto:', error);
-            setFeedback('Ocorreu um erro ao tentar sair do projeto.');
+            setFeedback('Ocorreu um erro ao tentar sair do projeto. Verifique suas permissões.');
         } finally {
             setLoading(false);
         }

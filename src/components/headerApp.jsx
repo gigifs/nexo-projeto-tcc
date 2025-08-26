@@ -4,6 +4,7 @@ import logoNexo from '../assets/logo.svg';
 import { FiBell, FiChevronDown } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import MenuSuspenso from './MenuSuspenso.jsx';
+import Notificacoes from './Notificacoes.jsx';
 
 const HeaderEstilizado = styled.header`
     display: flex;
@@ -79,15 +80,19 @@ const getInitials = (nome, sobrenome) => {
 function HeaderApp() {
     const { userData } = useAuth();
     const [menuAberto, setMenuAberto] = useState(false);
+    const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
 
     return (
         <HeaderEstilizado>
             <Logo src={logoNexo} alt="Logo da empresa Nexo" />
 
             <UserArea>
-                <IconeNotificacao>
+                <IconeNotificacao onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}>
                     <FiBell size={32} strokeWidth={2.5} />
+                     {/* Futuramente, podemos adicionar um contador de notificações aqui */}
                 </IconeNotificacao>
+                {/* Renderiza o modal de notificações se o estado for true */}
+                {notificacoesAbertas && <Notificacoes onClose={() => setNotificacoesAbertas(false)} />}
                 <Avatar>
                     {getInitials(userData?.nome, userData?.sobrenome)}
                 </Avatar>

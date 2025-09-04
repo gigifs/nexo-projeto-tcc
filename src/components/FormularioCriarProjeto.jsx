@@ -345,12 +345,12 @@ function FormularioCriarProjeto({ onClose }) {
                     <option value="" disabled>
                         Selecione uma área
                     </option>
-                    <option value="desenvolvimento">
+                    <option value="Desenvolvimento de Software">
                         Desenvolvimento de Software
                     </option>
-                    <option value="pesquisa">Pesquisa Acadêmica</option>
-                    <option value="design">Design/UX</option>
-                    <option value="marketing">Marketing</option>
+                    <option value="Pesquisa Acadêmica">Pesquisa Acadêmica</option>
+                    <option value="Design/UX">Design/UX</option>
+                    <option value="Marketing">Marketing</option>
                 </Select>
             </InputGroup>
 

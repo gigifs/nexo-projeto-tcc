@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import Botao from './Botao';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
 import VerDetalhesModal from './VerDetalhesModal';
 
@@ -155,8 +156,10 @@ const getStatusStyle = (status) => {
 
 function MyProjectCard({ projeto, currentUserId }) {
     const [modalAberto, setModalAberto] = useState(false);
+    const navigate = useNavigate();
 
     const {
+        id,
         nome = 'Projeto sem nome',
         descricao = 'Sem descrição disponível.',
         donoId,
@@ -168,6 +171,10 @@ function MyProjectCard({ projeto, currentUserId }) {
 
     const statusStyle = getStatusStyle(status);
     const isOwner = currentUserId === donoId;
+
+    const handleGerenciarClick = () => {
+        navigate(`/dashboard/meus-projetos/${id}/gerenciar`);
+    };
 
     return (
         <>
@@ -223,7 +230,7 @@ function MyProjectCard({ projeto, currentUserId }) {
                         </DetalhesBotao>
 
                             {isOwner ? (
-                                <DetalhesBotao onClick={() => alert('Abrir modal de gerenciamento!')}>
+                                <DetalhesBotao onClick={handleGerenciarClick}>
                                     Gerenciar Projeto
                                 </DetalhesBotao>
                                 

@@ -41,6 +41,7 @@ function DashboardHeader({
     children,
     botaoTexto,
     onBotaoClick,
+    acoes,
     semFundo,
 }) {
     return (
@@ -50,12 +51,15 @@ function DashboardHeader({
                 <Subtitulo>{children}</Subtitulo>
             </HeaderText>
 
-            {/* O botão só é renderizado SE a prop 'botaoTexto' existir */}
-            {botaoTexto && (
+            {acoes ? (
+                // Se a prop 'acoes' foi passada, renderiza ela
+                <div>{acoes}</div>
+            ) : botaoTexto ? (
+                // Senão, se a prop 'botaoTexto' foi passada, renderiza o botão antigo
                 <Botao variant="header" onClick={onBotaoClick}>
                     {botaoTexto}
                 </Botao>
-            )}
+            ) : null}
         </HeaderContainer>
     );
 }

@@ -37,13 +37,13 @@ const TituloProjeto = styled.h3`
     color: #000;
     margin: 0;
     line-height: 1.2;
-
     /*Limita a quantidade de linhas do titulo*/
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2; /*Título terá no máx 2 linhas*/
     -webkit-box-orient: vertical;
+    word-break: break-word;
 `;
 
 const StatusTag = styled.span`
@@ -66,14 +66,15 @@ const DescricaoProjeto = styled.p`
     display: -webkit-box;
     -webkit-line-clamp: 3; /*Limite de linhas para a descrição*/
     -webkit-box-orient: vertical;
+    word-break: break-word;
 `;
 
 const TagsContainer = styled.div`
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Permite que as tags quebrem a linha */
     gap: 6px;
-    max-height: 50px;
-    overflow: hidden;
+    height: 30px;      /* Altura fixa para apenas UMA linha de tags */
+    overflow: hidden;  /* Esconde qualquer tag que passe para a segunda linha */
 `;
 
 //Tags com cores condicionais de acordo com o tipo
@@ -145,6 +146,10 @@ const getStatusStyle = (status) => {
     switch (status) {
         case 'Novo':
             return { $color: '#FFE0B2', $textColor: '#E65100' };
+        case 'Em Andamento':
+            return { $color: '#786de080', $textColor: '#372b9cff'};
+        case 'Concluido':
+            return { $color: '', $textColor: ''};
         default:
             return { $color: '#e0e0e0', $textColor: '#000' };
     }
@@ -167,6 +172,12 @@ function ProjectCard({ projeto }) {
     const statusStyle = getStatusStyle(status);
     const nomeCompletoDono = `${donoNome || ''} ${donoSobrenome || ""}`.trim();
 
+
+    const tagsParaExibir = [
+        ...(habilidades || []).slice(0, 3).map(h => ({ nome: h, tipo: 'habilidade' })),
+        ...(interesses || []).slice(0, 3).map(i => ({ nome: i, tipo: 'interesse' }))
+    ];
+
     return (
         <>
             <CardWrapper>
@@ -185,10 +196,11 @@ function ProjectCard({ projeto }) {
                 <DescricaoProjeto>{descricao}</DescricaoProjeto>
 
                 <TagsContainer>
-                    {/*Renderiza tags de habilidade com seu tipo*/}
-                    {habilidades?.map(h => <Tag key={h} $tipo="habilidade">{h}</Tag>)}
-                    {/*Renderiza tags de interesse com seu tipo*/}
-                    {interesses?.map(i => <Tag key={i} $tipo="interesse">{i}</Tag>)}
+                    {tagsParaExibir.map((tag) => (
+                        <Tag key={tag.nome} $tipo={tag.tipo}>
+                            {tag.nome}
+                        </Tag>
+                    ))}
                 </TagsContainer>
 
                 <CardFooter>

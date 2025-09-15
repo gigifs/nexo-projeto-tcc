@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
 import VerDetalhesModal from './VerDetalhesModal';
+import { FiUsers } from 'react-icons/fi';
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -41,6 +42,7 @@ const TituloProjeto = styled.h3`
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    word-break: break-word;
 `;
 
 const StatusTag = styled.span`
@@ -63,14 +65,15 @@ const DescricaoProjeto = styled.p`
     display: -webkit-box;
     -webkit-line-clamp: 3; /*Limite de linhas para a descrição*/
     -webkit-box-orient: vertical;
+    word-break: break-word;
 `;
 
 const TagsContainer = styled.div`
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Permite que as tags quebrem a linha */
     gap: 6px;
-    max-height: 50px;
-    overflow: hidden;
+    height: 30px;      /* Altura fixa para apenas UMA linha de tags */
+    overflow: hidden;  /* Esconde qualquer tag que passe para a segunda linha */
 `;
 
 const Tag = styled.span`
@@ -88,7 +91,7 @@ const CardFooter = styled.div`
     justify-content: space-between;
     align-items: flex-end;
     margin-top: auto;
-    padding-top: 10px;
+    padding-top: 5px;
     border-top: 1px solid #eee;
 `;
 
@@ -102,8 +105,11 @@ const TeamDetails = styled.div`
 const TeamTitle = styled.h4`
     font-size: 16px;
     font-weight: 600;
-    color: #333;
+    color: #000000;
     margin: 0;
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
 `;
 
 const TeamContainer = styled.div`
@@ -125,6 +131,12 @@ const TeamMemberAvatar = styled.div`
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
+    border: 2px solid #f5fafc; /* Adicionado para criar separação */
+
+    /* Sobreposição dos avatares */
+    &:not(:first-child) {
+        margin-left: -16px; 
+    }
 `;
 
 const ActionButtonsContainer = styled.div`
@@ -149,6 +161,10 @@ const getStatusStyle = (status) => {
     switch (status) {
         case 'Novo':
             return { $color: '#FFE0B2', $textColor: '#E65100' };
+        case 'Em Andamento':
+            return { $color: '#C9B7F4', $textColor: '#5824d2ff'};
+        case 'Concluído':
+            return { $color: '#B7F4BB', $textColor: '#18a422ff'};
         default:
             return { $color: '#e0e0e0', $textColor: '#000' };
     }
@@ -176,6 +192,11 @@ function MyProjectCard({ projeto, currentUserId }) {
         navigate(`/dashboard/meus-projetos/${id}/gerenciar`);
     };
 
+    const tagsParaExibir = [
+        ...(habilidades || []).slice(0, 3).map(h => ({ nome: h, tipo: 'habilidade' })),
+        ...(interesses || []).slice(0, 3).map(i => ({ nome: i, tipo: 'interesse' }))
+    ];
+
     return (
         <>
             <CardWrapper>
@@ -192,14 +213,9 @@ function MyProjectCard({ projeto, currentUserId }) {
                 <DescricaoProjeto>{descricao}</DescricaoProjeto>
 
                 <TagsContainer>
-                    {habilidades.map((h) => (
-                        <Tag key={h} $tipo="habilidade">
-                            {h}
-                        </Tag>
-                    ))}
-                    {interesses.map((i) => (
-                        <Tag key={i} $tipo="interesse">
-                            {i}
+                    {tagsParaExibir.map((tag) => (
+                        <Tag key={tag.nome} $tipo={tag.tipo}>
+                            {tag.nome}
                         </Tag>
                     ))}
                 </TagsContainer>
@@ -207,9 +223,13 @@ function MyProjectCard({ projeto, currentUserId }) {
                 <CardFooter>
                     {participantes && participantes.length > 0 ? (
                         <TeamDetails>
-                            <TeamTitle>Sua Equipe:</TeamTitle>
+                            <TeamTitle>
+                                <FiUsers size={18} />
+                                Sua Equipe
+                            </TeamTitle>
                             <TeamContainer>
-                                {participantes.map((p) => (
+                                {/* Lógica de limite adicionada aqui com .slice(0, 3) */}
+                                {participantes.slice(0, 3).map((p) => (
                                     <TeamMemberAvatar
                                         key={p.uid}
                                         title={`${p.nome} ${p.sobrenome}`}

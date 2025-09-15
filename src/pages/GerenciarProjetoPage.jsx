@@ -6,17 +6,19 @@ import Botao from '../components/Botao';
 import PerfilCandidatoModal from '../components/PerfilCandidatoModal';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/DashboardHeader';
-import { FiUsers, FiUserCheck, FiUserX, FiX } from 'react-icons/fi'; 
-import { doc,
-        getDoc,
-        collection, 
-        getDocs, 
-        updateDoc, 
-        deleteDoc, 
-        arrayUnion,
-        arrayRemove,
-    } from 'firebase/firestore';
-
+import Candidaturas from '../components/Candidaturas';
+import MembrosProjeto from '../components/MembrosProjeto';
+import { FiX } from 'react-icons/fi';
+import {
+    doc,
+    getDoc,
+    collection,
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    arrayUnion,
+    arrayRemove,
+} from 'firebase/firestore';
 
 const Formulario = styled.form`
     display: flex;
@@ -52,6 +54,7 @@ const Textarea = styled.textarea`
     font-size: 16px;
     min-height: 100px;
     resize: vertical;
+    font-family: inherit;
 `;
 
 const Container = styled.div`
@@ -59,24 +62,6 @@ const Container = styled.div`
     background-color: #f5fafc;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-`;
-
-const SecaoCandidaturas = styled.div`
-    padding: 20px;
-    background-color: #E6EBF0;
-    border-radius: 10px;
-    max-height: 300px;
-    overflow: auto;
-`;
-
-const CandidaturaItem = styled.div`
-    background-color: #F5FAFC;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 `;
 
 const ColunasContainer = styled.div`
@@ -97,56 +82,6 @@ const ColunaDireita = styled.div`
     flex: 1; // Ocupa 1/3 do espaço
 `;
 
-const SecaoMembros = styled.div`
-    background-color: #E6EBF0;
-    padding: 5px;
-    border-radius: 20px;
-    max-height: 200px;
-    overflow: auto;
-`;
-
-const Avatar = styled.div`
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #0a528a;
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0; /* Impede que o avatar encolha */
-`;
-
-const MembroItem = styled.div`
-    display: flex;
-    align-items: center; /* Alinha o avatar e o texto verticalmente */
-    gap: 15px; /* Espaço entre o avatar e o nome */
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-
-    &:last-child {
-        border-bottom: none;
-    }
-`;
-
-//Container para o nome do membro, para alinhar com o botão de remover
-const MembroInfo = styled.div`
-    flex-grow: 1; /* Faz com que o nome ocupe o espaço restante */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-`;
-
-const BotaoRemover = styled.button`
-    background: none;
-    border: none;
-    color: #000000;
-    cursor: pointer;
-    padding: 5px;
-`;
-
 const SecaoExcluir = styled.div`
     margin-top: 40px;
     padding-top: 20px;
@@ -160,23 +95,6 @@ const Select = styled.select`
     border: 1px solid #ccc;
     font-size: 16px;
     width: 100%;
-`;
-
-const TituloSecao = styled.h3`
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #7C2256;
-`;
-
-const DetalhesBotao = styled(Botao)`
-    font-size: 16px;
-    padding: 6px 10px;
-    border-radius: 10px;
-    background-color: #E6EBF0;
-    color: #7C2256;
 `;
 
 const AutoCompleteWrapper = styled.div`
@@ -219,10 +137,9 @@ const TagsContainer = styled.div`
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 10px;
-    min-height: 28px; /* Garante um espaço mínimo */
+    min-height: 28px;
 `;
 
-//Tag com estilo condicional para diferenciar habilidades de interesses
 const Tag = styled.div`
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
@@ -244,10 +161,11 @@ const Tag = styled.div`
     }
 `;
 
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    return `${nome.charAt(0)}${sobrenome ? sobrenome.charAt(0) : ''}`.toUpperCase();
-};
+const CamposLinha = styled.div`
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+`;
 
 function GerenciarProjetoPage() {
     const { id } = useParams();
@@ -265,8 +183,6 @@ function GerenciarProjetoPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [candidatoSelecionado, setCandidatoSelecionado] = useState(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
-
-        // --- ESTADOS PARA HABILIDADES E INTERESSES ---
     const [habilidadesEditaveis, setHabilidadesEditaveis] = useState([]);
     const [interessesEditaveis, setInteressesEditaveis] = useState([]);
     const [buscaHabilidade, setBuscaHabilidade] = useState('');
@@ -275,9 +191,7 @@ function GerenciarProjetoPage() {
     const [todosOsInteresses, setTodosOsInteresses] = useState([]);
     const [sugestoesH, setSugestoesH] = useState([]);
     const [sugestoesI, setSugestoesI] = useState([]);
-    const [erroTag, setErroTag] = useState('');
 
-        //Busca todas as tags (habilidades e interesses) do Firestore
     useEffect(() => {
         const fetchTags = async () => {
             try {
@@ -304,35 +218,41 @@ function GerenciarProjetoPage() {
             if (!id) return;
             setLoading(true);
             try {
-                //Busca o projeto
                 const projetoRef = doc(db, 'projetos', id);
                 const projetoSnap = await getDoc(projetoRef);
 
                 if (projetoSnap.exists()) {
                     const dadosProjeto = projetoSnap.data();
                     setProjeto({ id: projetoSnap.id, ...dadosProjeto });
-                    //Popula o formulário de uma só vez
                     setNomeEditavel(dadosProjeto.nome || '');
                     setDescricaoEditavel(dadosProjeto.descricao || '');
                     setStatusEditavel(dadosProjeto.status || '');
                     setAreaEditavel(dadosProjeto.area || '');
-                    setHabilidadesEditaveis(dadosProjeto.habilidades || []); // Usa um array vazio se não houver habilidades
-                    setInteressesEditaveis(dadosProjeto.interesses || []); // Usa um array vazio se não houver interesses
+                    setHabilidadesEditaveis(dadosProjeto.habilidades || []);
+                    setInteressesEditaveis(dadosProjeto.interesses || []);
                 } else {
                     setError('Projeto não encontrado.');
                     setLoading(false);
-                    return; //Para a execução se o projeto não for encontrado
+                    return;
                 }
 
-                //Busca as candidaturas
-                const candidaturasRef = collection(db, 'projetos', id, 'candidaturas');
+                const candidaturasRef = collection(
+                    db,
+                    'projetos',
+                    id,
+                    'candidaturas'
+                );
                 const candidaturasSnap = await getDocs(candidaturasRef);
-                const listaCandidaturas = candidaturasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const listaCandidaturas = candidaturasSnap.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
                 setCandidaturas(listaCandidaturas);
-
             } catch (err) {
                 console.error('Erro ao buscar dados:', err);
-                setError('Ocorreu um erro ao carregar as informações do projeto.');
+                setError(
+                    'Ocorreu um erro ao carregar as informações do projeto.'
+                );
             } finally {
                 setLoading(false);
             }
@@ -355,9 +275,7 @@ function GerenciarProjetoPage() {
                 interesses: interessesEditaveis,
             });
             alert('Projeto atualizado com sucesso!');
-
             navigate('/dashboard/meus-projetos');
-
         } catch (err) {
             console.error('Erro ao atualizar o projeto!');
             alert('ERRO, ALTERAÇÕES NÃO FORAM SALVAS!!!');
@@ -366,13 +284,9 @@ function GerenciarProjetoPage() {
         }
     };
 
-
-
-        // --- LÓGICA PARA GERENCIAR HABILIDADES ---
     const handleBuscaHabilidadeChange = (e) => {
         const valor = e.target.value;
         setBuscaHabilidade(valor);
-        setErroTag('');
         if (valor) {
             setSugestoesH(
                 todasAsHabilidades.filter(
@@ -395,14 +309,14 @@ function GerenciarProjetoPage() {
     };
 
     const removerHabilidade = (nome) => {
-        setHabilidadesEditaveis(habilidadesEditaveis.filter((h) => h !== nome));
+        setHabilidadesEditaveis(
+            habilidadesEditaveis.filter((h) => h !== nome)
+        );
     };
 
-    // --- LÓGICA PARA GERENCIAR INTERESSES ---
     const handleBuscaInteresseChange = (e) => {
         const valor = e.target.value;
         setBuscaInteresse(valor);
-        setErroTag('');
         if (valor) {
             setSugestoesI(
                 todosOsInteresses.filter(
@@ -425,21 +339,19 @@ function GerenciarProjetoPage() {
     };
 
     const removerInteresse = (nome) => {
-        setInteressesEditaveis(interessesEditaveis.filter((i) => i !== nome));
+        setInteressesEditaveis(
+            interessesEditaveis.filter((i) => i !== nome)
+        );
     };
 
-    //Função para buscar os dados completos de um candidato
     const handleVerPerfil = async (candidato) => {
-        //A candidatura tem o userId, vamos usá-lo para buscar o perfil completo
         const userRef = doc(db, 'users', candidato.userId);
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-            //Combina os dados da candidatura com os dados do perfil
             setCandidatoSelecionado({ ...candidato, ...userSnap.data() });
         } else {
-            console.error("Perfil do candidato não encontrado!");
-            //Se não encontrar, mostra pelo menos os dados básicos da candidatura
+            console.error('Perfil do candidato não encontrado!');
             setCandidatoSelecionado(candidato);
         }
     };
@@ -448,33 +360,42 @@ function GerenciarProjetoPage() {
         setIsActionLoading(true);
         try {
             const projetoRef = doc(db, 'projetos', id);
-            const candidaturaRef = doc(db, 'projetos', id, 'candidaturas', candidatoParaAceitar.id);
-            
+            const candidaturaRef = doc(
+                db,
+                'projetos',
+                id,
+                'candidaturas',
+                candidatoParaAceitar.id
+            );
+
             await updateDoc(projetoRef, {
                 participantes: arrayUnion({
                     uid: candidatoParaAceitar.userId,
                     nome: candidatoParaAceitar.nome,
                     sobrenome: candidatoParaAceitar.sobrenome,
                 }),
-                participantIds: arrayUnion(candidatoParaAceitar.userId)
+                participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
 
             await deleteDoc(candidaturaRef);
 
-            //Atualiza a lista de candidaturas
             setCandidaturas(
                 candidaturas.filter((c) => c.id !== candidatoParaAceitar.id)
             );
-            //Atualiza a lista de membros do projeto
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
-                participantes: [...prevProjeto.participantes, novoMembro],
+                participantes: [
+                    ...prevProjeto.participantes,
+                    {
+                        uid: candidatoParaAceitar.userId,
+                        nome: candidatoParaAceitar.nome,
+                        sobrenome: candidatoParaAceitar.sobrenome,
+                    },
+                ],
             }));
 
             setCandidatoSelecionado(null);
-            alert(
-                `${candidatoParaAceitar.nome} foi adicionado(a) ao projeto!`
-            );
+            alert(`${candidatoParaAceitar.nome} foi adicionado(a) ao projeto!`);
         } catch (err) {
             console.error('Erro ao aceitar candidato:', err);
             alert('Ocorreu um erro ao aceitar a candidatura.');
@@ -486,177 +407,224 @@ function GerenciarProjetoPage() {
     const handleRejeitar = async (candidatoParaRejeitar) => {
         setIsActionLoading(true);
         try {
-            const candidaturaRef = doc(db, 'projetos', id, 'candidaturas', candidatoParaRejeitar.id);
-            
-            //Apenas remove a candidatura
+            const candidaturaRef = doc(
+                db,
+                'projetos',
+                id,
+                'candidaturas',
+                candidatoParaRejeitar.id
+            );
+
             await deleteDoc(candidaturaRef);
 
-            //Atualiza o estado local e fecha o modal
-            setCandidaturas(candidaturas.filter(c => c.id !== candidatoParaRejeitar.id));
+            setCandidaturas(
+                candidaturas.filter((c) => c.id !== candidatoParaRejeitar.id)
+            );
             setCandidatoSelecionado(null);
-            alert("Candidatura rejeitada com sucesso.");
-
+            alert('Candidatura rejeitada com sucesso.');
         } catch (err) {
-            console.error("Erro ao rejeitar candidato:", err);
-            alert("Ocorreu um erro ao rejeitar a candidatura.");
+            console.error('Erro ao rejeitar candidato:', err);
+            alert('Ocorreu um erro ao rejeitar a candidatura.');
         } finally {
             setIsActionLoading(false);
         }
     };
 
-    // --- FUNÇÃO PARA REMOVER MEMBRO ---
     const handleRemoverMembro = async (membroParaRemover) => {
-        if (!window.confirm(`Tem a certeza de que deseja remover ${membroParaRemover.nome} do projeto?`)) {
+        if (
+            !window.confirm(
+                `Tem a certeza de que deseja remover ${membroParaRemover.nome} do projeto?`
+            )
+        ) {
             return;
         }
 
         try {
             const projetoRef = doc(db, 'projetos', id);
 
-            //Remove o objeto completo do array 'participantes' e o ID do 'participantIds'
             await updateDoc(projetoRef, {
                 participantes: arrayRemove(membroParaRemover),
-                participantIds: arrayRemove(membroParaRemover.uid)
+                participantIds: arrayRemove(membroParaRemover.uid),
             });
 
-            //Atualiza o estado local para a UI refletir a mudança
-            setProjeto(prevProjeto => ({
+            setProjeto((prevProjeto) => ({
                 ...prevProjeto,
-                participantes: prevProjeto.participantes.filter(p => p.uid !== membroParaRemover.uid)
+                participantes: prevProjeto.participantes.filter(
+                    (p) => p.uid !== membroParaRemover.uid
+                ),
             }));
-            
-            alert(`${membroParaRemover.nome} foi removido(a) do projeto.`);
 
+            alert(`${membroParaRemover.nome} foi removido(a) do projeto.`);
         } catch (err) {
-            console.error("Erro ao remover membro:", err);
-            alert("Ocorreu um erro ao remover o membro.");
+            console.error('Erro ao remover membro:', err);
+            alert('Ocorreu um erro ao remover o membro.');
         }
     };
-    
-    // --- FUNÇÃO PARA EXCLUIR O PROJETO ---
+
     const handleExcluirProjeto = async () => {
-        if (!window.confirm("ATENÇÃO: Esta ação é permanente. Tem a certeza de que deseja excluir este projeto?")) {
+        if (
+            !window.confirm(
+                'ATENÇÃO: Esta ação é permanente. Tem a certeza de que deseja excluir este projeto?'
+            )
+        ) {
             return;
         }
 
         try {
             const projetoRef = doc(db, 'projetos', id);
             await deleteDoc(projetoRef);
-            alert("Projeto excluído com sucesso.");
-            navigate('/dashboard/meus-projetos'); // Volta para a página anterior
+            alert('Projeto excluído com sucesso.');
+            navigate('/dashboard/meus-projetos');
         } catch (err) {
-            console.error("Erro ao excluir projeto:", err);
-            alert("Ocorreu um erro ao excluir o projeto.");
+            console.error('Erro ao excluir projeto:', err);
+            alert('Ocorreu um erro ao excluir o projeto.');
         }
     };
 
 
     if (loading) {
-        return <Container><p>A carregar dados do projeto...</p></Container>
+        return (
+            <Container>
+                <p>A carregar dados do projeto...</p>
+            </Container>
+        );
     }
     if (error) {
-        return <Container><p style={{color: 'red'}}>{error}</p></Container>
-
+        return (
+            <Container>
+                <p style={{ color: 'red' }}>{error}</p>
+            </Container>
+        );
     }
 
     if (!projeto) {
-        return <Container><p>Nenhum projeto para exibir.</p></Container>;
+        return (
+            <Container>
+                <p>Nenhum projeto para exibir.</p>
+            </Container>
+        );
     }
 
     return (
         <>
             <Formulario onSubmit={handleSalvar}>
                 <DashboardHeader
-                titulo="Gerenciador de Projeto"
-                semFundo={false}
-                acoes={ 
-                    <div>
-                        <Botao 
-                            type="button" 
-                            variant="Cancelar" 
-                            onClick={() => navigate('/dashboard/meus-projetos')} 
-                            style={{ marginRight: '10px' }}
-                        >
-                            Cancelar
-                        </Botao>
-                        <Botao 
-                            type="submit" 
-                            variant="Modal" 
-                            disabled={isSaving}
-                        >
-                            {isSaving ? 'A guardar...' : 'Salvar'}
-                        </Botao>
-                    </div>
-                }
-            >
-                Edite informações, gerencie a equipe e avalie as candidaturas.
-            </DashboardHeader>
-        
+                    titulo="Gerenciador de Projeto"
+                    semFundo={false}
+                    acoes={
+                        <div>
+                            <Botao
+                                type="button"
+                                variant="Cancelar"
+                                onClick={() =>
+                                    navigate('/dashboard/meus-projetos')
+                                }
+                                style={{ marginRight: '10px' }}
+                            >
+                                Cancelar
+                            </Botao>
+                            <Botao
+                                type="submit"
+                                variant="Modal"
+                                disabled={isSaving}
+                            >
+                                {isSaving ? 'A guardar...' : 'Salvar'}
+                            </Botao>
+                        </div>
+                    }
+                >
+                    Edite informações, gerencie a equipe e avalie as
+                    candidaturas.
+                </DashboardHeader>
+
                 <Container>
-                        <ColunasContainer>
-                            <ColunaEsquerda>
-
-                                {/* NOME E DESCRIÇÃO DO PROJETO */}
-                                <InputGroup>
-                                    <Label htmlFor="nome-projeto">Nome do Projeto</Label>
-                                    <Input id="nome-projeto" value={nomeEditavel} onChange={(e) => setNomeEditavel(e.target.value)} />
-                                </InputGroup>
-                                <InputGroup>
-                                    <Label htmlFor="descricao-projeto">Descrição</Label>
-                                    <Textarea id="descricao-projeto" value={descricaoEditavel} onChange={(e) => setDescricaoEditavel(e.target.value)} />
-                                </InputGroup>
-                                
-                                { /* SEÇÃO DE CANDIDATURAS */}
-                                <TituloSecao>
-                                    <FiUserCheck size={22} /> Candidaturas Pendentes
-                                </TituloSecao>
-                                <SecaoCandidaturas>
-                                    {candidaturas.length > 0 ? (
-                                        candidaturas.map(c => (
-                                            <CandidaturaItem key={c.id}>
-                                                <p><strong>{c.nome} {c.sobrenome}</strong> se candidatou para o seu projeto!</p>
-                                                <DetalhesBotao type='button' onClick={() => handleVerPerfil(c)}>Ver Perfil</DetalhesBotao>
-                                            </CandidaturaItem>
-                                        ))
-                                    ) : (
-                                        <p>Ainda não há candidaturas para este projeto.</p>
-                                    )}
-                                </SecaoCandidaturas>
-                            </ColunaEsquerda>
-
-                            {/* ===== COLUNA DIREITA ===== */}
-                            <ColunaDireita>
-                                {/* STATUS E ÁREA */}
-                                <InputGroup>
-                                    <Label htmlFor="status-projeto">Status do Projeto</Label>
-                                    <Select id="status-projeto" value={statusEditavel} onChange={(e) => setStatusEditavel(e.target.value)}>
-                                        <option value="Novo">Novo</option>
-                                        <option value="Em Andamento">Em Andamento</option>
-                                        <option value="Concluído">Concluído</option>
-                                    </Select>
-                                </InputGroup>
-                                <InputGroup>
-                                    <Label htmlFor="area-projeto">Área Relacionada</Label>
-                                    <Select id="area-projeto" value={areaEditavel} onChange={(e) => setAreaEditavel(e.target.value)}>
-                                        <option value="Desenvolvimento de Software">Desenvolvimento de Software</option>
-                                        <option value="Pesquisa Acadêmica">Pesquisa Acadêmica</option>
-                                        <option value="Design/UX">Design/UX</option>
-                                        <option value="Marketing">Marketing</option>
-                                    </Select>
-                                </InputGroup>
-                                
-                                {/* SEÇÃO DE HABILIDADES */}
-                                <InputGroup>
+                    <ColunasContainer>
+                        <ColunaEsquerda>
+                            <InputGroup>
+                                <Label htmlFor="nome-projeto">
+                                    Nome do Projeto
+                                </Label>
+                                <Input
+                                    id="nome-projeto"
+                                    value={nomeEditavel}
+                                    onChange={(e) =>
+                                        setNomeEditavel(e.target.value)
+                                    }
+                                />
+                            </InputGroup>
+                            <InputGroup>
+                                <Label htmlFor="descricao-projeto">
+                                    Descrição
+                                </Label>
+                                <Textarea
+                                    id="descricao-projeto"
+                                    value={descricaoEditavel}
+                                    onChange={(e) =>
+                                        setDescricaoEditavel(e.target.value)
+                                    }
+                                />
+                            </InputGroup>
+                            <Candidaturas
+                                candidaturas={candidaturas}
+                                onVerPerfil={handleVerPerfil}
+                            />
+                        </ColunaEsquerda>
+                        <ColunaDireita>
+                            <InputGroup>
+                                <Label htmlFor="status-projeto">
+                                    Status do Projeto
+                                </Label>
+                                <Select
+                                    id="status-projeto"
+                                    value={statusEditavel}
+                                    onChange={(e) =>
+                                        setStatusEditavel(e.target.value)
+                                    }
+                                >
+                                    <option value="Novo">Novo</option>
+                                    <option value="Em Andamento">
+                                        Em Andamento
+                                    </option>
+                                    <option value="Concluído">Concluído</option>
+                                </Select>
+                            </InputGroup>
+                            <InputGroup>
+                                <Label htmlFor="area-projeto">
+                                    Área Relacionada
+                                </Label>
+                                <Select
+                                    id="area-projeto"
+                                    value={areaEditavel}
+                                    onChange={(e) =>
+                                        setAreaEditavel(e.target.value)
+                                    }
+                                >
+                                    <option value="Desenvolvimento de Software">
+                                        Desenvolvimento de Software
+                                    </option>
+                                    <option value="Pesquisa Acadêmica">
+                                        Pesquisa Acadêmica
+                                    </option>
+                                    <option value="Design/UX">Design/UX</option>
+                                    <option value="Marketing">Marketing</option>
+                                </Select>
+                            </InputGroup>
+                            
+                            {/* Interesse e habilidade lado a lado */}
+                            <CamposLinha>
+                                <InputGroup style={{ flex: 1 }}>
                                     <Label htmlFor="habilidades-projeto">
-                                        Habilidades Necessárias
+                                        Habilidades Relevantes
                                     </Label>
                                     <TagsInputContainer>
                                         <AutoCompleteWrapper>
-                                            <Input 
+                                            <Input
                                                 id="habilidades-projeto"
                                                 placeholder="Ex. FrontEnd, Pesquisa"
                                                 value={buscaHabilidade}
-                                                onChange={handleBuscaHabilidadeChange}
+                                                onChange={
+                                                    handleBuscaHabilidadeChange
+                                                }
                                             />
                                             {sugestoesH.length > 0 && (
                                                 <SugestoesContainer>
@@ -680,16 +648,17 @@ function GerenciarProjetoPage() {
                                         {habilidadesEditaveis.map((h, i) => (
                                             <Tag key={i} $tipo="habilidade">
                                                 {h}
-                                                <FiX 
-                                                    onClick={() => removerHabilidade(h)}
+                                                <FiX
+                                                    onClick={() =>
+                                                        removerHabilidade(h)
+                                                    }
                                                 />
                                             </Tag>
                                         ))}
                                     </TagsContainer>
                                 </InputGroup>
 
-                                {/* --- SEÇÃO DE INTERESSES --- */}
-                                <InputGroup>
+                                <InputGroup style={{ flex: 1 }}>
                                     <Label htmlFor="interesses-projeto">
                                         Interesses do Projeto
                                     </Label>
@@ -699,7 +668,9 @@ function GerenciarProjetoPage() {
                                                 id="interesses-projeto"
                                                 placeholder="Pesquisar interesse..."
                                                 value={buscaInteresse}
-                                                onChange={handleBuscaInteresseChange}
+                                                onChange={
+                                                    handleBuscaInteresseChange
+                                                }
                                             />
                                             {sugestoesI.length > 0 && (
                                                 <SugestoesContainer>
@@ -724,71 +695,31 @@ function GerenciarProjetoPage() {
                                             <Tag key={idx} $tipo="interesse">
                                                 {i}
                                                 <FiX
-                                                    onClick={() => removerInteresse(i)}
+                                                    onClick={() =>
+                                                        removerInteresse(i)
+                                                    }
                                                 />
                                             </Tag>
                                         ))}
                                     </TagsContainer>
                                 </InputGroup>
+                            </CamposLinha>
 
-                                {/* MEMBROS DO PROJETO */}
-                                <TituloSecao>
-                                        <FiUsers size={22} /> Membros do Projeto
-                                </TituloSecao>
-
-                                    <SecaoMembros>
-
-                                        {/* Dono */}
-                                        <MembroItem>
-                                            <Avatar>
-                                                {getInitials(
-                                                    projeto.donoNome,
-                                                    projeto.donoSobrenome
-                                                )}
-                                            </Avatar>
-                                            <MembroInfo>
-                                                <span>
-                                                    <strong>
-                                                        {projeto.donoNome}{' '}
-                                                        {projeto.donoSobrenome} (Dono)
-                                                    </strong>
-                                                </span>
-                                            </MembroInfo>
-                                        </MembroItem>
-
-                                        {/* Integrantes */}
-                                        {projeto.participantes &&
-                                            projeto.participantes.map((p) => (
-                                                <MembroItem key={p.uid}>
-                                                    <Avatar>
-                                                        {getInitials(p.nome, p.sobrenome)}
-                                                    </Avatar>
-                                                    <MembroInfo>
-                                                        <span>
-                                                            {p.nome} {p.sobrenome}
-                                                        </span>
-                                                        {currentUser.uid ===
-                                                            projeto.donoId && (
-                                                            <BotaoRemover
-                                                                onClick={() =>
-                                                                    handleRemoverMembro(p)
-                                                                }
-                                                                title="Remover Membro"
-                                                            >
-                                                                <FiUserX size={18} />
-                                                            </BotaoRemover>
-                                                        )}
-                                                    </MembroInfo>
-
-                                                </MembroItem>
-                                            ))}
-                                    </SecaoMembros>
-
-                                <SecaoExcluir>
-                                    <Botao variant="excluir" onClick={handleExcluirProjeto}>Excluir Projeto</Botao>
-                                </SecaoExcluir>
-                            </ColunaDireita>
-                        </ColunasContainer>
+                            <MembrosProjeto
+                                projeto={projeto}
+                                currentUserId={currentUser.uid}
+                                onRemoverMembro={handleRemoverMembro}
+                            />
+                            <SecaoExcluir>
+                                <Botao
+                                    variant="excluir"
+                                    onClick={handleExcluirProjeto}
+                                >
+                                    Excluir Projeto
+                                </Botao>
+                            </SecaoExcluir>
+                        </ColunaDireita>
+                    </ColunasContainer>
                 </Container>
             </Formulario>
 

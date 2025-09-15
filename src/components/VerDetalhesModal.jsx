@@ -23,11 +23,24 @@ const Header = styled.div`
 `;
 
 const TituloProjeto = styled.h2`
-    font-size:28px;
+    font-size: 28px;
     font-weight: 700;
     color: #000;
     margin: 10px 0 5px 0;
     line-height: 1.2;
+    word-break: break-word;
+    text-align: center; /* Centraliza o texto do título */
+
+    /* Define a altura máxima para 4 linhas (4 * 28px * 1.2) */
+    max-height: 135px; 
+    overflow-y: auto; /* Ativa a rolagem vertical se o conteúdo for maior */
+
+    /* Esconde a barra de rolagem na maioria dos navegadores */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    &::-webkit-scrollbar {
+        display: none;  /* Chrome, Safari and Opera */
+    }
 `;
 
 const CriadoPor = styled.p`
@@ -61,12 +74,18 @@ const ColunaDireita = styled.div`
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background-color: #E6EBF0;
+    background-color: #be2d8211;
     padding: 20px;
     border-radius: 10px;
     max-height: 250px;
     overflow-y: auto; /*Adiciona scroll se a descrição for mt grande*/
-    padding-right: 10px;
+
+    /* Esconde a barra de rolagem na maioria dos navegadores */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    &::-webkit-scrollbar {
+        display: none;  /* Chrome, Safari and Opera */
+    }
 `;
 
 const SecaoTitulo = styled.h4`
@@ -88,22 +107,23 @@ const Tag = styled.span`
     font-size: 14px;
     font-weight: 500;
     background-color: ${(props) =>
-        props.$tipo === 'habilidade'
+        props.$tipo === 'status'
+            ? props.$bgColor 
+            : props.$tipo === 'habilidade'
             ? '#aed9f4'
-            : props.$tipo === 'status'
-              ? '#d3cce6'
-              : props.$tipo === 'area'
-                ? '#7C225666' 
-                : '#ffcced'}; // Cor de fallback
+            : props.$tipo === 'area'
+            ? '#eba7b18f'
+            : '#ffcced'};
     color: ${(props) =>
-        props.$tipo === 'habilidade'
+        props.$tipo === 'status'
+            ? props.$textColor 
+            : props.$tipo === 'habilidade'
             ? '#0b5394'
-            : props.$tipo === 'status'
-              ? '#59447d'
-              : props.$tipo === 'area'
-                ? '#7C2256' 
-                : '#9c27b0'};
+            : props.$tipo === 'area'
+            ? '#7B1B4C'
+            : '#9c27b0'};
 `;
+
 const IntegrantesLista = styled.div`
         display: flex;
         flex-direction: column;
@@ -121,7 +141,7 @@ const IntegranteItem = styled.div`
     transition: background-color 0.2s;
 
     &:hover {
-        background-color: #d8e0e8;
+        background-color: #be2d8264;
     }
 
 `;
@@ -195,6 +215,19 @@ const Footer = styled.div`
     border-top: 2px solid #eee;
 `;
 
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'Novo':
+                return { $color: '#FFE0B2', $textColor: '#E65100' };
+            case 'Em Andamento':
+                return { $color: '#D1C4E9', $textColor: '#4527A0' };
+            case 'Concluído':
+                return { $color: '#C8E6C9', $textColor: '#2E7D32' };
+            default:
+                return { $color: '#e0e0e0', $textColor: '#000' };
+        }
+    };
+
 function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
@@ -211,6 +244,8 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
         area,
         participantes = [],
     } = projeto;
+
+    const statusStyle = getStatusStyle(projeto.status);
 
     // A lógica para o botão "Candidatar-se"
     const handleCandidatura = async () => {
@@ -328,7 +363,13 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                     <Secao>
                         <SecaoTitulo>Status</SecaoTitulo>
                         <TagsContainer>
-                            <Tag $tipo="status">{projeto.status || 'Não definido'}</Tag>
+                            <Tag 
+                                $tipo="status" 
+                                $bgColor={statusStyle.$color} 
+                                $textColor={statusStyle.$textColor}
+                            >
+                                {projeto.status || 'Não definido'}
+                            </Tag>
                         </TagsContainer>
                     </Secao>
                     <Secao>

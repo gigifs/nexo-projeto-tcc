@@ -12,6 +12,7 @@ import ConfiguracoesPessoaisPage from './pages/ConfiguracoesPessoaisPage.jsx';
 import ConfiguracoesSegurancaPage from './pages/ConfiguracoesSegurancaPage.jsx';
 import PerfilPage from './pages/PerfilPage.jsx';
 import EsqueciSenhaPage from './pages/EsqueciSenhaPage.jsx';
+import GerenciarProjetoPage from './pages/GerenciarProjetoPage.jsx';
 
 function App() {
     return (
@@ -47,6 +48,10 @@ function App() {
                     <Route
                         path="meus-projetos"
                         element={<MeusProjetosPage />}
+                    />
+                    <Route
+                        path='meus-projetos/:id/gerenciar'
+                        element={<GerenciarProjetoPage />}
                     />
                     <Route path="mensagens" element={<MensagensPage />} />
                     <Route

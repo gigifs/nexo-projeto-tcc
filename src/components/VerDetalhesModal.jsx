@@ -2,14 +2,16 @@ import styled from 'styled-components';
 import Botao from './Botao';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
 import {
     doc,
     setDoc,
     getDoc,
-    updateDoc, 
-    arrayRemove, 
+    updateDoc,
+    arrayRemove,
+    serverTimestamp,
 } from 'firebase/firestore';
 
 const ModalWrapper = styled.div`
@@ -32,14 +34,14 @@ const TituloProjeto = styled.h2`
     text-align: center; /* Centraliza o texto do título */
 
     /* Define a altura máxima para 4 linhas (4 * 28px * 1.2) */
-    max-height: 135px; 
+    max-height: 135px;
     overflow-y: auto; /* Ativa a rolagem vertical se o conteúdo for maior */
 
     /* Esconde a barra de rolagem na maioria dos navegadores */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
     &::-webkit-scrollbar {
-        display: none;  /* Chrome, Safari and Opera */
+        display: none; /* Chrome, Safari and Opera */
     }
 `;
 
@@ -50,7 +52,7 @@ const CriadoPor = styled.p`
 
     span {
         font-weight: 600;
-        color: #7C2256;
+        color: #7c2256;
     }
 `;
 
@@ -81,10 +83,10 @@ const ColunaDireita = styled.div`
     overflow-y: auto; /*Adiciona scroll se a descrição for mt grande*/
 
     /* Esconde a barra de rolagem na maioria dos navegadores */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
     &::-webkit-scrollbar {
-        display: none;  /* Chrome, Safari and Opera */
+        display: none; /* Chrome, Safari and Opera */
     }
 `;
 
@@ -108,26 +110,26 @@ const Tag = styled.span`
     font-weight: 500;
     background-color: ${(props) =>
         props.$tipo === 'status'
-            ? props.$bgColor 
+            ? props.$bgColor
             : props.$tipo === 'habilidade'
-            ? '#aed9f4'
-            : props.$tipo === 'area'
-            ? '#eba7b18f'
-            : '#ffcced'};
+              ? '#aed9f4'
+              : props.$tipo === 'area'
+                ? '#eba7b18f'
+                : '#ffcced'};
     color: ${(props) =>
         props.$tipo === 'status'
-            ? props.$textColor 
+            ? props.$textColor
             : props.$tipo === 'habilidade'
-            ? '#0b5394'
-            : props.$tipo === 'area'
-            ? '#7B1B4C'
-            : '#9c27b0'};
+              ? '#0b5394'
+              : props.$tipo === 'area'
+                ? '#7B1B4C'
+                : '#9c27b0'};
 `;
 
 const IntegrantesLista = styled.div`
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 `;
 
 const IntegranteItem = styled.div`
@@ -143,7 +145,6 @@ const IntegranteItem = styled.div`
     &:hover {
         background-color: #be2d8264;
     }
-
 `;
 
 const DropdownMenu = styled.div`
@@ -215,21 +216,22 @@ const Footer = styled.div`
     border-top: 2px solid #eee;
 `;
 
-    const getStatusStyle = (status) => {
-        switch (status) {
-            case 'Novo':
-                return { $color: '#FFE0B2', $textColor: '#E65100' };
-            case 'Em Andamento':
-                return { $color: '#D1C4E9', $textColor: '#4527A0' };
-            case 'Concluído':
-                return { $color: '#C8E6C9', $textColor: '#2E7D32' };
-            default:
-                return { $color: '#e0e0e0', $textColor: '#000' };
-        }
-    };
+const getStatusStyle = (status) => {
+    switch (status) {
+        case 'Novo':
+            return { $color: '#FFE0B2', $textColor: '#E65100' };
+        case 'Em Andamento':
+            return { $color: '#D1C4E9', $textColor: '#4527A0' };
+        case 'Concluído':
+            return { $color: '#C8E6C9', $textColor: '#2E7D32' };
+        default:
+            return { $color: '#e0e0e0', $textColor: '#000' };
+    }
+};
 
-function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
+function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
     const { currentUser, userData } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
     const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
@@ -246,6 +248,55 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
     } = projeto;
 
     const statusStyle = getStatusStyle(projeto.status);
+
+    const handleIniciarChatPrivado = async (outroUsuario) => {
+        if (
+            !currentUser ||
+            !outroUsuario ||
+            currentUser.uid === outroUsuario.uid
+        ) {
+            return;
+        }
+
+        const chatId = [currentUser.uid, outroUsuario.uid].sort().join('_');
+        const conversaRef = doc(db, 'conversas', chatId);
+
+        try {
+            const docSnap = await getDoc(conversaRef);
+
+            if (!docSnap.exists()) {
+                await setDoc(conversaRef, {
+                    isGrupo: false,
+                    participantes: [currentUser.uid, outroUsuario.uid],
+                    participantesInfo: [
+                        {
+                            uid: currentUser.uid,
+                            nome: userData.nome,
+                            sobrenome: userData.sobrenome,
+                        },
+                        {
+                            uid: outroUsuario.uid,
+                            nome: outroUsuario.nome,
+                            sobrenome: outroUsuario.sobrenome,
+                        },
+                    ],
+                    ultimaMensagem: {
+                        texto: `Conversa iniciada.`,
+                        timestamp: serverTimestamp(),
+                        senderNome: 'Sistema',
+                    },
+                });
+            }
+
+            onClose();
+            navigate('/dashboard/mensagens', {
+                state: { activeChatId: chatId },
+            });
+        } catch (error) {
+            console.error('Erro ao iniciar chat privado:', error);
+            alert('Não foi possível iniciar a conversa. Tente novamente.');
+        }
+    };
 
     // A lógica para o botão "Candidatar-se"
     const handleCandidatura = async () => {
@@ -265,7 +316,13 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
         }
 
         try {
-            const candidaturaRef = doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid);
+            const candidaturaRef = doc(
+                db,
+                'projetos',
+                projetoId,
+                'candidaturas',
+                currentUser.uid
+            );
 
             const candidaturaSnap = await getDoc(candidaturaRef);
             if (candidaturaSnap.exists()) {
@@ -285,17 +342,17 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
             setFeedback('Candidatura enviada com sucesso!');
         } catch (error) {
             console.error('Erro ao enviar candidatura:', error);
-            setFeedback('Ocorreu um erro ao enviar sua candidatura. Tente novamente.');
+            setFeedback(
+                'Ocorreu um erro ao enviar sua candidatura. Tente novamente.'
+            );
         } finally {
             setLoading(false);
         }
     };
 
-        const handleSairDoProjeto = async () => {
+    const handleSairDoProjeto = async () => {
         if (
-            !window.confirm(
-                'Tem a certeza de que deseja sair deste projeto?'
-            )
+            !window.confirm('Tem a certeza de que deseja sair deste projeto?')
         ) {
             return;
         }
@@ -317,11 +374,10 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                 });
             } else {
                 // Fallback caso o objeto completo não seja encontrado por algum motivo
-                 await updateDoc(projetoRef, {
+                await updateDoc(projetoRef, {
                     participantIds: arrayRemove(currentUser.uid),
                 });
             }
-
 
             setFeedback('Você saiu do projeto com sucesso.');
             // Idealmente, fecharia o modal após um segundo
@@ -330,7 +386,9 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
             }, 1500);
         } catch (error) {
             console.error('Erro ao sair do projeto:', error);
-            setFeedback('Ocorreu um erro ao tentar sair do projeto. Verifique suas permissões.');
+            setFeedback(
+                'Ocorreu um erro ao tentar sair do projeto. Verifique suas permissões.'
+            );
         } finally {
             setLoading(false);
         }
@@ -343,7 +401,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
     // Combina dono e participantes numa lista única para exibição
     const todosOsIntegrantes = [
         { uid: donoId, nome: donoNome, sobrenome: donoSobrenome, isDono: true },
-        ...participantes,
+        ...participantes.filter((p) => p.uid !== donoId),
     ];
 
     return (
@@ -363,9 +421,9 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                     <Secao>
                         <SecaoTitulo>Status</SecaoTitulo>
                         <TagsContainer>
-                            <Tag 
-                                $tipo="status" 
-                                $bgColor={statusStyle.$color} 
+                            <Tag
+                                $tipo="status"
+                                $bgColor={statusStyle.$color}
                                 $textColor={statusStyle.$textColor}
                             >
                                 {projeto.status || 'Não definido'}
@@ -375,11 +433,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                     <Secao>
                         <SecaoTitulo>Área</SecaoTitulo>
                         <TagsContainer>
-                            {area && (
-                                <Tag $tipo='area'>
-                                    {area}
-                                </Tag>
-                            )}
+                            {area && <Tag $tipo="area">{area}</Tag>}
                         </TagsContainer>
                     </Secao>
                     <Secao>
@@ -403,33 +457,43 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                                     key={p.uid}
                                     onClick={() => toggleMenuIntegrante(p.uid)}
                                 >
-                                    <Avatar>{`${p.nome?.[0] || ''}${
-                                        p.sobrenome?.[0] || ''
-                                    }`.toUpperCase()}</Avatar>
+                                    <Avatar>
+                                        {`${p.nome?.[0] || ''}${
+                                            p.sobrenome?.[0] || ''
+                                        }`.toUpperCase()}
+                                    </Avatar>
                                     <NomeIntegrante>
                                         {p.nome} {p.sobrenome}{' '}
                                         {p.isDono && '(Dono)'}
                                     </NomeIntegrante>
-                                    <FiChevronDown style={{ marginLeft: 'auto' }} />
+                                    <FiChevronDown
+                                        style={{ marginLeft: 'auto' }}
+                                    />
 
                                     {/* menu suspenso pra quem ta no projeto */}
                                     {integranteAberto === p.uid && (
                                         <DropdownMenu>
                                             <DropdownItem
                                                 onClick={() =>
-                                                    alert(`Ver perfil de ${p.nome}`)
+                                                    alert(
+                                                        `Ver perfil de ${p.nome}`
+                                                    )
                                                 }
                                             >
                                                 <FiUser /> Ver Perfil
                                             </DropdownItem>
-                                            <DropdownItem
-                                                onClick={() =>
-                                                    alert(`Enviar mensagem para ${p.nome}`)
-                                                }
-                                            >
-                                                <FiMessageSquare /> Enviar
-                                                Mensagem
-                                            </DropdownItem>
+                                            {p.uid !== currentUser.uid && (
+                                                <DropdownItem
+                                                    onClick={() =>
+                                                        handleIniciarChatPrivado(
+                                                            p
+                                                        )
+                                                    }
+                                                >
+                                                    <FiMessageSquare /> Enviar
+                                                    Mensagem
+                                                </DropdownItem>
+                                            )}
                                         </DropdownMenu>
                                     )}
                                 </IntegranteItem>

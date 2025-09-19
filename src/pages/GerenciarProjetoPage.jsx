@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import Botao from '../components/Botao';
 import PerfilCandidatoModal from '../components/PerfilCandidatoModal';
+import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/DashboardHeader';
 import Candidaturas from '../components/Candidaturas';
@@ -36,7 +37,7 @@ const Label = styled.label`
     margin-bottom: 8px;
     font-size: 20px;
     font-weight: 600;
-    color: #7C2256;
+    color: #7c2256;
     margin: 5px;
 `;
 
@@ -143,8 +144,7 @@ const TagsContainer = styled.div`
 const Tag = styled.div`
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
     padding: 5px 12px;
     border-radius: 16px;
     font-size: 14px;
@@ -196,9 +196,7 @@ function GerenciarProjetoPage() {
         const fetchTags = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
-                const tagsDoBanco = querySnapshot.docs.map((doc) =>
-                    doc.data()
-                );
+                const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
                 setTodasAsHabilidades(
                     tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')
                 );
@@ -309,9 +307,7 @@ function GerenciarProjetoPage() {
     };
 
     const removerHabilidade = (nome) => {
-        setHabilidadesEditaveis(
-            habilidadesEditaveis.filter((h) => h !== nome)
-        );
+        setHabilidadesEditaveis(habilidadesEditaveis.filter((h) => h !== nome));
     };
 
     const handleBuscaInteresseChange = (e) => {
@@ -339,9 +335,7 @@ function GerenciarProjetoPage() {
     };
 
     const removerInteresse = (nome) => {
-        setInteressesEditaveis(
-            interessesEditaveis.filter((i) => i !== nome)
-        );
+        setInteressesEditaveis(interessesEditaveis.filter((i) => i !== nome));
     };
 
     const handleVerPerfil = async (candidato) => {
@@ -377,22 +371,42 @@ function GerenciarProjetoPage() {
                 participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
 
+            const conversaRef = doc(db, 'conversas', id);
+            await updateDoc(conversaRef, {
+                participantes: arrayUnion(candidatoParaAceitar.userId),
+                participantesInfo: arrayUnion({
+                    uid: candidatoParaAceitar.userId,
+                    nome: candidatoParaAceitar.nome,
+                    sobrenome: candidatoParaAceitar.sobrenome,
+                }),
+            });
+
             await deleteDoc(candidaturaRef);
 
             setCandidaturas(
                 candidaturas.filter((c) => c.id !== candidatoParaAceitar.id)
             );
-            setProjeto((prevProjeto) => ({
-                ...prevProjeto,
-                participantes: [
-                    ...prevProjeto.participantes,
-                    {
+            setProjeto((prevProjeto) => {
+                const novosParticipantes = prevProjeto.participantes
+                    ? [...prevProjeto.participantes]
+                    : [];
+                // Garante que não haja duplicatas no estado local
+                if (
+                    !novosParticipantes.some(
+                        (p) => p.uid === candidatoParaAceitar.userId
+                    )
+                ) {
+                    novosParticipantes.push({
                         uid: candidatoParaAceitar.userId,
                         nome: candidatoParaAceitar.nome,
                         sobrenome: candidatoParaAceitar.sobrenome,
-                    },
-                ],
-            }));
+                    });
+                }
+                return {
+                    ...prevProjeto,
+                    participantes: novosParticipantes,
+                };
+            });
 
             setCandidatoSelecionado(null);
             alert(`${candidatoParaAceitar.nome} foi adicionado(a) ao projeto!`);
@@ -480,7 +494,6 @@ function GerenciarProjetoPage() {
             alert('Ocorreu um erro ao excluir o projeto.');
         }
     };
-
 
     if (loading) {
         return (
@@ -609,7 +622,7 @@ function GerenciarProjetoPage() {
                                     <option value="Marketing">Marketing</option>
                                 </Select>
                             </InputGroup>
-                            
+
                             {/* Interesse e habilidade lado a lado */}
                             <CamposLinha>
                                 <InputGroup style={{ flex: 1 }}>
@@ -723,10 +736,11 @@ function GerenciarProjetoPage() {
                 </Container>
             </Formulario>
 
-            <PerfilCandidatoModal
+            <PerfilUsuarioModal
                 isOpen={!!candidatoSelecionado}
                 onClose={() => setCandidatoSelecionado(null)}
-                candidato={candidatoSelecionado}
+                usuario={candidatoSelecionado}
+                tipo="candidato"
                 onAceitar={handleAceitar}
                 onRejeitar={handleRejeitar}
                 loading={isActionLoading}

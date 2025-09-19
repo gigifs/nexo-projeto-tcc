@@ -8,6 +8,8 @@ import {
     addDoc,
     serverTimestamp,
     getDocs,
+    doc,
+    setDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 //Hook de Autenticação
@@ -49,7 +51,9 @@ const Input = styled.input`
     border: 1px solid #ced4da;
     border-radius: 10px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     box-sizing: border-box;
 
     &:focus {
@@ -70,7 +74,9 @@ const Textarea = styled.textarea`
     outline: none;
     resize: vertical;
     min-height: 80px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     box-sizing: border-box;
 
     &:focus {
@@ -242,7 +248,8 @@ function FormularioCriarProjeto({ onClose }) {
         if (!habilidadeParaAdicionar) return;
 
         const habilidadeValida = todasAsHabilidades.find(
-            (h) => h.nome.toLowerCase() === habilidadeParaAdicionar.toLowerCase()
+            (h) =>
+                h.nome.toLowerCase() === habilidadeParaAdicionar.toLowerCase()
         );
 
         if (habilidadeValida) {
@@ -274,7 +281,7 @@ function FormularioCriarProjeto({ onClose }) {
         evento.preventDefault();
         setErro('');
 
-        if (!currentUser) {
+        if (!currentUser || !userData) {
             setErro('Você precisa estar logado para criar um projeto.');
             return;
         }
@@ -289,7 +296,10 @@ function FormularioCriarProjeto({ onClose }) {
 
         try {
             const projetosCollectionRef = collection(db, 'projetos');
-            await addDoc(projetosCollectionRef, {
+
+            // CORREÇÃO IMPORTANTE: Usamos 'await' e capturamos a referência do novo documento.
+            // 'addDoc' retorna uma referência ao documento recém-criado.
+            const novoProjetoDocRef = await addDoc(projetosCollectionRef, {
                 nome: nomeProjeto,
                 descricao: descricao,
                 area: area,
@@ -299,7 +309,41 @@ function FormularioCriarProjeto({ onClose }) {
                 donoSobrenome: userData.sobrenome,
                 criadoEm: serverTimestamp(),
                 status: 'Novo',
+                // Adicionamos o dono como primeiro participante e no array de IDs
+                participantes: [
+                    {
+                        uid: currentUser.uid,
+                        nome: userData.nome,
+                        sobrenome: userData.sobrenome,
+                    },
+                ],
+                participantIds: [currentUser.uid],
             });
+
+            // Agora que temos a referência (novoProjetoDocRef), podemos usar seu ID.
+            const novoProjetoId = novoProjetoDocRef.id;
+
+            // 2. Cria a conversa de grupo com o ID correto
+            const conversaRef = doc(db, 'conversas', novoProjetoId); // Usa o ID do projeto como ID da conversa
+            await setDoc(conversaRef, {
+                isGrupo: true,
+                nomeGrupo: nomeProjeto,
+                projetoId: novoProjetoId, // AQUI USAMOS A VARIÁVEL QUE NÃO SERÁ UNDEFINED
+                participantes: [currentUser.uid],
+                participantesInfo: [
+                    {
+                        uid: currentUser.uid,
+                        nome: userData.nome,
+                        sobrenome: userData.sobrenome,
+                    },
+                ],
+                ultimaMensagem: {
+                    texto: 'Chat de grupo criado!',
+                    timestamp: serverTimestamp(),
+                    senderNome: 'Sistema',
+                },
+            });
+
             alert('Projeto criado com sucesso!');
             onClose();
         } catch (error) {
@@ -348,7 +392,9 @@ function FormularioCriarProjeto({ onClose }) {
                     <option value="Desenvolvimento de Software">
                         Desenvolvimento de Software
                     </option>
-                    <option value="Pesquisa Acadêmica">Pesquisa Acadêmica</option>
+                    <option value="Pesquisa Acadêmica">
+                        Pesquisa Acadêmica
+                    </option>
                     <option value="Design/UX">Design/UX</option>
                     <option value="Marketing">Marketing</option>
                 </Select>

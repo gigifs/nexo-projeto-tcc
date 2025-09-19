@@ -7,7 +7,7 @@ import React, {
 } from 'react'; // importante: useEffect é para interagir com sistemas externos - Firebase
 import { onAuthStateChanged, signOut } from 'firebase/auth'; // função de autenticação em tempo real
 import { auth, db } from '../firebase'; // aqui sao as instancias de autenticação e banco de dados
-import { doc, getDoc } from 'firebase/firestore'; // ferramentas que leem dados para o firebase
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'; // ferramentas que leem dados para o firebase
 
 // a criação do contexto, como um armazém de dados ainda vazio
 const AuthContext = createContext();
@@ -54,12 +54,26 @@ export function AuthProvider({ children }) {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             // async significa que vamos buscar dados no banco
             setCurrentUser(user); //atualiza o estado com a informação do banco em user(ou um usuario ou null)
+            if (user) {
+                // Se um utilizador está logado, atualizamos o seu status
+                const userDocRef = doc(db, 'users', user.uid);
+                await setDoc(
+                    userDocRef,
+                    {
+                        status: {
+                            online: true, // Indica que está ativo
+                            vistoPorUltimo: serverTimestamp(), // Guarda a hora atual
+                        },
+                    },
+                    { merge: true }
+                ); // 'merge: true' para não apagar outros dados do perfil
+            }
             await fetchUserData(user); // Chama a função centralizada
             setLoading(false); // nessa altura ja temos uma resposta definitiva do status do usuario, por isso false
         });
 
         return unsubscribe; // limpa o ouvinte quando ele for removido da tela, previne vazamento de memoria
-    }, []); // [] = garante que o trecho so seja executado uma vez
+    }, [fetchUserData]); // [] = garante que o trecho so seja executado uma vez
 
     // função de logout
     const logout = async () => {

@@ -19,6 +19,8 @@ import {
     arrayUnion,
     arrayRemove,
 } from 'firebase/firestore';
+import Modal from '../components/Modal';
+import TemCertezaModal from '../components/TemCertezaModal';
 
 const Formulario = styled.form`
     display: flex;
@@ -191,7 +193,8 @@ function GerenciarProjetoPage() {
     const [todosOsInteresses, setTodosOsInteresses] = useState([]);
     const [sugestoesH, setSugestoesH] = useState([]);
     const [sugestoesI, setSugestoesI] = useState([]);
-
+    const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     useEffect(() => {
         const fetchTags = async () => {
             try {
@@ -461,23 +464,25 @@ function GerenciarProjetoPage() {
         }
     };
 
-    const handleExcluirProjeto = async () => {
-        if (
-            !window.confirm(
-                'ATENÇÃO: Esta ação é permanente. Tem a certeza de que deseja excluir este projeto?'
-            )
-        ) {
-            return;
-        }
+    // Abre o modal
+    const handleExcluirProjeto = () => {
+        setConfirmModalOpen(true);
+    };
 
+    // Ação que exclui o projeto
+    const confirmarExclusao = async () => {
+        setIsDeleting(true);
         try {
             const projetoRef = doc(db, 'projetos', id);
             await deleteDoc(projetoRef);
             alert('Projeto excluído com sucesso.');
+            setConfirmModalOpen(false);
             navigate('/dashboard/meus-projetos');
         } catch (err) {
             console.error('Erro ao excluir projeto:', err);
             alert('Ocorreu um erro ao excluir o projeto.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -712,6 +717,7 @@ function GerenciarProjetoPage() {
                             />
                             <SecaoExcluir>
                                 <Botao
+                                    type='button'
                                     variant="excluir"
                                     onClick={handleExcluirProjeto}
                                 >
@@ -722,6 +728,19 @@ function GerenciarProjetoPage() {
                     </ColunasContainer>
                 </Container>
             </Formulario>
+
+            {/* Modal de confirmação de exclusão */}
+            <Modal isOpen={isConfirmModalOpen} onClose={() => setConfirmModalOpen(false)} size='excluir-projeto'>
+                <TemCertezaModal
+                    titulo="Excluir Projeto?"
+                    mensagem="Esta ação é permanente e não pode ser desfeita."
+                    onConfirm={confirmarExclusao}
+                    onClose={() => setConfirmModalOpen(false)}
+                    loading={isDeleting}
+                    textoConfirmar="Sim"
+                    textoCancelar="Não"
+                />
+            </Modal>
 
             <PerfilCandidatoModal
                 isOpen={!!candidatoSelecionado}

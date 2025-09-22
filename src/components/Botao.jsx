@@ -14,6 +14,36 @@ const BotaoEstilizado = styled.button`
 
     ${(props) => {
         switch (props.$variant) {
+            case 'nao':
+                return css`
+                    background-color: #F6171A;
+                    color: #FFFFFF;
+                    border-radius: 10px;
+                    padding: 10px 20px 10px 20px;
+                    font-size: 22px;
+                    font-weight: 900;
+
+                    &:hover {
+                    background-color: #9f0f11ff;
+                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+
+            case 'sim':
+                return css`
+                    background-color: #49E42A;
+                    color: #FFFFFF;
+                    border-radius: 10px;
+                    padding: 10px 20px 10px 20px;
+                    font-size: 22px;
+                    font-weight: 900;
+
+                    &:hover {
+                    background-color: #218838;
+                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+
             case 'excluir':
                 return css`
                     background-color: #f6171a33;

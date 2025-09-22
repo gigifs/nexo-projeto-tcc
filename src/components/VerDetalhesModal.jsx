@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
+import Modal from './Modal';
+import TemCertezaModal from './TemCertezaModal';
 import {
     doc,
     setDoc,
@@ -229,16 +231,16 @@ const Footer = styled.div`
         }
     };
 
-function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
+function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
     const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
-
         // 2. Novos estados para controlar o modal de perfil do integrante
     const [isPerfilModalOpen, setPerfilModalOpen] = useState(false);
     const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
     const [loadingIntegrante, setLoadingIntegrante] = useState(false);
+    const [isConfirmOpen, setConfirmOpen] = useState(false);
 
     const {
         nome,
@@ -297,15 +299,11 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
         }
     };
 
-        const handleSairDoProjeto = async () => {
-        if (
-            !window.confirm(
-                'Tem a certeza de que deseja sair deste projeto?'
-            )
-        ) {
-            return;
-        }
+    const handleSairDoProjeto = () => {
+        setConfirmOpen(true);
+    };
 
+    const confirmarSaidaDoProjeto = async () => {
         setLoading(true);
         setFeedback('');
 
@@ -315,28 +313,30 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                 (p) => p.uid === currentUser.uid
             );
 
-            // Se encontrarmos o objeto do participante, realizamos uma única atualização atômica
             if (participanteParaRemover) {
                 await updateDoc(projetoRef, {
                     participantIds: arrayRemove(currentUser.uid),
                     participantes: arrayRemove(participanteParaRemover),
                 });
             } else {
-                // Fallback caso o objeto completo não seja encontrado por algum motivo
                  await updateDoc(projetoRef, {
                     participantIds: arrayRemove(currentUser.uid),
                 });
             }
 
-
             setFeedback('Você saiu do projeto com sucesso.');
-            // Idealmente, fecharia o modal após um segundo
+            setConfirmOpen(false); // Fecha o modal de confirmação
+            
+            // Fecha o modal de detalhes após um pequeno atraso
             setTimeout(() => {
-                // se a função onClose for passada, chame-a aqui
+                if (onClose) {
+                    onClose();
+                }
             }, 1500);
+
         } catch (error) {
             console.error('Erro ao sair do projeto:', error);
-            setFeedback('Ocorreu um erro ao tentar sair do projeto. Verifique suas permissões.');
+            setFeedback('Ocorreu um erro ao tentar sair do projeto.');
         } finally {
             setLoading(false);
         }
@@ -494,6 +494,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                     {feedback && <p style={{ marginTop: '10px' }}>{feedback}</p>}
                 </Footer>
             </ModalWrapper>
+
             <PerfilUsuarioModal
                 isOpen={isPerfilModalOpen}
                 onClose={() => setPerfilModalOpen(false)}
@@ -501,6 +502,16 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                 loading={loadingIntegrante}
                 tipo="integrante"
             />
+            
+            <Modal isOpen={isConfirmOpen} onClose={() => setConfirmOpen(false)} size="excluir-projeto">
+                <TemCertezaModal
+                    titulo="Sair do Projeto?"
+                    mensagem="Tem certeza?"
+                    onConfirm={confirmarSaidaDoProjeto}
+                    onClose={() => setConfirmOpen(false)}
+                    loading={loading}
+                />
+            </Modal>
         </>
     );
 }

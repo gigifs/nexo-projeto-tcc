@@ -3,7 +3,6 @@ import { FiUser, FiGithub, FiLinkedin } from 'react-icons/fi';
 import { FaGraduationCap } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext.jsx';
 
-// O container principal
 const QuadroPerfilContainer = styled.div`
     background-color: #f5fafc;
     border-radius: 20px;
@@ -12,10 +11,8 @@ const QuadroPerfilContainer = styled.div`
     display: flex;
     align-items: stretch;
     overflow: hidden;
-    /* A propriedade 'height' foi removida para permitir que o container cresça */
 `;
 
-// Coluna da Esquerda (Foto e Links)
 const FotoLinksContainer = styled.div`
     background-color: #e6ebf0;
     padding: 30px 25px;
@@ -26,10 +23,11 @@ const FotoLinksContainer = styled.div`
     flex-shrink: 0;
 `;
 
+// ALTERADO: Avatar agora aceita a propriedade $bgColor
 const Avatar = styled.div`
     width: 120px;
     height: 120px;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-weight: 700;
     font-size: 56px;
@@ -51,28 +49,23 @@ const LinkExterno = styled.a`
     width: 143px;
     height: 44px;
     box-sizing: border-box;
-
     display: flex;
     align-items: center;
     gap: 8px;
     padding-left: 10px;
-
     font-size: 30px;
     font-weight: 500;
     color: #000;
     text-decoration: none;
     transition: color 0.2s ease-in-out;
-
     svg {
         font-size: 30px;
     }
-
     &:hover {
         color: #0a528a;
     }
 `;
 
-// Coluna da Direita
 const InfoDetalhadaContainer = styled.div`
     flex: 1;
     display: flex;
@@ -94,7 +87,6 @@ const InfoLinha = styled.div`
     gap: 8px;
     font-size: 20px;
     color: #000;
-
     svg {
         color: #333;
         font-size: 22px;
@@ -131,7 +123,7 @@ const SecaoConteudo = styled.p`
     color: #333;
     line-height: 1.4;
     margin: 0;
-    word-break: break-word; /* Impede que o texto vaze */
+    word-break: break-word;
 `;
 
 const TagsContainer = styled.div`
@@ -148,37 +140,28 @@ const Tag = styled.span`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    background-color: ${(props) => (props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66')};
     color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 
 const getInitials = (nome, sobrenome) => {
-    if (!nome || !sobrenome) return '?';
-    return `${nome ? nome.charAt(0) : ''}${
-        sobrenome ? sobrenome.charAt(0) : ''
-    }`.toUpperCase();
+    if (!nome) return '?';
+    return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
 };
 
 function QuadroPerfil() {
     const { userData } = useAuth();
 
     const todasAsTags = [
-        ...(userData?.habilidades || []).map((h) => ({
-            nome: h,
-            tipo: 'habilidade',
-        })),
-        ...(userData?.interesses || []).map((i) => ({
-            nome: i,
-            tipo: 'interesse',
-        })),
+        ...(userData?.habilidades || []).map((h) => ({ nome: h, tipo: 'habilidade' })),
+        ...(userData?.interesses || []).map((i) => ({ nome: i, tipo: 'interesse' })),
     ];
 
     return (
         <QuadroPerfilContainer>
             <FotoLinksContainer>
-                <Avatar>
+                {/* ALTERADO: Passamos a cor do avatar dinamicamente */}
+                <Avatar $bgColor={userData?.avatarColor}>
                     {getInitials(userData?.nome, userData?.sobrenome)}
                 </Avatar>
                 <LinksSociais>
@@ -186,7 +169,7 @@ function QuadroPerfil() {
                         <FiGithub /> GitHub
                     </LinkExterno>
                     <LinkExterno href={userData?.linkedin || '#'} target="_blank">
-                        <FiLinkedin size={30}    /> LinkedIn
+                        <FiLinkedin size={30} /> LinkedIn
                     </LinkExterno>
                 </LinksSociais>
             </FotoLinksContainer>

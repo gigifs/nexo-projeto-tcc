@@ -51,11 +51,12 @@ const UserProfile = styled.div`
     cursor: pointer;
 `;
 
+// ALTERADO: Avatar agora aceita a propriedade $bgColor
 const Avatar = styled.div`
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 20px;
     font-weight: 700;
@@ -73,8 +74,8 @@ const Nome = styled.span`
 
 // Função para pegar as iniciais do nome
 const getInitials = (nome, sobrenome) => {
-    if (!nome || !sobrenome) return '?';
-    return `${nome[0]}${sobrenome[0]}`.toUpperCase();
+    if (!nome) return '?';
+    return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
 };
 
 function HeaderApp() {
@@ -89,13 +90,15 @@ function HeaderApp() {
             <UserArea>
                 <IconeNotificacao onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}>
                     <FiBell size={32} strokeWidth={2.5} />
-                     {/* Futuramente, podemos adicionar um contador de notificações aqui */}
                 </IconeNotificacao>
-                {/* Renderiza o modal de notificações se o estado for true */}
+                
                 {notificacoesAbertas && <Notificacoes onClose={() => setNotificacoesAbertas(false)} />}
-                <Avatar>
+                
+                {/* ALTERADO: Passamos a cor do avatar dinamicamente */}
+                <Avatar $bgColor={userData?.avatarColor}>
                     {getInitials(userData?.nome, userData?.sobrenome)}
                 </Avatar>
+
                 <Nome>{userData?.nome}</Nome>
                 <UserProfile onClick={() => setMenuAberto(!menuAberto)}>
                     <span>

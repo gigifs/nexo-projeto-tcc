@@ -1,169 +1,276 @@
 import { useState } from 'react';
-import styled, { css } from 'styled-components';
-import Botao from './Botao';
-import logoQuadrada from '../assets/logoQuadrada.svg';
-import detalhes from '../assets/detalhes.svg';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+import Botao from './Botao.jsx';
+import {
+    signInWithEmailAndPassword,
+    signOut,
+    setPersistence,
+    browserSessionPersistence,
+    browserLocalPersistence,
+} from 'firebase/auth';
+import { auth } from '../firebase.js';
 
-const DetalhesBackground = styled.img`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-`;
-
-const InicioEstilizado = styled.section`
-    background-color: #f5fafc;
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    box-shadow: 0 2px 4px #d97ec8ff; /*tira??*/
-`;
-
-//nova const, por conta da responsividade
-const ConteudoInicio = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 60px 40px;
-    min-height: 80vh;
-    max-width: 1700px;
-    margin: 0 auto;
-    box-sizing: border-box;
-    gap: 40px;
-    position: relative; /* Garante que o conteúdo fique sobre a imagem de fundo */
-    z-index: 1;
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-        text-align: center;
-        padding: 60px 20px;
-        min-height: 60vh;
-    }
-`;
-
-const ConteudoEsquerdo = styled.div`
-    flex: 1;
-    max-width: 700px;
+const FormularioContainer = styled.form`
     display: flex;
     flex-direction: column;
-
-    @media (max-width: 768px) {
-        align-items: center;
-        max-width: 100%;
-    }
+    padding: 0 60px 0 60px;
 `;
 
-const Titulo = styled.h1`
-    font-size: 64px;
-    font-weight: 800;
-    color: #030214;
-    margin-bottom: 2px;
-    line-height: 1.2;
-
-    @media (max-width: 768px) {
-        font-size: 48px;
-    }
+const Titulo = styled.h2`
+    font-size: 30px;
+    font-weight: 700;
+    margin: 30px 0 10px 0;
+    text-align: center;
+    color: #000000;
 `;
 
-const Subtitulo = styled.p`
-    font-size: 52px;
-    font-weight: 500;
-    color: #030214;
-    margin-bottom: 60px;
-    line-height: 1; /*checar*/
-
-    @media (max-width: 768px) {
-        font-size: 36px;
-        margin-bottom: 40px;
-    }
+const SubTitulo = styled.h3`
+    font-size: 18px;
+    font-weight: 300;
+    color: #000000;
+    margin-bottom: 25px;
+    text-align: center;
 `;
 
-const FormCadastro = styled.form`
+const InputGroup = styled.div`
     display: flex;
-    gap: 10px;
-    align-items: center;
-    width: 100%;
-    max-width: 700px; /* Garante que não fique maior que o conteúdo esquerdo */
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-        width: 100%;
-        gap: 30px;
-    }
+    flex-direction: column;
+    text-align: left;
 `;
 
-const InputEmail = styled.input`
-    padding: 0 15px;
-    font-size: 24px;
-    border: 1px solid #0a528acc;
-    border-radius: 50px;
-    width: 100%;
-    height: 60px;
+const Label = styled.label`
+    font-size: 16px;
+    font-weight: 300;
+    color: #140202ff;
+    margin-bottom: 2px;
+`;
+
+const Input = styled.input`
+    background-color: #f5fafc;
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #333333;
+    border: 1px solid #00000060;
+    border-radius: 10px;
     outline: none;
-    box-sizing: border-box; /* Garante que o padding não aumente o tamanho total */
+    margin-bottom: 15px;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 
     &::placeholder {
-        color: #0a528a;
+        color: #999999; /* cor do placeholder!! */
+        opacity: 1;
     }
 
     &:focus {
-        border-color: #0a528acc;
-        box-shadow: 0 0 0 2px #0a528acc;
-    }
-
-    @media (max-width: 768px) {
-        font-size: 20px;
-        height: 45px;
+        border-color: #5b82e9;
+        box-shadow: 0 0 0 3px #5b82e948;
     }
 `;
 
-const LogoInicio = styled.img`
-    max-width: 500px;
-    height: auto;
-    user-select: none;
+const OptionsContainer = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 25px;
+`;
 
-    @media (max-width: 768px) {
-        display: none;
+const CheckboxGroup = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espaço entre o checkbox e o texto */
+`;
+
+const CheckboxEstilizado = styled.input`
+    transform: scale(1.4);
+    accent-color: #7c2256;
+    cursor: pointer;
+`;
+
+const LembrarDeMim = styled.label`
+    font-size: 14px;
+    font-weight: 300;
+`;
+
+const LinkEsqueciSenha = styled.a`
+    font-size: 14px;
+    font-weight: 300;
+    color: #7c2256;
+    text-decoration: none;
+    text-align: right;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
     }
 `;
 
-function Inicio({ onSignupClick }) {
-    // o hook useState é para o react redesenhar na tela sempre que a variavel mudar
+const ButtonContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin: auto;
+`;
+
+const NaoTemConta = styled.p`
+    text-align: center;
+    font-size: 16px;
+    color: #030214;
+    margin-top: 20px;
+    font-weight: 300;
+
+    a {
+        color: #7c2256;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+`;
+
+const MensagemErro = styled.p`
+    color: #d32f2f; /* vermelho para erros */
+    font-size: 14px;
+    font-weight: 400;
+    text-align: center;
+    margin-top: 0;
+`;
+
+function FormularioLogin({ onSwitchToSignup, onSuccess }) {
     const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [lembrar, setLembrar] = useState(false);
+    const [erroLogin, setErroLogin] = useState(''); // estado para erros de login
+    const navigate = useNavigate(); // inicializa o hook de navegação
+    const [loading, setLoading] = useState(false); // estado de loading
 
-    const handleSubmit = (evento) => {
-        evento.preventDefault();
-        onSignupClick(email);
+    const handleSubmit = async (evento) => {
+        evento.preventDefault(); // Impede que a página recarregue ao enviar
+        setErroLogin(''); // limpa erros antigos
+
+        // Impede o envio se já estiver a carregar
+        if (loading) return;
+
+        setLoading(true); // ativa o loading e garante que ele seja desativado no fim
+        try {
+            // Isto garante que a escolha atual do utilizador seja usada para ESTA tentativa.
+            await setPersistence(
+                auth,
+                lembrar ? browserLocalPersistence : browserSessionPersistence
+            );
+
+            //tenta fazer o login
+            const userCredential = await signInWithEmailAndPassword(
+                auth,
+                email,
+                senha
+            );
+            const user = userCredential.user;
+
+            await user.reload();
+
+            //verificação importante: o email foi verificado?
+            if (user.emailVerified) {
+                // Se sim, login bem sucedido
+                // Após o sucesso do login, guardamos a preferência no localStorage.
+                localStorage.setItem(
+                    'firebasePersistence',
+                    lembrar ? 'local' : 'session'
+                );
+
+                navigate('/dashboard');
+                //redirecionando para a pagina principal
+            } else {
+                // Se o e-mail não for verificado, desconectamos o utilizador
+                // antes de mostrar a mensagem de erro.
+                await signOut(auth);
+                setErroLogin(
+                    'Você precisa verificar seu e-mail antes de fazer o login.'
+                );
+                // botao de reenviar no futuro???
+            }
+        } catch (error) {
+            //erros mais comuns traduzidos
+            if (
+                error.code === 'auth/user-not-found' ||
+                error.code === 'auth/wrong-password' ||
+                error.code === 'auth/invalid-credential'
+            ) {
+                setErroLogin('E-mail ou senha inválidos.');
+            } else {
+                setErroLogin('Ocorreu um erro ao tentar fazer o login.');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <InicioEstilizado id="inicio">
-            <DetalhesBackground src={detalhes} alt="Detalhes de fundo" />
+        <FormularioContainer onSubmit={handleSubmit}>
+            <Titulo>Bem-vindo(a)</Titulo>
+            <SubTitulo>Faça login para acessar o sistema</SubTitulo>
+            <InputGroup>
+                <Label htmlFor="login-email">E-mail</Label>
+                <Input
+                    type="email"
+                    id="login-email"
+                    placeholder="seuemail@exemplo.com"
+                    required
+                    value={email}
+                    onChange={(evento) => setEmail(evento.target.value)}
+                />
+            </InputGroup>
+            <InputGroup>
+                <Label htmlFor="login-senha">Senha</Label>
+                <Input
+                    type="password"
+                    id="login-senha"
+                    placeholder="••••••••"
+                    required
+                    value={senha}
+                    onChange={(evento) => setSenha(evento.target.value)}
+                />
+            </InputGroup>
+            <OptionsContainer>
+                <CheckboxGroup>
+                    <CheckboxEstilizado
+                        type="checkbox"
+                        id="lembrar-mim"
+                        checked={lembrar}
+                        onChange={(e) => setLembrar(e.target.checked)}
+                    />
+                    <LembrarDeMim htmlFor="lembrar-mim">
+                        Lembrar de mim
+                    </LembrarDeMim>
+                </CheckboxGroup>
+                <LinkEsqueciSenha
+                    onClick={() => {
+                        onSuccess(); // Fecha o modal de login
+                        navigate('/esqueci-senha'); // Navega para a nova página
+                    }}
+                >
+                    Esqueceu a senha?
+                </LinkEsqueciSenha>
+            </OptionsContainer>
 
-            <ConteudoInicio>
-                <ConteudoEsquerdo>
-                    <Titulo>Crie projetos incríveis com o NEXO</Titulo>
-                    <Subtitulo>Conecte-se, colabore, conquiste.</Subtitulo>
-                    <FormCadastro onSubmit={handleSubmit}>
-                        <InputEmail
-                            type="email"
-                            placeholder="E-mail..."
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <Botao variant="CadastrarSecaoInicio" type="submit">
-                            Cadastrar
-                        </Botao>
-                    </FormCadastro>
-                </ConteudoEsquerdo>
+            {erroLogin && <MensagemErro>{erroLogin}</MensagemErro>}
 
-                <LogoInicio src={logoQuadrada} alt="Logo Nexo" />
-            </ConteudoInicio>
-        </InicioEstilizado>
+            <ButtonContainer>
+                <Botao variant="Modal" type="submit" disabled={loading}>
+                    {loading ? 'Entrando...' : 'Entrar'}
+                </Botao>
+            </ButtonContainer>
+
+            <NaoTemConta>
+                Não tem uma conta? <a onClick={onSwitchToSignup}>Cadastre-se</a>
+            </NaoTemConta>
+        </FormularioContainer>
     );
 }
 
-export default Inicio;
+export default FormularioLogin;

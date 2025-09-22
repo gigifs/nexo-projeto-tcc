@@ -6,6 +6,8 @@ import PrivacidadeSeguranca from '../components/PrivacidadeSeguranca';
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
+    gap: 25px;
+    width: 100%;
 `;
 
 function ConfiguracoesSegurancaPage() {

@@ -24,6 +24,15 @@ const ModalBox = styled.div`
 
     ${(props) => {
         switch (props.size) {
+            case 'excluir-projeto':
+                return css`
+                    max-width: 400px;
+                    border-radius: 30px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                `;
+
             case 'large':
                 return css`
                     max-width: 620px;

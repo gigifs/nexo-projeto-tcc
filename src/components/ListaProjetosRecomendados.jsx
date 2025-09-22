@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import ProjectCard from './ProjectCard';
@@ -33,16 +33,35 @@ function ListaProjetosRecomendados() {
             setError('');
             
             try {
+                //Busca inicial, projetos que não são do usuário
                 const projetosRef = collection(db, 'projetos');
-                //A query busca projetos onde o dono NÃO É o usuário atual
                 const q = query(projetosRef, where('donoId', '!=', currentUser.uid));
                 const querySnapshot = await getDocs(q);
-                const projetosList = querySnapshot.docs.map(doc => ({
+
+                let projetosList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
 
-                setProjetos(projetosList);
+                //Filtra projetos onde o usuário já é participante
+                const projetosFiltrados = projetosList.filter(
+                    (p) => !(p.participantIds && p.participantIds.includes(currentUser.uid))
+                );
+
+                //Verifica as candidaturas para os projetos restantes
+                const verificacaoCandidaturas = projetosFiltrados.map(async (projeto) => {
+                    const candidaturaRef = doc(db, 'projetos', projeto.id, 'candidaturas', currentUser.uid);
+                    const candidaturaSnap = await getDoc(candidaturaRef);
+                    return { ...projeto, jaCandidatou: candidaturaSnap.exists() };
+                });
+
+                //Espera todas as verificações terminarem
+                const projetosComStatusCandidatura = await Promise.all(verificacaoCandidaturas);
+
+                //Filtro final, remove os projetos onde o usuário já se candidatou
+                const projetosFinais = projetosComStatusCandidatura.filter(p => !p.jaCandidatou);
+
+                setProjetos(projetosFinais);
 
             } catch (err) {
                 console.error("Erro ao buscar projetos:", err);

@@ -13,6 +13,7 @@ import {
     updateDoc, 
     arrayRemove, 
 } from 'firebase/firestore';
+import PerfilUsuarioModal from './PerfilUsuarioModal';
 
 const ModalWrapper = styled.div`
     padding: 10px 30px 20px 30px;
@@ -235,8 +236,12 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
     const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
+        // 2. Novos estados para controlar o modal de perfil do integrante
+    const [isPerfilModalOpen, setPerfilModalOpen] = useState(false);
+    const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
+    const [loadingIntegrante, setLoadingIntegrante] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
-    
+
     const {
         nome,
         donoId,
@@ -341,6 +346,30 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
         setIntegranteAberto(integranteAberto === uid ? null : uid);
     };
 
+    // Nova função para buscar dados do integrante e abrir o modal
+    const handleVerPerfilIntegrante = async (integrante) => {
+        setLoadingIntegrante(true);
+        setPerfilModalOpen(true);
+        try {
+            // A informação do integrante no projeto pode estar desatualizada.
+            // Por isso, buscamos a versão mais recente do perfil do usuário.
+            const userRef = doc(db, 'users', integrante.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                setIntegranteSelecionado({ ...userSnap.data(), uid: integrante.uid });
+            } else {
+                // Se não encontrar, exibe os dados básicos que já temos
+                setIntegranteSelecionado(integrante);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar dados do integrante:", error);
+            setIntegranteSelecionado(integrante); // Fallback
+        } finally {
+            setLoadingIntegrante(false);
+        }
+    };
+
     // Combina dono e participantes numa lista única para exibição
     const todosOsIntegrantes = [
         { uid: donoId, nome: donoNome, sobrenome: donoSobrenome, isDono: true },
@@ -418,9 +447,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                         {integranteAberto === p.uid && (
                                             <DropdownMenu>
                                                 <DropdownItem
-                                                    onClick={() =>
-                                                        alert(`Ver perfil de ${p.nome}`)
-                                                    }
+                                                    onClick={() => handleVerPerfilIntegrante(p)}
                                                 >
                                                     <FiUser /> Ver Perfil
                                                 </DropdownItem>
@@ -467,6 +494,14 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                     {feedback && <p style={{ marginTop: '10px' }}>{feedback}</p>}
                 </Footer>
             </ModalWrapper>
+
+            <PerfilUsuarioModal
+                isOpen={isPerfilModalOpen}
+                onClose={() => setPerfilModalOpen(false)}
+                usuario={integranteSelecionado}
+                loading={loadingIntegrante}
+                tipo="integrante"
+            />
             
             <Modal isOpen={isConfirmOpen} onClose={() => setConfirmOpen(false)} size="excluir-projeto">
                 <TemCertezaModal

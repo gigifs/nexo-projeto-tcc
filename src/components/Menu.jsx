@@ -35,10 +35,11 @@ const PerfilEstilizado = styled.div`
     }
 `;
 
+// ALTERADO: Avatar agora aceita a propriedade $bgColor
 const Avatar = styled.div`
     width: 60px;
     height: 60px;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-weight: 700;
     font-size: 30px;
@@ -86,12 +87,10 @@ const MenuItem = styled.li`
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 
-    /* Lógica para o item ativo */
     background-color: ${({ $ativo }) => ($ativo ? '#238cd74d' : 'transparent')};
     color: ${({ $ativo }) => ($ativo ? '#000' : '#000')};
     font-weight: ${({ $ativo }) => ($ativo ? '500' : '300')};
 
-    /* O ícone também muda de cor */
     svg {
         color: ${({ $ativo }) => ($ativo ? '#0A528A' : '#000')};
         stroke-width: ${({ $ativo }) => ($ativo ? '2.5px' : '2px')};
@@ -109,15 +108,13 @@ const MenuItem = styled.li`
     }
 `;
 
-// Função para pegar as iniciais do nome
 const getInitials = (nome, sobrenome) => {
-    if (!nome || !sobrenome) return '?';
-    return `${nome[0]}${sobrenome[0]}`.toUpperCase();
+    if (!nome) return '?';
+    return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
 };
 
 function Menu() {
     const { userData } = useAuth();
-
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -127,15 +124,14 @@ function Menu() {
                 $ativo={location.pathname === '/dashboard/perfil'}
                 onClick={() => navigate('/dashboard/perfil')}
             >
-                <Avatar>
-                    {userData
-                        ? getInitials(userData.nome, userData.sobrenome)
-                        : 'US'}
+                {/* ALTERADO: Passamos a cor do avatar dinamicamente */}
+                <Avatar $bgColor={userData?.avatarColor}>
+                    {getInitials(userData?.nome, userData?.sobrenome)}
                 </Avatar>
                 <PerfilInfo>
                     <Nome>
-                        {userData?.nome || 'Nome do Usuário'}{' '}
-                        {userData?.sobrenome}
+                        {userData?.nome || 'Nome'}{' '}
+                        {userData?.sobrenome || 'Sobrenome'}
                     </Nome>
                     <Curso>{userData?.curso || 'Curso não informado'}</Curso>
                 </PerfilInfo>
@@ -167,9 +163,7 @@ function Menu() {
                     <FiMessageSquare size={32} /> Mensagens
                 </MenuItem>
                 <MenuItem
-                    $ativo={location.pathname.startsWith(
-                        '/dashboard/configuracoes'
-                    )}
+                    $ativo={location.pathname.startsWith('/dashboard/configuracoes')}
                     onClick={() => navigate('/dashboard/configuracoes')}
                 >
                     <FiSettings size={32} /> Configurações

@@ -1,10 +1,13 @@
 import styled from 'styled-components';
 import DashboardHeader from '../components/DashboardHeader';
 import NavegacaoAbas from '../components/NavegacaoAbas';
+import ConfigPerfil from '../components/ConfigPerfil';
 
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
+    gap: 25px;
+    width: 100%;
 `;
 
 function ConfiguracoesPessoaisPage() {
@@ -24,10 +27,7 @@ function ConfiguracoesPessoaisPage() {
 
             <NavegacaoAbas abas={abas} />
 
-            {/* Conteúdo específico da aba "Informações Pessoais" virá aqui */}
-            <div>
-                <h2>Em breve: Formulário para editar nome, curso, etc.</h2>
-            </div>
+            <ConfigPerfil />
         </HomeContainer>
     );
 }

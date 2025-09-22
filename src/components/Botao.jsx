@@ -14,6 +14,20 @@ const BotaoEstilizado = styled.button`
 
     ${(props) => {
         switch (props.$variant) {
+            case 'enviar':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 25px;
+                    padding: 8px 16px;
+                    font-size: 20px;
+                    font-weight: 600;
+
+                    &:hover {
+                        background-color: #661745ff;
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
             case 'excluir':
                 return css`
                     background-color: #f6171a33;

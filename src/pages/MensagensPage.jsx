@@ -18,35 +18,33 @@ import {
     arrayUnion,
     arrayRemove,
     getDoc,
+    getDocs,
 } from 'firebase/firestore';
 import { FiSearch } from 'react-icons/fi';
 import Botao from '../components/Botao';
 import Modal from '../components/Modal';
 import VerDetalhesModal from '../components/VerDetalhesModal';
-import PerfilCandidatoModal from '../components/PerfilCandidatoModal';
 import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
-
-// --- ESTILOS (similares ao seu protótipo) ---
+import { limit, startAfter } from 'firebase/firestore';
 
 const ChatLayout = styled.div`
     display: flex;
-    gap: 20px;
-    height: calc(100vh - 220px); // Ajuste a altura conforme necessário
-    margin-top: 20px;
-`;
-
-const ListaConversasContainer = styled.div`
-    width: 380px;
+    height: 650px;
+    margin-top: 30px;
     background-color: #f5fafc;
     border-radius: 20px;
-    padding: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
 `;
 
-// NOVOS Estilos para a barra de busca
+const ColunaEsquerda = styled.div`
+    width: 450px;
+    border-radius: 20px;
+    padding: 30px 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+`;
+
 const BuscaContainer = styled.div`
     position: relative;
     width: 100%;
@@ -56,40 +54,73 @@ const BuscaIcone = styled(FiSearch)`
     position: absolute;
     left: 15px;
     top: 50%;
-    transform: translateY(-50%);
-    color: #888;
+
+    transform: translateY(-55%);
+    color: #999;
+    stroke-width: 3px;
 `;
 
 const BuscaInput = styled.input`
     width: 100%;
-    padding: 12px 15px 12px 40px;
-    border-radius: 25px;
-    border: 1px solid #ccc;
+    padding: 12px 15px 12px 50px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.6);
     font-size: 16px;
+    font-weight: 400;
     outline: none;
 `;
 
-// NOVOS Estilos para as abas
 const ContainerAbas = styled.div`
+    width: 100%;
+    background-color: #f5fafc;
+    padding: 0 10px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     display: flex;
-    background-color: #e6ebf0;
-    border-radius: 25px;
-    padding: 5px;
+    justify-content: center;
+    gap: 30px;
 `;
 
 const Aba = styled.button`
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 20px;
+    position: relative;
+    padding: 12px 40px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
-    background-color: ${({ $ativo }) => ($ativo ? '#FFFFFF' : 'transparent')};
-    color: ${({ $ativo }) => ($ativo ? '#7C2256' : '#333')};
+    background: none;
+    border: none;
+    color: #000000ff; /* Cor padrão para inativo */
+    text-decoration: none;
     transition: all 0.2s ease-in-out;
-    box-shadow: ${({ $ativo }) =>
-        $ativo ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'};
+    white-space: nowrap;
+
+    &:hover {
+        color: #7c2256; /* Cor roxa no hover */
+        font-weight: 600;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+
+        width: 100%;
+        height: 2px; /* A espessura da linha */
+        background-color: #7c2256;
+
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    &.active {
+        color: #7c2256;
+        font-weight: 600;
+
+        &::after {
+            transform: scaleX(1); /* A linha expande para 100% da sua largura */
+        }
+    }
 `;
 
 const ListaScroll = styled.div`
@@ -104,16 +135,12 @@ const ItemConversa = styled.div`
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 10px;
-    border-radius: 15px;
+    padding: 10px 20px;
+    border-radius: 20px;
     cursor: pointer;
-    background-color: ${({ $ativo }) => ($ativo ? '#e6ebf0' : 'transparent')};
-    border: 2px solid ${({ $ativo }) => ($ativo ? '#7c2256' : 'transparent')};
+    background-color: #e6ebf0;
+    border: 2px solid ${({ $ativo }) => ($ativo ? '#00000066' : 'transparent')};
     transition: all 0.2s ease-in-out;
-
-    &:hover {
-        background-color: #e6ebf0;
-    }
 `;
 
 const Avatar = styled.div`
@@ -133,34 +160,51 @@ const Avatar = styled.div`
 const InfoConversa = styled.div`
     flex-grow: 1;
     overflow: hidden;
-
-    h4 {
-        margin: 0 0 4px 0;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    p {
-        margin: 0;
-        font-size: 14px;
-        color: #555;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 `;
 
-// Placeholder para o contador de mensagens não lidas
+const NomeConversa = styled.span`
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+`;
+
+const UltimaMensagemContainer = styled.div`
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+`;
+
+const RemetenteMensagem = styled.span`
+    font-size: 14px;
+    color: #333; /* Cor um pouco mais escura para destaque */
+    font-weight: 500;
+    margin-right: 4px; /* Espaço entre o nome e a mensagem */
+    flex-shrink: 0; /* Impede que o nome do remetente seja espremido */
+`;
+
+const TextoUltimaMensagem = styled.span`
+    font-size: 14px;
+    color: #555;
+    overflow: hidden; /* Garante que o texto da mensagem use a elipse */
+    text-overflow: ellipsis;
+`;
+
 const BadgeNaoLido = styled.div`
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: #28a745;
+    background-color: #19e337;
     color: white;
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -292,7 +336,12 @@ function MensagensPage() {
     );
     const [mensagens, setMensagens] = useState([]);
     const [novaMensagem, setNovaMensagem] = useState('');
+    const [primeiraMensagemVisivel, setPrimeiraMensagemVisivel] =
+        useState(null);
+    const [carregandoMais, setCarregandoMais] = useState(false);
+    const [ultimaMensagemVisivel, setUltimaMensagemVisivel] = useState(null);
     const fimMensagensRef = useRef(null); // Referência para o final da lista de mensagens
+    const mensagensAreaRef = useRef(null);
 
     const [busca, setBusca] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('grupos');
@@ -336,9 +385,9 @@ function MensagensPage() {
     }, [conversaAtiva, currentUser.uid]);
 
     // Função para rolar para a mensagem mais recente
-    useEffect(() => {
+    const scrollToBottom = () => {
         fimMensagensRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [mensagens]);
+    };
 
     useEffect(() => {
         if (location.state?.activeChatId) {
@@ -379,24 +428,77 @@ function MensagensPage() {
     }, [currentUser]);
 
     // Efeito para buscar as MENSAGENS da conversa ativa
+    // NOVO useEffect 1: Busca o lote inicial de mensagens UMA VEZ
     useEffect(() => {
-        if (!conversaAtivaId) {
-            setMensagens([]);
-            return;
-        }
-        const q = query(
-            collection(db, 'conversas', conversaAtivaId, 'mensagens'),
-            orderBy('timestamp', 'asc')
-        );
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const fetchInitialMessages = async () => {
+            if (!conversaAtivaId) {
+                setMensagens([]);
+                return;
+            }
+
+            const q = query(
+                collection(db, 'conversas', conversaAtivaId, 'mensagens'),
+                orderBy('timestamp', 'desc'),
+                limit(15) // Buscamos as 15 mais recentes
+            );
+
+            const querySnapshot = await getDocs(q);
             const listaMensagens = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
             }));
-            setMensagens(listaMensagens);
-        });
-        return () => unsubscribe();
+
+            // Define os cursores para a paginação e para o ouvinte de tempo real
+            setPrimeiraMensagemVisivel(
+                querySnapshot.docs[querySnapshot.docs.length - 1]
+            );
+            setUltimaMensagemVisivel(querySnapshot.docs[0]); // O primeiro doc é o mais recente
+
+            setMensagens(listaMensagens.reverse());
+        };
+
+        fetchInitialMessages();
+
+        // Limpa tudo ao trocar de conversa
+        return () => {
+            setMensagens([]);
+            setPrimeiraMensagemVisivel(null);
+            setUltimaMensagemVisivel(null);
+        };
     }, [conversaAtivaId]);
+
+    // NOVO useEffect 2: Ouve APENAS por mensagens NOVAS
+    useEffect(() => {
+        if (!conversaAtivaId || !ultimaMensagemVisivel) {
+            return;
+        }
+
+        const q = query(
+            collection(db, 'conversas', conversaAtivaId, 'mensagens'),
+            where('timestamp', '>', ultimaMensagemVisivel.data().timestamp) // A MÁGICA ACONTECE AQUI
+        );
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const novasMensagens = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            if (novasMensagens.length > 0) {
+                // Adiciona as novas mensagens no FIM do array existente
+                setMensagens((mensagensAtuais) => [
+                    ...mensagensAtuais,
+                    ...novasMensagens,
+                ]);
+                // Atualiza o cursor da última mensagem
+                setUltimaMensagemVisivel(
+                    querySnapshot.docs[querySnapshot.docs.length - 1]
+                );
+            }
+        });
+
+        return () => unsubscribe();
+    }, [conversaAtivaId, ultimaMensagemVisivel]); // Roda quando a última mensagem visível mudar
 
     // Efeito para "ouvir" quem está a escrever
     useEffect(() => {
@@ -418,6 +520,13 @@ function MensagensPage() {
         }
     }, [conversaAtivaId, currentUser]);
 
+    useEffect(() => {
+        // Adicionamos uma verificação para evitar rolar quando o chat está vazio
+        if (mensagens.length > 0) {
+            scrollToBottom();
+        }
+    }, [mensagens[mensagens.length - 1]?.id]); // Dispara o efeito sempre que 'messages' mudar
+
     // Função para obter o nome de exibição da conversa
     const getNomeConversa = (conversa) => {
         if (conversa.isGrupo) {
@@ -433,6 +542,20 @@ function MensagensPage() {
 
     const getSubtituloConversa = () => {
         if (!conversaAtiva) return '';
+
+        const outrosAEscrever =
+            conversaAtiva.escrevendo?.filter(
+                (uid) => uid !== currentUser.uid
+            ) || [];
+        if (outrosAEscrever.length > 0) {
+            // Pega o nome do primeiro utilizador na lista para exibir
+            const primeiroNome =
+                conversaAtiva.participantesInfo.find(
+                    (p) => p.uid === outrosAEscrever[0]
+                )?.nome || 'Alguém';
+            return `${primeiroNome} está a escrever...`;
+        }
+
         if (conversaAtiva.isGrupo) {
             const numMembros = conversaAtiva.participantes?.length || 0;
             return `${numMembros} membro${numMembros !== 1 ? 's' : ''}`;
@@ -448,7 +571,7 @@ function MensagensPage() {
             const ultimaVez = statusOutroUsuario.vistoPorUltimo.toDate();
             const diffMinutos = (agora - ultimaVez) / (1000 * 60);
 
-            if (diffMinutos < 5) {
+            if (diffMinutos < 1) {
                 return 'Online';
             }
             return `Visto por último às ${formatarTimestamp(statusOutroUsuario.vistoPorUltimo)}`;
@@ -473,12 +596,15 @@ function MensagensPage() {
             }
         );
 
+        const conversaRef = doc(db, 'conversas', conversaAtivaId);
+
         // Atualiza a última mensagem e incrementa o contador dos outros
         const updates = {
             ultimaMensagem: {
                 texto: novaMensagem,
                 timestamp: serverTimestamp(),
                 senderNome: userData.nome,
+                senderSobrenome: userData.sobrenome,
             },
         };
 
@@ -490,6 +616,56 @@ function MensagensPage() {
 
         await updateDoc(conversaRef, updates);
         setNovaMensagem('');
+    };
+
+    const handleCarregarMais = async () => {
+        if (carregandoMais || !primeiraMensagemVisivel) return;
+
+        setCarregandoMais(true);
+
+        // --- PASSO 1: FOTOGRAFAR A ALTURA ATUAL ---
+        const scrollContainer = mensagensAreaRef.current;
+        if (!scrollContainer) return; // Segurança
+        const scrollHeightAntes = scrollContainer.scrollHeight;
+
+        const q = query(
+            collection(db, 'conversas', conversaAtivaId, 'mensagens'),
+            orderBy('timestamp', 'desc'),
+            startAfter(primeiraMensagemVisivel),
+            limit(30)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.docs.length > 0) {
+            const novasMensagens = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            setPrimeiraMensagemVisivel(
+                querySnapshot.docs[querySnapshot.docs.length - 1]
+            );
+
+            const mensagensOrdenadas = novasMensagens.reverse();
+
+            // Adiciona as novas mensagens no INÍCIO
+            setMensagens((mensagensAtuais) => [
+                ...mensagensOrdenadas,
+                ...mensagensAtuais,
+            ]);
+
+            // --- PASSO 2: AGUARDAR A RENDERIZAÇÃO E AJUSTAR O SCROLL ---
+            // Usamos requestAnimationFrame para garantir que o DOM foi atualizado
+            requestAnimationFrame(() => {
+                const scrollHeightDepois = scrollContainer.scrollHeight;
+                scrollContainer.scrollTop =
+                    scrollHeightDepois - scrollHeightAntes;
+            });
+        }
+
+        // --- PASSO 3: SEMPRE LIBERAR O ESTADO DE CARREGAMENTO ---
+        setCarregandoMais(false);
     };
 
     // Função para lidar com o input de texto
@@ -592,9 +768,9 @@ function MensagensPage() {
             </DashboardHeader>
 
             <ChatLayout>
-                <ListaConversasContainer>
+                <ColunaEsquerda>
                     <BuscaContainer>
-                        <BuscaIcone size={20} />
+                        <BuscaIcone size={22} />
                         <BuscaInput
                             placeholder="Buscar Conversas..."
                             value={busca}
@@ -604,13 +780,13 @@ function MensagensPage() {
 
                     <ContainerAbas>
                         <Aba
-                            $ativo={abaAtiva === 'grupos'}
+                            className={abaAtiva === 'grupos' ? 'active' : ''}
                             onClick={() => setAbaAtiva('grupos')}
                         >
                             Grupos
                         </Aba>
                         <Aba
-                            $ativo={abaAtiva === 'diretas'}
+                            className={abaAtiva === 'diretas' ? 'active' : ''}
                             onClick={() => setAbaAtiva('diretas')}
                         >
                             Diretas
@@ -618,35 +794,54 @@ function MensagensPage() {
                     </ContainerAbas>
 
                     <ListaScroll>
-                        {conversasFiltradas.map((conversa) => (
-                            <ItemConversa
-                                key={conversa.id}
-                                $ativo={conversa.id === conversaAtivaId}
-                                onClick={() => setConversaAtivaId(conversa.id)}
-                            >
-                                <Avatar>
-                                    {getInitials(getNomeConversa(conversa))}
-                                </Avatar>
-                                <InfoConversa>
-                                    <h4>{getNomeConversa(conversa)}</h4>
-                                    <p>
-                                        <strong>
-                                            {
-                                                conversa.ultimaMensagem?.senderNome?.split(
-                                                    ' '
-                                                )[0]
-                                            }
-                                            :
-                                        </strong>{' '}
-                                        {conversa.ultimaMensagem?.texto}
-                                    </p>
-                                </InfoConversa>
-                                {/* O Badge de não lido é um placeholder visual por enquanto */}
-                                {/* <BadgeNaoLido>1</BadgeNaoLido> */}
-                            </ItemConversa>
-                        ))}
+                        {conversasFiltradas.map((conversa) => {
+                            const unreadCount =
+                                conversa.unreadCounts?.[currentUser.uid] || 0;
+                            return (
+                                <ItemConversa
+                                    key={conversa.id}
+                                    $ativo={conversa.id === conversaAtivaId}
+                                    onClick={() =>
+                                        setConversaAtivaId(conversa.id)
+                                    }
+                                >
+                                    <Avatar>
+                                        {getInitials(getNomeConversa(conversa))}
+                                    </Avatar>
+                                    <InfoConversa>
+                                        <NomeConversa>
+                                            {getNomeConversa(conversa)}
+                                        </NomeConversa>{' '}
+                                        {/* Use o componente já criado */}
+                                        {conversa.ultimaMensagem && (
+                                            <UltimaMensagemContainer>
+                                                <RemetenteMensagem>
+                                                    {
+                                                        conversa.ultimaMensagem.senderNome?.split(
+                                                            ' '
+                                                        )[0]
+                                                    }
+                                                    :
+                                                </RemetenteMensagem>
+                                                <TextoUltimaMensagem>
+                                                    {
+                                                        conversa.ultimaMensagem
+                                                            .texto
+                                                    }
+                                                </TextoUltimaMensagem>
+                                            </UltimaMensagemContainer>
+                                        )}
+                                    </InfoConversa>
+                                    {unreadCount > 0 && (
+                                        <BadgeNaoLido>
+                                            {unreadCount}
+                                        </BadgeNaoLido>
+                                    )}
+                                </ItemConversa>
+                            );
+                        })}
                     </ListaScroll>
-                </ListaConversasContainer>
+                </ColunaEsquerda>
 
                 <JanelaChatContainer>
                     {conversaAtiva ? (
@@ -665,8 +860,14 @@ function MensagensPage() {
                                     <p>{getSubtituloConversa(conversaAtiva)}</p>
                                 </InfoConversa>
                             </ChatHeader>
-                            <MensagensArea>
-                                <div ref={fimMensagensRef} />
+                            <MensagensArea
+                                ref={mensagensAreaRef}
+                                onScroll={(e) => {
+                                    if (e.target.scrollTop === 0) {
+                                        handleCarregarMais();
+                                    }
+                                }}
+                            >
                                 <ListaDeMensagens>
                                     {mensagens.map((msg) => {
                                         const isSender =
@@ -723,6 +924,7 @@ function MensagensPage() {
                                         );
                                     })}
                                 </ListaDeMensagens>
+                                <div ref={fimMensagensRef} />
                             </MensagensArea>
 
                             <InputArea onSubmit={handleEnviarMensagem}>
@@ -732,9 +934,9 @@ function MensagensPage() {
                                     value={novaMensagem}
                                     onChange={handleTyping}
                                 />
-                                <BotaoEnviar variant="Modal" type="submit">
+                                <Botao variant="enviar" type="submit">
                                     Enviar
-                                </BotaoEnviar>
+                                </Botao>
                             </InputArea>
                         </>
                     ) : (
@@ -752,6 +954,7 @@ function MensagensPage() {
                 {conteudoModal.tipo === 'projeto' && (
                     <VerDetalhesModal
                         projeto={conteudoModal.dados}
+                        tipo="participante"
                         projetoId={conteudoModal.dados.id}
                         onClose={() => setModalAberto(false)}
                     />

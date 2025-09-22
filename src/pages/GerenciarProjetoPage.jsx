@@ -19,6 +19,7 @@ import {
     deleteDoc,
     arrayUnion,
     arrayRemove,
+    writeBatch,
 } from 'firebase/firestore';
 
 const Formulario = styled.form`
@@ -484,9 +485,18 @@ function GerenciarProjetoPage() {
             return;
         }
 
+        const batch = writeBatch(db);
+
         try {
             const projetoRef = doc(db, 'projetos', id);
-            await deleteDoc(projetoRef);
+            const conversaRef = doc(db, 'conversas', id);
+            // Adiciona as operações de exclusão ao batch
+            batch.delete(projetoRef);
+            batch.delete(conversaRef);
+
+            // Executa todas as operações no batch de uma vez
+            await batch.commit();
+
             alert('Projeto excluído com sucesso.');
             navigate('/dashboard/meus-projetos');
         } catch (err) {
@@ -725,6 +735,7 @@ function GerenciarProjetoPage() {
                             />
                             <SecaoExcluir>
                                 <Botao
+                                    type="button"
                                     variant="excluir"
                                     onClick={handleExcluirProjeto}
                                 >

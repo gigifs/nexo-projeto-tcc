@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import Botao from './Botao';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Adicionado useEffect
 import { useAuth } from '../contexts/AuthContext';
 import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
@@ -8,8 +8,8 @@ import {
     doc,
     setDoc,
     getDoc,
-    updateDoc, 
-    arrayRemove, 
+    updateDoc,
+    arrayRemove,
 } from 'firebase/firestore';
 
 const ModalWrapper = styled.div`
@@ -29,17 +29,13 @@ const TituloProjeto = styled.h2`
     margin: 10px 0 5px 0;
     line-height: 1.2;
     word-break: break-word;
-    text-align: center; /* Centraliza o texto do título */
-
-    /* Define a altura máxima para 4 linhas (4 * 28px * 1.2) */
-    max-height: 135px; 
-    overflow-y: auto; /* Ativa a rolagem vertical se o conteúdo for maior */
-
-    /* Esconde a barra de rolagem na maioria dos navegadores */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    text-align: center;
+    max-height: 135px;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
     &::-webkit-scrollbar {
-        display: none;  /* Chrome, Safari and Opera */
+        display: none;
     }
 `;
 
@@ -50,7 +46,7 @@ const CriadoPor = styled.p`
 
     span {
         font-weight: 600;
-        color: #7C2256;
+        color: #7c2256;
     }
 `;
 
@@ -78,13 +74,11 @@ const ColunaDireita = styled.div`
     padding: 20px;
     border-radius: 10px;
     max-height: 250px;
-    overflow-y: auto; /*Adiciona scroll se a descrição for mt grande*/
-
-    /* Esconde a barra de rolagem na maioria dos navegadores */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
     &::-webkit-scrollbar {
-        display: none;  /* Chrome, Safari and Opera */
+        display: none;
     }
 `;
 
@@ -108,7 +102,7 @@ const Tag = styled.span`
     font-weight: 500;
     background-color: ${(props) =>
         props.$tipo === 'status'
-            ? props.$bgColor 
+            ? props.$bgColor
             : props.$tipo === 'habilidade'
             ? '#aed9f4'
             : props.$tipo === 'area'
@@ -116,25 +110,25 @@ const Tag = styled.span`
             : '#ffcced'};
     color: ${(props) =>
         props.$tipo === 'status'
-            ? props.$textColor 
+            ? props.$textColor
             : props.$tipo === 'habilidade'
             ? '#0b5394'
             : props.$tipo === 'area'
-            ? '#7B1B4C'
+            ? '#7b1b4c'
             : '#9c27b0'};
 `;
 
 const IntegrantesLista = styled.div`
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 `;
 
 const IntegranteItem = styled.div`
     display: flex;
     align-items: center;
     gap: 10px;
-    position: relative; /* Essencial para o posicionamento do menu */
+    position: relative;
     cursor: pointer;
     padding: 5px;
     border-radius: 8px;
@@ -143,13 +137,12 @@ const IntegranteItem = styled.div`
     &:hover {
         background-color: #be2d8264;
     }
-
 `;
 
 const DropdownMenu = styled.div`
     position: absolute;
-    top: 100%; /* Aparece logo abaixo do item */
-    left: 50px; /* Alinhado com o nome */
+    top: 100%;
+    left: 50px;
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -179,7 +172,7 @@ const Avatar = styled.div`
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -205,7 +198,7 @@ const Descricao = styled.p`
     text-align: justify;
     margin: 0;
     max-height: 150px;
-    overflow-y: auto; /*Adiciona scroll se a descrição for mt grande*/
+    overflow-y: auto;
     padding-right: 10px;
 `;
 
@@ -215,30 +208,29 @@ const Footer = styled.div`
     border-top: 2px solid #eee;
 `;
 
-    const getStatusStyle = (status) => {
-        switch (status) {
-            case 'Novo':
-                return { $color: '#FFE0B2', $textColor: '#E65100' };
-            case 'Em Andamento':
-                return { $color: '#D1C4E9', $textColor: '#4527A0' };
-            case 'Concluído':
-                return { $color: '#C8E6C9', $textColor: '#2E7D32' };
-            default:
-                return { $color: '#e0e0e0', $textColor: '#000' };
-        }
-    };
+const getStatusStyle = (status) => {
+    switch (status) {
+        case 'Novo':
+            return { $color: '#FFE0B2', $textColor: '#E65100' };
+        case 'Em Andamento':
+            return { $color: '#D1C4E9', $textColor: '#4527A0' };
+        case 'Concluído':
+            return { $color: '#C8E6C9', $textColor: '#2E7D32' };
+        default:
+            return { $color: '#e0e0e0', $textColor: '#000' };
+    }
+};
 
 function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
-    const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
+    const [integranteAberto, setIntegranteAberto] = useState(null);
+    const [todosOsIntegrantes, setTodosOsIntegrantes] = useState([]); // NOVO ESTADO
 
     const {
         nome,
         donoId,
-        donoNome,
-        donoSobrenome,
         descricao,
         habilidades = [],
         area,
@@ -247,7 +239,51 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
 
     const statusStyle = getStatusStyle(projeto.status);
 
-    // A lógica para o botão "Candidatar-se"
+    // EFEITO PARA BUSCAR AS CORES E MONTAR A LISTA DE INTEGRANTES
+    useEffect(() => {
+        const fetchIntegrantesData = async () => {
+            // Garante que a lista de participantes não tenha duplicatas
+            const uniqueParticipantes = [
+                ...new Map(participantes.map((p) => [p.uid, p])).values(),
+            ];
+
+            // Junta o dono com os participantes para buscar todos os dados de uma vez
+            const allMemberInfo = [
+                { uid: projeto.donoId, nome: projeto.donoNome, sobrenome: projeto.donoSobrenome },
+                ...uniqueParticipantes,
+            ];
+
+            // Busca os dados completos (incluindo a cor) de cada usuário
+            const promises = allMemberInfo.map(async (member) => {
+                const userDocRef = doc(db, 'users', member.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    return {
+                        ...member,
+                        avatarColor: userDocSnap.data().avatarColor, // Adiciona a cor
+                        isDono: member.uid === projeto.donoId, // Adiciona a flag de dono
+                    };
+                }
+                return { ...member, isDono: member.uid === projeto.donoId }; // Retorna sem cor se não encontrar
+            });
+
+            const integrantesCompletos = await Promise.all(promises);
+
+            // Remove duplicatas (caso o dono esteja na lista de participantes)
+            const finalIntegrantes = [
+                ...new Map(
+                    integrantesCompletos.map((item) => [item.uid, item])
+                ).values(),
+            ];
+
+            setTodosOsIntegrantes(finalIntegrantes);
+        };
+
+        if (projeto?.donoId) {
+            fetchIntegrantesData();
+        }
+    }, [projeto]); // Roda sempre que o projeto mudar
+
     const handleCandidatura = async () => {
         setLoading(true);
         setFeedback('');
@@ -265,7 +301,9 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
         }
 
         try {
-            const candidaturaRef = doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid);
+            const candidaturaRef = doc(
+                db, 'projetos', projetoId, 'candidaturas', currentUser.uid
+            );
 
             const candidaturaSnap = await getDoc(candidaturaRef);
             if (candidaturaSnap.exists()) {
@@ -291,12 +329,8 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
         }
     };
 
-        const handleSairDoProjeto = async () => {
-        if (
-            !window.confirm(
-                'Tem a certeza de que deseja sair deste projeto?'
-            )
-        ) {
+    const handleSairDoProjeto = async () => {
+        if (!window.confirm('Tem certeza de que deseja sair deste projeto?')) {
             return;
         }
 
@@ -309,25 +343,18 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                 (p) => p.uid === currentUser.uid
             );
 
-            // Se encontrarmos o objeto do participante, realizamos uma única atualização atômica
             if (participanteParaRemover) {
                 await updateDoc(projetoRef, {
                     participantIds: arrayRemove(currentUser.uid),
                     participantes: arrayRemove(participanteParaRemover),
                 });
             } else {
-                // Fallback caso o objeto completo não seja encontrado por algum motivo
-                 await updateDoc(projetoRef, {
+                await updateDoc(projetoRef, {
                     participantIds: arrayRemove(currentUser.uid),
                 });
             }
 
-
             setFeedback('Você saiu do projeto com sucesso.');
-            // Idealmente, fecharia o modal após um segundo
-            setTimeout(() => {
-                // se a função onClose for passada, chame-a aqui
-            }, 1500);
         } catch (error) {
             console.error('Erro ao sair do projeto:', error);
             setFeedback('Ocorreu um erro ao tentar sair do projeto. Verifique suas permissões.');
@@ -340,12 +367,6 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
         setIntegranteAberto(integranteAberto === uid ? null : uid);
     };
 
-    // Combina dono e participantes numa lista única para exibição
-    const todosOsIntegrantes = [
-        { uid: donoId, nome: donoNome, sobrenome: donoSobrenome, isDono: true },
-        ...participantes,
-    ];
-
     return (
         <ModalWrapper>
             <Header>
@@ -353,7 +374,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                 <CriadoPor>
                     Criado por:{' '}
                     <span>
-                        {donoNome} {donoSobrenome}
+                        {projeto.donoNome} {projeto.donoSobrenome}
                     </span>
                 </CriadoPor>
             </Header>
@@ -363,9 +384,9 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                     <Secao>
                         <SecaoTitulo>Status</SecaoTitulo>
                         <TagsContainer>
-                            <Tag 
-                                $tipo="status" 
-                                $bgColor={statusStyle.$color} 
+                            <Tag
+                                $tipo="status"
+                                $bgColor={statusStyle.$color}
                                 $textColor={statusStyle.$textColor}
                             >
                                 {projeto.status || 'Não definido'}
@@ -375,11 +396,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                     <Secao>
                         <SecaoTitulo>Área</SecaoTitulo>
                         <TagsContainer>
-                            {area && (
-                                <Tag $tipo='area'>
-                                    {area}
-                                </Tag>
-                            )}
+                            {area && <Tag $tipo="area">{area}</Tag>}
                         </TagsContainer>
                     </Secao>
                     <Secao>
@@ -403,29 +420,27 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                                     key={p.uid}
                                     onClick={() => toggleMenuIntegrante(p.uid)}
                                 >
-                                    <Avatar>{`${p.nome?.[0] || ''}${
-                                        p.sobrenome?.[0] || ''
-                                    }`.toUpperCase()}</Avatar>
+                                    <Avatar $bgColor={p.avatarColor}>
+                                        {`${p.nome?.[0] || ''}${
+                                            p.sobrenome?.[0] || ''
+                                        }`.toUpperCase()}
+                                    </Avatar>
                                     <NomeIntegrante>
                                         {p.nome} {p.sobrenome}{' '}
                                         {p.isDono && '(Dono)'}
                                     </NomeIntegrante>
-                                    <FiChevronDown style={{ marginLeft: 'auto' }} />
-
-                                    {/* menu suspenso pra quem ta no projeto */}
+                                    <FiChevronDown
+                                        style={{ marginLeft: 'auto' }}
+                                    />
                                     {integranteAberto === p.uid && (
                                         <DropdownMenu>
                                             <DropdownItem
-                                                onClick={() =>
-                                                    alert(`Ver perfil de ${p.nome}`)
-                                                }
+                                                onClick={() => alert(`Ver perfil de ${p.nome}`)}
                                             >
                                                 <FiUser /> Ver Perfil
                                             </DropdownItem>
                                             <DropdownItem
-                                                onClick={() =>
-                                                    alert(`Enviar mensagem para ${p.nome}`)
-                                                }
+                                                onClick={() => alert(`Enviar mensagem para ${p.nome}`)}
                                             >
                                                 <FiMessageSquare /> Enviar
                                                 Mensagem
@@ -451,7 +466,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                         onClick={handleSairDoProjeto}
                         disabled={loading}
                     >
-                        {loading ? 'A sair...' : 'Sair do Projeto'}
+                        {loading ? 'Saindo...' : 'Sair do Projeto'}
                     </Botao>
                 ) : (
                     <Botao
@@ -459,7 +474,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
                         onClick={handleCandidatura}
                         disabled={loading}
                     >
-                        {loading ? 'A enviar...' : 'Candidatar-se'}
+                        {loading ? 'Enviando...' : 'Candidatar-se'}
                     </Botao>
                 )}
                 {feedback && <p style={{ marginTop: '10px' }}>{feedback}</p>}

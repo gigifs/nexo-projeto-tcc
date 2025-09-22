@@ -1,0 +1,212 @@
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
+import { FiSearch, FiFilter } from 'react-icons/fi';
+import Botao from './Botao';
+import Modal from './Modal';
+import ModalFiltroBuscarProjeto from './ModalFiltroProjetos';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import ProjectCard from './ProjectCard'; // 1. Importa o card reutilizável
+
+// --- ESTILOS ---
+
+const Container = styled.div`
+    width: 100%;
+    box-sizing: border-box;
+`;
+
+const TopActions = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+`;
+
+const SearchAndFilter = styled.div`
+    display: flex;
+    gap: 20px;
+    flex-grow: 1;
+`;
+
+const SearchInputGroup = styled.div`
+    position: relative;
+    flex-grow: 1;
+`;
+
+const SearchInput = styled.input`
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    &:focus {
+        outline: none;
+        border-color: #7c2256;
+        box-shadow: 0 0 0 3px rgba(124, 34, 86, 0.2);
+    }
+`;
+
+const SearchIcon = styled(FiSearch)`
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #555;
+`;
+
+const FilterButton = styled(Botao)`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const MainContent = styled.div`
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: start;
+`;
+
+const ProjectsGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 30px;
+`;
+
+function BuscarProjetos() {
+    const { currentUser } = useAuth();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [currentFilters, setCurrentFilters] = useState({
+        area: '',
+        interesses: [],
+        habilidades: [],
+    });
+    const [allProjects, setAllProjects] = useState([]);
+    const [filteredProjects, setFilteredProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            setLoading(true);
+            try {
+                const querySnapshot = await getDocs(collection(db, 'projetos'));
+                const projectsList = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+                setAllProjects(projectsList);
+            } catch (error) {
+                console.error('Erro ao buscar projetos:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProjects();
+    }, []);
+
+    useEffect(() => {
+        let tempProjects = [...allProjects];
+
+        if (currentUser) {
+            tempProjects = tempProjects.filter(
+                (p) => p.donoId !== currentUser.uid
+            );
+        }
+
+        if (searchTerm) {
+            tempProjects = tempProjects.filter(
+                (p) =>
+                    (p.nome || '')
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
+                    (p.descricao || '')
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase())
+            );
+        }
+
+        if (currentFilters.area) {
+            tempProjects = tempProjects.filter(
+                (p) => p.area === currentFilters.area
+            );
+        }
+        if (currentFilters.interesses.length > 0) {
+            tempProjects = tempProjects.filter((p) =>
+                currentFilters.interesses.some((filtro) =>
+                    p.interesses?.includes(filtro)
+                )
+            );
+        }
+        if (currentFilters.habilidades.length > 0) {
+            tempProjects = tempProjects.filter((p) =>
+                currentFilters.habilidades.some((filtro) =>
+                    p.habilidades?.includes(filtro)
+                )
+            );
+        }
+
+        setFilteredProjects(tempProjects);
+    }, [allProjects, searchTerm, currentFilters, currentUser]);
+
+    const handleApplyFilters = (filters) => {
+        setCurrentFilters(filters);
+        setIsFilterModalOpen(false);
+    };
+
+    return (
+        <Container>
+            <TopActions>
+                <SearchAndFilter>
+                    <SearchInputGroup>
+                        <SearchIcon size={20} />
+                        <SearchInput
+                            type="text"
+                            placeholder="Buscar por título ou descrição..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </SearchInputGroup>
+                    <FilterButton
+                        variant="Modal"
+                        onClick={() => setIsFilterModalOpen(true)}
+                    >
+                        <FiFilter size={20} /> Filtrar por Interesse
+                    </FilterButton>
+                </SearchAndFilter>
+            </TopActions>
+
+            <MainContent>
+                <ProjectsGrid>
+                    {loading ? (
+                        <p>A carregar projetos...</p>
+                    ) : filteredProjects.length > 0 ? (
+                        // 2. Utiliza o componente ProjectCard aqui
+                        filteredProjects.map((project) => (
+                            <ProjectCard key={project.id} projeto={project} />
+                        ))
+                    ) : (
+                        <p>Nenhum projeto encontrado.</p>
+                    )}
+                </ProjectsGrid>
+            </MainContent>
+
+            <Modal
+                isOpen={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                size="large"
+            >
+                <ModalFiltroBuscarProjeto
+                    onApplyFilters={handleApplyFilters}
+                    onClose={() => setIsFilterModalOpen(false)}
+                    initialFilters={currentFilters}
+                />
+            </Modal>
+        </Container>
+    );
+}
+
+export default BuscarProjetos;

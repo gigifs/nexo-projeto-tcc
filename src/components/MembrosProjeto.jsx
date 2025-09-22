@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FiUsers, FiUserX } from 'react-icons/fi';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const SecaoMembros = styled.div`
     background-color: #e6ebf0;
@@ -34,7 +37,7 @@ const Avatar = styled.div`
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -67,43 +70,82 @@ const getInitials = (nome, sobrenome) => {
 };
 
 function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
+    const [membrosComCor, setMembrosComCor] = useState([]);
+
+    useEffect(() => {
+        const fetchMemberData = async () => {
+            if (!projeto || !projeto.donoId) return;
+
+            // Junta o dono e os participantes em uma lista para buscar as informações
+            const todosOsMembrosInfo = [
+                {
+                    uid: projeto.donoId,
+                    nome: projeto.donoNome,
+                    sobrenome: projeto.donoSobrenome,
+                },
+                ...(projeto.participantes || []),
+            ];
+
+            // Remove duplicatas para evitar buscas desnecessárias
+            const uniqueMembers = [
+                ...new Map(
+                    todosOsMembrosInfo.map((m) => [m.uid, m])
+                ).values(),
+            ];
+
+            // Busca os dados de cada usuário no banco (incluindo a cor)
+            const promises = uniqueMembers.map(async (member) => {
+                const userDocRef = doc(db, 'users', member.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                const isDono = member.uid === projeto.donoId;
+
+                if (userDocSnap.exists()) {
+                    return {
+                        ...member,
+                        isDono,
+                        avatarColor: userDocSnap.data().avatarColor,
+                    };
+                }
+                return { ...member, isDono };
+            });
+
+            const membrosCompletos = await Promise.all(promises);
+            setMembrosComCor(membrosCompletos);
+        };
+
+        fetchMemberData();
+    }, [projeto]);
+
     return (
         <>
             <TituloSecao>
                 <FiUsers size={22} /> Membros do Projeto
             </TituloSecao>
             <SecaoMembros>
-                <MembroItem>
-                    <Avatar>
-                        {getInitials(projeto.donoNome, projeto.donoSobrenome)}
-                    </Avatar>
-                    <MembroInfo>
-                        <span>
-                            <strong>
-                                {projeto.donoNome} {projeto.donoSobrenome} (Dono)
-                            </strong>
-                        </span>
-                    </MembroInfo>
-                </MembroItem>
-                {projeto.participantes &&
-                    projeto.participantes.map((p) => (
-                        <MembroItem key={p.uid}>
-                            <Avatar>{getInitials(p.nome, p.sobrenome)}</Avatar>
-                            <MembroInfo>
-                                <span>
-                                    {p.nome} {p.sobrenome}
-                                </span>
-                                {currentUserId === projeto.donoId && (
+                {membrosComCor.map((membro) => (
+                    <MembroItem key={membro.uid}>
+                        <Avatar $bgColor={membro.avatarColor}>
+                            {getInitials(membro.nome, membro.sobrenome)}
+                        </Avatar>
+                        <MembroInfo>
+                            <span>
+                                <strong>
+                                    {membro.nome} {membro.sobrenome}
+                                    {membro.isDono && ' (Dono)'}
+                                </strong>
+                            </span>
+                            {currentUserId === projeto.donoId &&
+                                !membro.isDono && (
                                     <BotaoRemover
-                                        onClick={() => onRemoverMembro(p)}
+                                        onClick={() => onRemoverMembro(membro)}
                                         title="Remover Membro"
                                     >
                                         <FiUserX size={18} />
                                     </BotaoRemover>
                                 )}
-                            </MembroInfo>
-                        </MembroItem>
-                    ))}
+                        </MembroInfo>
+                    </MembroItem>
+                ))}
             </SecaoMembros>
         </>
     );

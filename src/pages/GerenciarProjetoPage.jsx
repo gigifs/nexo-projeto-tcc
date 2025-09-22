@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import Botao from '../components/Botao';
-import PerfilCandidatoModal from '../components/PerfilCandidatoModal';
+import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/DashboardHeader';
 import Candidaturas from '../components/Candidaturas';
@@ -723,13 +723,14 @@ function GerenciarProjetoPage() {
                 </Container>
             </Formulario>
 
-            <PerfilCandidatoModal
-                isOpen={!!candidatoSelecionado}
+            <PerfilUsuarioModal
+            isOpen={!!candidatoSelecionado}
                 onClose={() => setCandidatoSelecionado(null)}
-                candidato={candidatoSelecionado}
+                usuario={candidatoSelecionado} // A prop agora é 'usuario'
                 onAceitar={handleAceitar}
                 onRejeitar={handleRejeitar}
                 loading={isActionLoading}
+                tipo="candidato"
             />
         </>
     );

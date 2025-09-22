@@ -11,6 +11,7 @@ import {
     updateDoc, 
     arrayRemove, 
 } from 'firebase/firestore';
+import PerfilUsuarioModal from './PerfilUsuarioModal';
 
 const ModalWrapper = styled.div`
     padding: 10px 30px 20px 30px;
@@ -234,6 +235,11 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
     const [feedback, setFeedback] = useState('');
     const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
 
+        // 2. Novos estados para controlar o modal de perfil do integrante
+    const [isPerfilModalOpen, setPerfilModalOpen] = useState(false);
+    const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
+    const [loadingIntegrante, setLoadingIntegrante] = useState(false);
+
     const {
         nome,
         donoId,
@@ -340,6 +346,30 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
         setIntegranteAberto(integranteAberto === uid ? null : uid);
     };
 
+    // Nova função para buscar dados do integrante e abrir o modal
+    const handleVerPerfilIntegrante = async (integrante) => {
+        setLoadingIntegrante(true);
+        setPerfilModalOpen(true);
+        try {
+            // A informação do integrante no projeto pode estar desatualizada.
+            // Por isso, buscamos a versão mais recente do perfil do usuário.
+            const userRef = doc(db, 'users', integrante.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                setIntegranteSelecionado({ ...userSnap.data(), uid: integrante.uid });
+            } else {
+                // Se não encontrar, exibe os dados básicos que já temos
+                setIntegranteSelecionado(integrante);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar dados do integrante:", error);
+            setIntegranteSelecionado(integrante); // Fallback
+        } finally {
+            setLoadingIntegrante(false);
+        }
+    };
+
     // Combina dono e participantes numa lista única para exibição
     const todosOsIntegrantes = [
         { uid: donoId, nome: donoNome, sobrenome: donoSobrenome, isDono: true },
@@ -347,124 +377,131 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante' }) {
     ];
 
     return (
-        <ModalWrapper>
-            <Header>
-                <TituloProjeto>{nome}</TituloProjeto>
-                <CriadoPor>
-                    Criado por:{' '}
-                    <span>
-                        {donoNome} {donoSobrenome}
-                    </span>
-                </CriadoPor>
-            </Header>
+        <>
+            <ModalWrapper>
+                <Header>
+                    <TituloProjeto>{nome}</TituloProjeto>
+                    <CriadoPor>
+                        Criado por:{' '}
+                        <span>
+                            {donoNome} {donoSobrenome}
+                        </span>
+                    </CriadoPor>
+                </Header>
 
-            <ConteudoSuperior>
-                <ColunaEsquerda>
-                    <Secao>
-                        <SecaoTitulo>Status</SecaoTitulo>
-                        <TagsContainer>
-                            <Tag 
-                                $tipo="status" 
-                                $bgColor={statusStyle.$color} 
-                                $textColor={statusStyle.$textColor}
-                            >
-                                {projeto.status || 'Não definido'}
-                            </Tag>
-                        </TagsContainer>
-                    </Secao>
-                    <Secao>
-                        <SecaoTitulo>Área</SecaoTitulo>
-                        <TagsContainer>
-                            {area && (
-                                <Tag $tipo='area'>
-                                    {area}
-                                </Tag>
-                            )}
-                        </TagsContainer>
-                    </Secao>
-                    <Secao>
-                        <SecaoTitulo>Habilidades Relevantes</SecaoTitulo>
-                        <TagsContainer>
-                            {habilidades.map((h) => (
-                                <Tag key={h} $tipo="habilidade">
-                                    {h}
-                                </Tag>
-                            ))}
-                        </TagsContainer>
-                    </Secao>
-                </ColunaEsquerda>
-
-                <ColunaDireita>
-                    <Secao>
-                        <SecaoTitulo>INTEGRANTES</SecaoTitulo>
-                        <IntegrantesLista>
-                            {todosOsIntegrantes.map((p) => (
-                                <IntegranteItem
-                                    key={p.uid}
-                                    onClick={() => toggleMenuIntegrante(p.uid)}
+                <ConteudoSuperior>
+                    <ColunaEsquerda>
+                        <Secao>
+                            <SecaoTitulo>Status</SecaoTitulo>
+                            <TagsContainer>
+                                <Tag 
+                                    $tipo="status" 
+                                    $bgColor={statusStyle.$color} 
+                                    $textColor={statusStyle.$textColor}
                                 >
-                                    <Avatar>{`${p.nome?.[0] || ''}${
-                                        p.sobrenome?.[0] || ''
-                                    }`.toUpperCase()}</Avatar>
-                                    <NomeIntegrante>
-                                        {p.nome} {p.sobrenome}{' '}
-                                        {p.isDono && '(Dono)'}
-                                    </NomeIntegrante>
-                                    <FiChevronDown style={{ marginLeft: 'auto' }} />
+                                    {projeto.status || 'Não definido'}
+                                </Tag>
+                            </TagsContainer>
+                        </Secao>
+                        <Secao>
+                            <SecaoTitulo>Área</SecaoTitulo>
+                            <TagsContainer>
+                                {area && (
+                                    <Tag $tipo='area'>
+                                        {area}
+                                    </Tag>
+                                )}
+                            </TagsContainer>
+                        </Secao>
+                        <Secao>
+                            <SecaoTitulo>Habilidades Relevantes</SecaoTitulo>
+                            <TagsContainer>
+                                {habilidades.map((h) => (
+                                    <Tag key={h} $tipo="habilidade">
+                                        {h}
+                                    </Tag>
+                                ))}
+                            </TagsContainer>
+                        </Secao>
+                    </ColunaEsquerda>
 
-                                    {/* menu suspenso pra quem ta no projeto */}
-                                    {integranteAberto === p.uid && (
-                                        <DropdownMenu>
-                                            <DropdownItem
-                                                onClick={() =>
-                                                    alert(`Ver perfil de ${p.nome}`)
-                                                }
-                                            >
-                                                <FiUser /> Ver Perfil
-                                            </DropdownItem>
-                                            <DropdownItem
-                                                onClick={() =>
-                                                    alert(`Enviar mensagem para ${p.nome}`)
-                                                }
-                                            >
-                                                <FiMessageSquare /> Enviar
-                                                Mensagem
-                                            </DropdownItem>
-                                        </DropdownMenu>
-                                    )}
-                                </IntegranteItem>
-                            ))}
-                        </IntegrantesLista>
-                    </Secao>
-                </ColunaDireita>
-            </ConteudoSuperior>
+                    <ColunaDireita>
+                        <Secao>
+                            <SecaoTitulo>INTEGRANTES</SecaoTitulo>
+                            <IntegrantesLista>
+                                {todosOsIntegrantes.map((p) => (
+                                    <IntegranteItem
+                                        key={p.uid}
+                                        onClick={() => toggleMenuIntegrante(p.uid)}
+                                    >
+                                        <Avatar>{`${p.nome?.[0] || ''}${
+                                            p.sobrenome?.[0] || ''
+                                        }`.toUpperCase()}</Avatar>
+                                        <NomeIntegrante>
+                                            {p.nome} {p.sobrenome}{' '}
+                                            {p.isDono && '(Dono)'}
+                                        </NomeIntegrante>
+                                        <FiChevronDown style={{ marginLeft: 'auto' }} />
 
-            <DescricaoContainer>
-                <SecaoTitulo>Descrição do Projeto</SecaoTitulo>
-                <Descricao>{descricao}</Descricao>
-            </DescricaoContainer>
+                                        {/* menu suspenso pra quem ta no projeto */}
+                                        {integranteAberto === p.uid && (
+                                            <DropdownMenu>
+                                                <DropdownItem
+                                                    onClick={() => handleVerPerfilIntegrante(p)}
+                                                >
+                                                    <FiUser /> Ver Perfil
+                                                </DropdownItem>
+                                                <DropdownItem
+                                                    onClick={() =>
+                                                        alert(`Enviar mensagem para ${p.nome}`)
+                                                    }
+                                                >
+                                                    <FiMessageSquare /> Enviar
+                                                    Mensagem
+                                                </DropdownItem>
+                                            </DropdownMenu>
+                                        )}
+                                    </IntegranteItem>
+                                ))}
+                            </IntegrantesLista>
+                        </Secao>
+                    </ColunaDireita>
+                </ConteudoSuperior>
 
-            <Footer>
-                {tipo === 'participante' ? (
-                    <Botao
-                        variant="excluir"
-                        onClick={handleSairDoProjeto}
-                        disabled={loading}
-                    >
-                        {loading ? 'A sair...' : 'Sair do Projeto'}
-                    </Botao>
-                ) : (
-                    <Botao
-                        variant="hab-int"
-                        onClick={handleCandidatura}
-                        disabled={loading}
-                    >
-                        {loading ? 'A enviar...' : 'Candidatar-se'}
-                    </Botao>
-                )}
-                {feedback && <p style={{ marginTop: '10px' }}>{feedback}</p>}
-            </Footer>
-        </ModalWrapper>
+                <DescricaoContainer>
+                    <SecaoTitulo>Descrição do Projeto</SecaoTitulo>
+                    <Descricao>{descricao}</Descricao>
+                </DescricaoContainer>
+
+                <Footer>
+                    {tipo === 'participante' ? (
+                        <Botao
+                            variant="excluir"
+                            onClick={handleSairDoProjeto}
+                            disabled={loading}
+                        >
+                            {loading ? 'A sair...' : 'Sair do Projeto'}
+                        </Botao>
+                    ) : (
+                        <Botao
+                            variant="hab-int"
+                            onClick={handleCandidatura}
+                            disabled={loading}
+                        >
+                            {loading ? 'A enviar...' : 'Candidatar-se'}
+                        </Botao>
+                    )}
+                    {feedback && <p style={{ marginTop: '10px' }}>{feedback}</p>}
+                </Footer>
+            </ModalWrapper>
+            <PerfilUsuarioModal
+                isOpen={isPerfilModalOpen}
+                onClose={() => setPerfilModalOpen(false)}
+                usuario={integranteSelecionado}
+                loading={loadingIntegrante}
+                tipo="integrante"
+            />
+        </>
     );
 }
 

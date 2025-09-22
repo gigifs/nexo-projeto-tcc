@@ -38,7 +38,7 @@ const Label = styled.label`
     margin-bottom: 8px;
     font-size: 20px;
     font-weight: 600;
-    color: #7C2256;
+    color: #7c2256;
     margin: 5px;
 `;
 
@@ -145,8 +145,7 @@ const TagsContainer = styled.div`
 const Tag = styled.div`
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
     padding: 5px 12px;
     border-radius: 16px;
     font-size: 14px;
@@ -199,9 +198,7 @@ function GerenciarProjetoPage() {
         const fetchTags = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
-                const tagsDoBanco = querySnapshot.docs.map((doc) =>
-                    doc.data()
-                );
+                const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
                 setTodasAsHabilidades(
                     tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')
                 );
@@ -312,9 +309,7 @@ function GerenciarProjetoPage() {
     };
 
     const removerHabilidade = (nome) => {
-        setHabilidadesEditaveis(
-            habilidadesEditaveis.filter((h) => h !== nome)
-        );
+        setHabilidadesEditaveis(habilidadesEditaveis.filter((h) => h !== nome));
     };
 
     const handleBuscaInteresseChange = (e) => {
@@ -342,9 +337,7 @@ function GerenciarProjetoPage() {
     };
 
     const removerInteresse = (nome) => {
-        setInteressesEditaveis(
-            interessesEditaveis.filter((i) => i !== nome)
-        );
+        setInteressesEditaveis(interessesEditaveis.filter((i) => i !== nome));
     };
 
     const handleVerPerfil = async (candidato) => {
@@ -486,7 +479,6 @@ function GerenciarProjetoPage() {
         }
     };
 
-
     if (loading) {
         return (
             <Container>
@@ -614,7 +606,7 @@ function GerenciarProjetoPage() {
                                     <option value="Marketing">Marketing</option>
                                 </Select>
                             </InputGroup>
-                            
+
                             {/* Interesse e habilidade lado a lado */}
                             <CamposLinha>
                                 <InputGroup style={{ flex: 1 }}>
@@ -717,7 +709,7 @@ function GerenciarProjetoPage() {
                             />
                             <SecaoExcluir>
                                 <Botao
-                                    type='button'
+                                    type="button"
                                     variant="excluir"
                                     onClick={handleExcluirProjeto}
                                 >
@@ -730,7 +722,11 @@ function GerenciarProjetoPage() {
             </Formulario>
 
             {/* Modal de confirmação de exclusão */}
-            <Modal isOpen={isConfirmModalOpen} onClose={() => setConfirmModalOpen(false)} size='excluir-projeto'>
+            <Modal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                size="excluir-projeto"
+            >
                 <TemCertezaModal
                     titulo="Excluir Projeto?"
                     mensagem="Esta ação é permanente e não pode ser desfeita."
@@ -742,7 +738,7 @@ function GerenciarProjetoPage() {
                 />
             </Modal>
 
-            <PerfilCandidatoModal
+            <PerfilUsuarioModal
                 isOpen={!!candidatoSelecionado}
                 onClose={() => setCandidatoSelecionado(null)}
                 usuario={candidatoSelecionado} // A prop agora é 'usuario'

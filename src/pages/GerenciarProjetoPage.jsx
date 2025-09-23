@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import Botao from '../components/Botao';
-import PerfilCandidatoModal from '../components/PerfilCandidatoModal';
 import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/DashboardHeader';
@@ -476,17 +475,13 @@ function GerenciarProjetoPage() {
         }
     };
 
-    const handleExcluirProjeto = async () => {
-        if (
-            !window.confirm(
-                'ATENÇÃO: Esta ação é permanente. Tem a certeza de que deseja excluir este projeto?'
-            )
-        ) {
-            return;
-        }
-
-        const batch = writeBatch(db);
-
+    // Abre o modal
+    const handleExcluirProjeto = () => {
+        setConfirmModalOpen(true);
+    };
+    // Ação que exclui o projeto
+    const confirmarExclusao = async () => {
+        setIsDeleting(true);
         try {
             const projetoRef = doc(db, 'projetos', id);
             const conversaRef = doc(db, 'conversas', id);
@@ -498,10 +493,13 @@ function GerenciarProjetoPage() {
             await batch.commit();
 
             alert('Projeto excluído com sucesso.');
+            setConfirmModalOpen(false);
             navigate('/dashboard/meus-projetos');
         } catch (err) {
             console.error('Erro ao excluir projeto:', err);
             alert('Ocorreu um erro ao excluir o projeto.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -747,14 +745,31 @@ function GerenciarProjetoPage() {
                 </Container>
             </Formulario>
 
+            {/* Modal de confirmação de exclusão */}
+            <Modal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                size="excluir-projeto"
+            >
+                <TemCertezaModal
+                    titulo="Excluir Projeto?"
+                    mensagem="Esta ação é permanente e não pode ser desfeita."
+                    onConfirm={confirmarExclusao}
+                    onClose={() => setConfirmModalOpen(false)}
+                    loading={isDeleting}
+                    textoConfirmar="Sim"
+                    textoCancelar="Não"
+                />
+            </Modal>
+
             <PerfilUsuarioModal
                 isOpen={!!candidatoSelecionado}
                 onClose={() => setCandidatoSelecionado(null)}
-                usuario={candidatoSelecionado}
-                tipo="candidato"
+                usuario={candidatoSelecionado} // A prop agora é 'usuario'
                 onAceitar={handleAceitar}
                 onRejeitar={handleRejeitar}
                 loading={isActionLoading}
+                tipo="candidato"
             />
         </>
     );

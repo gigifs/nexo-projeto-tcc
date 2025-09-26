@@ -187,35 +187,17 @@ const getInitials = (name = '') => {
     return name.substring(0, 2).toUpperCase();
 };
 
-function ConversaLista({ onConversaSelect, conversaAtivaId }) {
+function ConversaLista({
+    conversas,
+    conversaAtivaId,
+    onConversaSelect,
+    busca,
+    setBusca,
+    abaAtiva,
+    setAbaAtiva,
+    getNomeConversa,
+}) {
     const { currentUser } = useAuth();
-    const [conversas, setConversas] = useState([]);
-    const [busca, setBusca] = useState('');
-    const [abaAtiva, setAbaAtiva] = useState('grupos');
-
-    useEffect(() => {
-        if (!currentUser) return;
-        const q = query(
-            collection(db, 'conversas'),
-            where('participantes', 'array-contains', currentUser.uid)
-        );
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const listaConversas = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setConversas(listaConversas);
-        });
-        return () => unsubscribe();
-    }, [currentUser]);
-
-    const getNomeConversa = (conversa) => {
-        if (conversa.isGrupo) return conversa.nomeGrupo;
-        const outro = conversa.participantesInfo?.find(
-            (p) => p.uid !== currentUser.uid
-        );
-        return outro ? `${outro.nome} ${outro.sobrenome}` : 'Conversa Privada';
-    };
 
     const conversasFiltradas = conversas
         .filter((c) => (abaAtiva === 'grupos' ? c.isGrupo : !c.isGrupo))
@@ -253,41 +235,47 @@ function ConversaLista({ onConversaSelect, conversaAtivaId }) {
                 </Aba>
             </ContainerAbas>
             <ListaScroll>
-                {conversasFiltradas.map((conversas) => (
-                    <ItemConversa
-                        key={conversa.id}
-                        $ativo={conversa.id === conversaAtivaId}
-                        onClick={() => onConversaSelect(conversa.id)}
-                    >
-                        <Avatar>
-                            {getInitials(getNomeConversa(conversa))}
-                        </Avatar>
-                        <InfoConversa>
-                            <NomeConversa>
-                                {getNomeConversa(conversa)}
-                            </NomeConversa>{' '}
-                            {conversa.ultimaMensagem && (
-                                <UltimaMensagemContainer>
-                                    <RemetenteMensagem>
-                                        {
-                                            conversa.ultimaMensagem.senderNome?.split(
-                                                ' '
-                                            )[0]
-                                        }
-                                        :
-                                    </RemetenteMensagem>
-                                    <TextoUltimaMensagem>
-                                        {conversa.ultimaMensagem.texto}
-                                    </TextoUltimaMensagem>
-                                </UltimaMensagemContainer>
+                {conversasFiltradas.map((conversa) => {
+                    const unreadCount =
+                        conversa.unreadCounts?.[currentUser.uid] || 0;
+                    return (
+                        <ItemConversa
+                            key={conversa.id}
+                            $ativo={conversa.id === conversaAtivaId}
+                            onClick={() => onConversaSelect(conversa.id)}
+                        >
+                            <Avatar>
+                                {getInitials(getNomeConversa(conversa))}
+                            </Avatar>
+                            <InfoConversa>
+                                <NomeConversa>
+                                    {getNomeConversa(conversa)}
+                                </NomeConversa>
+                                {conversa.ultimaMensagem && (
+                                    <UltimaMensagemContainer>
+                                        <RemetenteMensagem>
+                                            {
+                                                conversa.ultimaMensagem.senderNome?.split(
+                                                    ' '
+                                                )[0]
+                                            }
+                                            :
+                                        </RemetenteMensagem>
+                                        <TextoUltimaMensagem>
+                                            {conversa.ultimaMensagem.texto}
+                                        </TextoUltimaMensagem>
+                                    </UltimaMensagemContainer>
+                                )}
+                            </InfoConversa>
+                            {unreadCount > 0 && (
+                                <BadgeNaoLido>{unreadCount}</BadgeNaoLido>
                             )}
-                        </InfoConversa>
-                        {unreadCount > 0 && (
-                            <BadgeNaoLido>{unreadCount}</BadgeNaoLido>
-                        )}
-                    </ItemConversa>
-                ))}
+                        </ItemConversa>
+                    );
+                })}
             </ListaScroll>
         </ColunaEsquerda>
     );
 }
+
+export default ConversaLista;

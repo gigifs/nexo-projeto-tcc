@@ -1,17 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../firebase';
-import {
-    collection,
-    query,
-    orderBy,
-    onSnapshot,
-    limit,
-    startAfter,
-    getDocs,
-    doc,
-} from 'firebase/firestore';
 import ChatHeader from './ChatHeader';
 import Mensagem from './Mensagem';
 import MensagemInput from './MensagemInput';
@@ -19,7 +7,7 @@ import MensagemInput from './MensagemInput';
 const JanelaChatContainer = styled.div`
     flex-grow: 1;
     background-color: #f5fafc;
-    border-radius: 20px;
+    border-radius: 0 20px 20px 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
@@ -55,71 +43,27 @@ const CarregandoMaisBotao = styled.button`
     }
 `;
 
-function JanelaChat({ conversaId }) {
-    const [conversa, setConversa] = useState(null);
-    const [mensagens, setMensagens] = useState([]);
-    const [ultimoDoc, setUltimoDoc] = useState(null); // Para paginação
-    const [semMaisMensagens, setSemMaisMensagens] = useState(false);
+function JanelaChat({
+    conversa,
+    mensagens,
+    getSubtituloConversa,
+    handleCarregarMais,
+    handleEnviarMensagem,
+    handleTyping,
+    handleHeaderClick,
+    mensagensAreaRef,
+    carregandoMais,
+    primeiraMensagemVisivel,
+    getInitials,
+}) {
     const fimMensagensRef = useRef(null);
 
-    // Efeito para buscar os dados da conversa ativa
+    // Efeito para rolar para o final quando novas mensagens chegam
     useEffect(() => {
-        if (!conversaId) {
-            setConversa(null);
-            return;
+        if (fimMensagensRef.current) {
+            fimMensagensRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-        const unsub = onSnapshot(doc(db, 'conversas', conversaId), (doc) => {
-            setConversa({ id: doc.id, ...doc.data() });
-        });
-        return () => unsub();
-    }, [conversaId]);
-
-    // Efeito para buscar o lote inicial de mensagens
-    useEffect(() => {
-        if (!conversaId) return;
-
-        const q = query(
-            collection(db, 'conversas', conversaId, 'mensagens'),
-            orderBy('timestamp', 'desc'),
-            limit(15)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const msgs = snapshot.docs
-                .map((doc) => ({ id: doc.id, ...doc.data() }))
-                .reverse();
-            setMensagens(msgs);
-            setUltimoDoc(snapshot.docs[snapshot.docs.length - 1]);
-            setSemMaisMensagens(snapshot.empty);
-
-            // Rola para o final apenas na carga inicial
-            setTimeout(() => fimMensagensRef.current?.scrollIntoView(), 0);
-        });
-
-        return () => unsubscribe();
-    }, [conversaId]);
-
-    const carregarMaisMensagens = async () => {
-        if (!ultimoDoc || semMaisMensagens) return;
-
-        const q = query(
-            collection(db, 'conversas', conversaId, 'mensagens'),
-            orderBy('timestamp', 'desc'),
-            startAfter(ultimoDoc),
-            limit(15)
-        );
-
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-            const novasMsgs = snapshot.docs
-                .map((doc) => ({ id: doc.id, ...doc.data() }))
-                .reverse();
-            setMensagens((prev) => [...novasMsgs, ...prev]);
-            setUltimoDoc(snapshot.docs[snapshot.docs.length - 1]);
-        } else {
-            setSemMaisMensagens(true);
-        }
-    };
+    }, [mensagens]);
 
     if (!conversa) {
         return (
@@ -131,19 +75,44 @@ function JanelaChat({ conversaId }) {
 
     return (
         <JanelaChatContainer>
-            <ChatHeader conversa={conversa} />
-            <MensagensArea>
-                {!semMaisMensagens && (
-                    <CarregandoMaisBotao onClick={carregarMaisMensagens}>
-                        Carregar mais
-                    </CarregandoMaisBotao>
+            <ChatHeader
+                conversa={conversa}
+                getSubtituloConversa={getSubtituloConversa}
+                handleHeaderClick={handleHeaderClick}
+                getInitials={getInitials}
+            />
+            <MensagensArea
+                ref={mensagensAreaRef}
+                onScroll={(e) => {
+                    if (e.target.scrollTop === 0) {
+                        handleCarregarMais();
+                    }
+                }}
+            >
+                {!primeiraMensagemVisivel && !carregandoMais && (
+                    <p style={{ textAlign: 'center', color: '#888' }}>
+                        Início da conversa.
+                    </p>
+                )}
+                {carregandoMais && (
+                    <p style={{ textAlign: 'center', color: '#888' }}>
+                        Carregando...
+                    </p>
                 )}
                 {mensagens.map((msg) => (
-                    <Mensagem key={msg.id} mensagem={msg} />
+                    <Mensagem
+                        key={msg.id}
+                        mensagem={msg}
+                        getInitials={getInitials}
+                    />
                 ))}
                 <div ref={fimMensagensRef} />
             </MensagensArea>
-            <MensagemInput conversaId={conversa.id} />
+            <MensagemInput
+                conversaId={conversa.id}
+                onEnviarMensagem={handleEnviarMensagem}
+                onTyping={handleTyping}
+            />
         </JanelaChatContainer>
     );
 }

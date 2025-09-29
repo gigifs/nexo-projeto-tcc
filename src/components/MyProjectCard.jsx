@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
 import VerDetalhesModal from './VerDetalhesModal';
 import { FiUsers } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -72,8 +75,8 @@ const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap; /* Permite que as tags quebrem a linha */
     gap: 6px;
-    height: 30px;      /* Altura fixa para apenas UMA linha de tags */
-    overflow: hidden;  /* Esconde qualquer tag que passe para a segunda linha */
+    height: 30px; /* Altura fixa para apenas UMA linha de tags */
+    overflow: hidden; /* Esconde qualquer tag que passe para a segunda linha */
 `;
 
 const Tag = styled.span`
@@ -107,9 +110,9 @@ const TeamTitle = styled.h4`
     font-weight: 600;
     color: #000000;
     margin: 0;
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
+    display: flex;
+    align-items: center;
+    gap: 8px;
 `;
 
 const TeamContainer = styled.div`
@@ -135,14 +138,14 @@ const TeamMemberAvatar = styled.div`
 
     /* Sobreposição dos avatares */
     &:not(:first-child) {
-        margin-left: -16px; 
+        margin-left: -16px;
     }
 `;
 
 const ActionButtonsContainer = styled.div`
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 `;
 
 const DetalhesBotao = styled(Botao)`
@@ -162,9 +165,9 @@ const getStatusStyle = (status) => {
         case 'Novo':
             return { $color: '#FFE0B2', $textColor: '#E65100' };
         case 'Em Andamento':
-            return { $color: '#C9B7F4', $textColor: '#5824d2ff'};
+            return { $color: '#C9B7F4', $textColor: '#5824d2ff' };
         case 'Concluído':
-            return { $color: '#B7F4BB', $textColor: '#18a422ff'};
+            return { $color: '#B7F4BB', $textColor: '#18a422ff' };
         default:
             return { $color: '#e0e0e0', $textColor: '#000' };
     }
@@ -172,6 +175,7 @@ const getStatusStyle = (status) => {
 
 function MyProjectCard({ projeto, currentUserId }) {
     const [modalAberto, setModalAberto] = useState(false);
+    const { currentUser } = useAuth();
     const navigate = useNavigate();
 
     const {
@@ -192,9 +196,38 @@ function MyProjectCard({ projeto, currentUserId }) {
         navigate(`/dashboard/meus-projetos/${id}/gerenciar`);
     };
 
+    // Função para abrir o chat
+    const handleChatClick = async () => {
+        try {
+            const conversasRef = collection(db, 'conversas');
+            const q = query(
+                conversasRef,
+                where('projetoId', '==', id),
+                where('participantes', 'array-contains', currentUser.uid)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const conversaId = querySnapshot.docs[0].id;
+                navigate('/dashboard/mensagens', {
+                    state: { activeChatId: conversaId },
+                });
+            } else {
+                alert('Chat para este projeto não encontrado!');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar chat:', error);
+            alert('Não foi possível abrir o chat.');
+        }
+    };
+
     const tagsParaExibir = [
-        ...(habilidades || []).slice(0, 3).map(h => ({ nome: h, tipo: 'habilidade' })),
-        ...(interesses || []).slice(0, 3).map(i => ({ nome: i, tipo: 'interesse' }))
+        ...(habilidades || [])
+            .slice(0, 3)
+            .map((h) => ({ nome: h, tipo: 'habilidade' })),
+        ...(interesses || [])
+            .slice(0, 3)
+            .map((i) => ({ nome: i, tipo: 'interesse' })),
     ];
 
     return (
@@ -245,23 +278,20 @@ function MyProjectCard({ projeto, currentUserId }) {
                     )}
 
                     <ActionButtonsContainer>
-                        <DetalhesBotao onClick={() => alert('Abrir chat do projeto!')}>
+                        <DetalhesBotao onClick={handleChatClick}>
                             Chat
                         </DetalhesBotao>
 
-                            {isOwner ? (
-                                <DetalhesBotao onClick={handleGerenciarClick}>
-                                    Gerenciar Projeto
-                                </DetalhesBotao>
-                                
-                            ) : (
-                                
-                                <DetalhesBotao onClick={() => setModalAberto(true)}>
-                                    Ver Detalhes
-                                </DetalhesBotao>            
-                            )}
-                        </ActionButtonsContainer>
-
+                        {isOwner ? (
+                            <DetalhesBotao onClick={handleGerenciarClick}>
+                                Gerenciar Projeto
+                            </DetalhesBotao>
+                        ) : (
+                            <DetalhesBotao onClick={() => setModalAberto(true)}>
+                                Ver Detalhes
+                            </DetalhesBotao>
+                        )}
+                    </ActionButtonsContainer>
                 </CardFooter>
             </CardWrapper>
             <Modal isOpen={modalAberto} onClose={() => setModalAberto(false)}>

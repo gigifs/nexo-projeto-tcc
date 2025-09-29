@@ -18,6 +18,8 @@ import {
     deleteDoc,
     arrayUnion,
     arrayRemove,
+    query,
+    where,
 } from 'firebase/firestore';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
@@ -372,6 +374,25 @@ function GerenciarProjetoPage() {
                 }),
                 participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
+
+            const conversasRef = collection(db, 'conversas');
+            const q = query(conversasRef, where('projetoId', '==', id));
+            const conversaSnapshot = await getDocs(q);
+
+            if (!conversaSnapshot.empty) {
+                const conversaDoc = conversaSnapshot.docs[0];
+                const conversaRef = doc(db, 'conversas', conversaDoc.id);
+                await updateDoc(conversaRef, {
+                    participantes: arrayUnion(candidatoParaAceitar.userId),
+                    participantesInfo: arrayUnion({
+                        uid: candidatoParaAceitar.userId,
+                        nome: candidatoParaAceitar.nome,
+                        sobrenome: candidatoParaAceitar.sobrenome,
+                    }),
+                    // inicializar a contagem de mensagens não lidas para o novo membro
+                    [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
+                });
+            }
 
             await deleteDoc(candidaturaRef);
 

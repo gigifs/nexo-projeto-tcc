@@ -8,6 +8,8 @@ import {
     addDoc,
     serverTimestamp,
     getDocs,
+    doc,
+    setDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 //Hook de Autenticação
@@ -49,7 +51,9 @@ const Input = styled.input`
     border: 1px solid #ced4da;
     border-radius: 10px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     box-sizing: border-box;
 
     &:focus {
@@ -70,7 +74,9 @@ const Textarea = styled.textarea`
     outline: none;
     resize: vertical;
     min-height: 80px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     box-sizing: border-box;
 
     &:focus {
@@ -242,7 +248,8 @@ function FormularioCriarProjeto({ onClose }) {
         if (!habilidadeParaAdicionar) return;
 
         const habilidadeValida = todasAsHabilidades.find(
-            (h) => h.nome.toLowerCase() === habilidadeParaAdicionar.toLowerCase()
+            (h) =>
+                h.nome.toLowerCase() === habilidadeParaAdicionar.toLowerCase()
         );
 
         if (habilidadeValida) {
@@ -289,7 +296,7 @@ function FormularioCriarProjeto({ onClose }) {
 
         try {
             const projetosCollectionRef = collection(db, 'projetos');
-            await addDoc(projetosCollectionRef, {
+            const novoProjetoRef = await addDoc(projetosCollectionRef, {
                 nome: nomeProjeto,
                 descricao: descricao,
                 area: area,
@@ -299,7 +306,36 @@ function FormularioCriarProjeto({ onClose }) {
                 donoSobrenome: userData.sobrenome,
                 criadoEm: serverTimestamp(),
                 status: 'Novo',
+                participantIds: [currentUser.uid], // Adiciona o dono como participante
+                participantes: [
+                    {
+                        uid: currentUser.uid,
+                        nome: userData.nome,
+                        sobrenome: userData.sobrenome,
+                    },
+                ],
             });
+
+            // Cria a conversa para o projeto
+            const conversaRef = doc(db, 'conversas', novoProjetoRef.id);
+            await setDoc(conversaRef, {
+                isGrupo: true,
+                nomeGrupo: nomeProjeto,
+                projetoId: novoProjetoRef.id,
+                participantes: [currentUser.uid],
+                participantesInfo: [
+                    {
+                        uid: currentUser.uid,
+                        nome: userData.nome,
+                        sobrenome: userData.sobrenome,
+                    },
+                ],
+                unreadCounts: {
+                    [currentUser.uid]: 0,
+                },
+                ultimaMensagem: null,
+            });
+
             alert('Projeto criado com sucesso!');
             onClose();
         } catch (error) {
@@ -348,7 +384,9 @@ function FormularioCriarProjeto({ onClose }) {
                     <option value="Desenvolvimento de Software">
                         Desenvolvimento de Software
                     </option>
-                    <option value="Pesquisa Acadêmica">Pesquisa Acadêmica</option>
+                    <option value="Pesquisa Acadêmica">
+                        Pesquisa Acadêmica
+                    </option>
                     <option value="Design/UX">Design/UX</option>
                     <option value="Marketing">Marketing</option>
                 </Select>

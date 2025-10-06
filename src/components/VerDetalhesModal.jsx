@@ -143,8 +143,12 @@ const IntegranteItem = styled.div`
     border-radius: 8px;
     transition: background-color 0.2s;
 
+    /* Aplica estilos condicionalmente com base na prop '$isClickable' */
+    cursor: ${(props) => (props.$isClickable ? 'pointer' : 'default')};
+
     &:hover {
-        background-color: #be2d8264;
+        background-color: ${(props) =>
+            props.$isClickable ? '#be2d8264' : 'transparent'};
     }
 
 `;
@@ -432,7 +436,12 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                 {todosOsIntegrantes.map((p) => (
                                     <IntegranteItem
                                         key={p.uid}
-                                        onClick={() => toggleMenuIntegrante(p.uid)}
+                                        $isClickable={tipo === 'participante'}
+                                        //A função de clique só é ativada se for um participante
+                                        onClick={() =>
+                                            tipo === 'participante' &&
+                                            toggleMenuIntegrante(p.uid)
+                                        }
                                     >
                                         <Avatar>{`${p.nome?.[0] || ''}${
                                             p.sobrenome?.[0] || ''
@@ -441,27 +450,40 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                             {p.nome} {p.sobrenome}{' '}
                                             {p.isDono && '(Dono)'}
                                         </NomeIntegrante>
-                                        <FiChevronDown style={{ marginLeft: 'auto' }} />
 
-                                        {/* menu suspenso pra quem ta no projeto */}
-                                        {integranteAberto === p.uid && (
-                                            <DropdownMenu>
-                                                <DropdownItem
-                                                    onClick={() => handleVerPerfilIntegrante(p)}
-                                                >
-                                                    <FiUser /> Ver Perfil
-                                                </DropdownItem>
-                                                <DropdownItem
-                                                    onClick={() =>
-                                                        alert(`Enviar mensagem para ${p.nome}`)
-                                                    }
-                                                >
-                                                    <FiMessageSquare /> Enviar
-                                                    Mensagem
+                                        {/*A seta do menu só aparece para participantes */}
+                                        {tipo === 'participante' && (
+                                            <FiChevronDown
+                                                style={{ marginLeft: 'auto' }}
+                                            />
+                                        )}
+
+                                        {/*O menu suspenso só é renderizado se for participante */}
+                                        {integranteAberto === p.uid &&
+                                            tipo === 'participante' && (
+                                                <DropdownMenu>
+                                                    <DropdownItem
+                                                        onClick={() =>
+                                                            handleVerPerfilIntegrante(
+                                                                p
+                                                            )
+                                                        }
+                                                    >
+                                                        <FiUser /> Ver Perfil
+                                                    </DropdownItem>
+                                                    <DropdownItem
+                                                        onClick={() =>
+                                                            alert(
+                                                                `Enviar mensagem para ${p.nome}`
+                                                            )
+                                                        }
+                                                    >
+                                                    <FiMessageSquare />{' '}
+                                                    Enviar Mensagem
                                                 </DropdownItem>
                                             </DropdownMenu>
                                         )}
-                                    </IntegranteItem>
+                                </IntegranteItem>
                                 ))}
                             </IntegrantesLista>
                         </Secao>

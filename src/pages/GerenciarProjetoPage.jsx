@@ -20,6 +20,7 @@ import {
     arrayRemove,
     query,
     where,
+    addDoc,
 } from 'firebase/firestore';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
@@ -379,7 +380,32 @@ function GerenciarProjetoPage() {
             const q = query(conversasRef, where('projetoId', '==', id));
             const conversaSnapshot = await getDocs(q);
 
-            if (!conversaSnapshot.empty) {
+            if (conversaSnapshot.empty) {
+                // Cria nova conversa se não existir
+                await addDoc(conversasRef, {
+                    projetoId: id,
+                    participantes: [
+                        currentUser.uid,
+                        candidatoParaAceitar.userId,
+                    ],
+                    participantesInfo: [
+                        {
+                            uid: currentUser.uid,
+                            nome: currentUser.displayName || 'Dono',
+                        },
+                        {
+                            uid: candidatoParaAceitar.userId,
+                            nome: candidatoParaAceitar.nome,
+                            sobrenome: candidatoParaAceitar.sobrenome,
+                        },
+                    ],
+                    unreadCounts: {
+                        [currentUser.uid]: 0,
+                        [candidatoParaAceitar.userId]: 0,
+                    },
+                    criadoEm: new Date(),
+                });
+            } else {
                 const conversaDoc = conversaSnapshot.docs[0];
                 const conversaRef = doc(db, 'conversas', conversaDoc.id);
                 await updateDoc(conversaRef, {
@@ -389,15 +415,14 @@ function GerenciarProjetoPage() {
                         nome: candidatoParaAceitar.nome,
                         sobrenome: candidatoParaAceitar.sobrenome,
                     }),
-                    // inicializar a contagem de mensagens não lidas para o novo membro
                     [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
                 });
             }
 
             await deleteDoc(candidaturaRef);
 
-            setCandidaturas(
-                candidaturas.filter((c) => c.id !== candidatoParaAceitar.id)
+            setCandidaturas((prev) =>
+                prev.filter((c) => c.id !== candidatoParaAceitar.id)
             );
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
@@ -416,7 +441,9 @@ function GerenciarProjetoPage() {
             }));
 
             setCandidatoSelecionado(null);
-            alert(`${candidatoParaAceitar.nome} foi adicionado(a) ao projeto!`);
+            alert(
+                `${candidatoParaAceitar.nome} foi adicionado(a) ao projeto e ao chat!`
+            );
         } catch (err) {
             console.error('Erro ao aceitar candidato:', err);
             alert('Ocorreu um erro ao aceitar a candidatura.');

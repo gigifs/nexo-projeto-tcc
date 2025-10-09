@@ -80,30 +80,35 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
                     <MembroInfo>
                         <span>
                             <strong>
-                                {projeto.donoNome} {projeto.donoSobrenome} (Dono)
+                                {projeto.donoNome} {projeto.donoSobrenome}{' '}
+                                (Dono)
                             </strong>
                         </span>
                     </MembroInfo>
                 </MembroItem>
                 {projeto.participantes &&
-                    projeto.participantes.map((p) => (
-                        <MembroItem key={p.uid}>
-                            <Avatar>{getInitials(p.nome, p.sobrenome)}</Avatar>
-                            <MembroInfo>
-                                <span>
-                                    {p.nome} {p.sobrenome}
-                                </span>
-                                {currentUserId === projeto.donoId && (
-                                    <BotaoRemover
-                                        onClick={() => onRemoverMembro(p)}
-                                        title="Remover Membro"
-                                    >
-                                        <FiUserX size={18} />
-                                    </BotaoRemover>
-                                )}
-                            </MembroInfo>
-                        </MembroItem>
-                    ))}
+                    projeto.participantes
+                        .filter((p) => p.uid !== projeto.donoId)
+                        .map((p) => (
+                            <MembroItem key={p.uid}>
+                                <Avatar>
+                                    {getInitials(p.nome, p.sobrenome)}
+                                </Avatar>
+                                <MembroInfo>
+                                    <span>
+                                        {p.nome} {p.sobrenome}
+                                    </span>
+                                    {currentUserId === projeto.donoId && (
+                                        <BotaoRemover
+                                            onClick={() => onRemoverMembro(p)}
+                                            title="Remover Membro"
+                                        >
+                                            <FiUserX size={18} />
+                                        </BotaoRemover>
+                                    )}
+                                </MembroInfo>
+                            </MembroItem>
+                        ))}
             </SecaoMembros>
         </>
     );

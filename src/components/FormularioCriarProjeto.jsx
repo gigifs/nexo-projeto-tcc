@@ -301,6 +301,7 @@ function FormularioCriarProjeto({ onClose }) {
                 descricao: descricao,
                 area: area,
                 habilidades: habilidades,
+                interesses: [],
                 donoId: currentUser.uid,
                 donoNome: userData.nome,
                 donoSobrenome: userData.sobrenome,

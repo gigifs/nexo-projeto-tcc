@@ -409,6 +409,10 @@ function GerenciarProjetoPage() {
                         sobrenome: candidatoParaAceitar.sobrenome,
                     },
                 ],
+                participantIds: [
+                    ...prevProjeto.participantIds,
+                    candidatoParaAceitar.userId,
+                ],
             }));
 
             setCandidatoSelecionado(null);

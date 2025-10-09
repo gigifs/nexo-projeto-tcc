@@ -18,6 +18,9 @@ import {
     deleteDoc,
     arrayUnion,
     arrayRemove,
+    query,
+    where,
+    addDoc,
 } from 'firebase/firestore';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
@@ -194,6 +197,7 @@ function GerenciarProjetoPage() {
     const [sugestoesI, setSugestoesI] = useState([]);
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
     useEffect(() => {
         const fetchTags = async () => {
             try {
@@ -373,10 +377,53 @@ function GerenciarProjetoPage() {
                 participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
 
+            const conversasRef = collection(db, 'conversas');
+            const q = query(conversasRef, where('projetoId', '==', id));
+            const conversaSnapshot = await getDocs(q);
+
+            if (conversaSnapshot.empty) {
+                // Cria nova conversa se não existir
+                await addDoc(conversasRef, {
+                    projetoId: id,
+                    participantes: [
+                        currentUser.uid,
+                        candidatoParaAceitar.userId,
+                    ],
+                    participantesInfo: [
+                        {
+                            uid: currentUser.uid,
+                            nome: currentUser.displayName || 'Dono',
+                        },
+                        {
+                            uid: candidatoParaAceitar.userId,
+                            nome: candidatoParaAceitar.nome,
+                            sobrenome: candidatoParaAceitar.sobrenome,
+                        },
+                    ],
+                    unreadCounts: {
+                        [currentUser.uid]: 0,
+                        [candidatoParaAceitar.userId]: 0,
+                    },
+                    criadoEm: new Date(),
+                });
+            } else {
+                const conversaDoc = conversaSnapshot.docs[0];
+                const conversaRef = doc(db, 'conversas', conversaDoc.id);
+                await updateDoc(conversaRef, {
+                    participantes: arrayUnion(candidatoParaAceitar.userId),
+                    participantesInfo: arrayUnion({
+                        uid: candidatoParaAceitar.userId,
+                        nome: candidatoParaAceitar.nome,
+                        sobrenome: candidatoParaAceitar.sobrenome,
+                    }),
+                    [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
+                });
+            }
+
             await deleteDoc(candidaturaRef);
 
-            setCandidaturas(
-                candidaturas.filter((c) => c.id !== candidatoParaAceitar.id)
+            setCandidaturas((prev) =>
+                prev.filter((c) => c.id !== candidatoParaAceitar.id)
             );
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
@@ -388,10 +435,16 @@ function GerenciarProjetoPage() {
                         sobrenome: candidatoParaAceitar.sobrenome,
                     },
                 ],
+                participantIds: [
+                    ...prevProjeto.participantIds,
+                    candidatoParaAceitar.userId,
+                ],
             }));
 
             setCandidatoSelecionado(null);
-            alert(`${candidatoParaAceitar.nome} foi adicionado(a) ao projeto!`);
+            alert(
+                `${candidatoParaAceitar.nome} foi adicionado(a) ao projeto e ao chat!`
+            );
         } catch (err) {
             console.error('Erro ao aceitar candidato:', err);
             alert('Ocorreu um erro ao aceitar a candidatura.');

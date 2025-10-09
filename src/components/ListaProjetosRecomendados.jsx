@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    getDoc,
+    doc,
+} from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import ProjectCard from './ProjectCard';
 
 const ListWrapper = styled.div`
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /*cria duas colunas de tamanho = 1fr (uma fração do espaço disponível)*/
+    grid-template-columns: repeat(
+        2,
+        1fr
+    ); /*cria duas colunas de tamanho = 1fr (uma fração do espaço disponível)*/
     gap: 30px;
     width: 100%;
 `;
@@ -21,50 +31,129 @@ const MensagemFeedback = styled.p`
 `;
 
 function ListaProjetosRecomendados() {
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth();
     const [projetos, setProjetos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchProjetosRecomendados = async () => {
-            if (!currentUser) return;
+            if (!currentUser || !userData) {
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             setError('');
-            
+
             try {
-                //Busca inicial, projetos que não são do usuário
+                // Busca projetos que não são do usuário
                 const projetosRef = collection(db, 'projetos');
-                const q = query(projetosRef, where('donoId', '!=', currentUser.uid));
+                const q = query(
+                    projetosRef,
+                    where('donoId', '!=', currentUser.uid)
+                );
                 const querySnapshot = await getDocs(q);
 
-                let projetosList = querySnapshot.docs.map(doc => ({
+                let projetosList = querySnapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
 
-                //Filtra projetos onde o usuário já é participante
+                // Filtra projetos onde o usuário já é participante
                 const projetosFiltrados = projetosList.filter(
-                    (p) => !(p.participantIds && p.participantIds.includes(currentUser.uid))
+                    (p) =>
+                        !(
+                            p.participantIds &&
+                            p.participantIds.includes(currentUser.uid)
+                        )
                 );
 
-                //Verifica as candidaturas para os projetos restantes
-                const verificacaoCandidaturas = projetosFiltrados.map(async (projeto) => {
-                    const candidaturaRef = doc(db, 'projetos', projeto.id, 'candidaturas', currentUser.uid);
-                    const candidaturaSnap = await getDoc(candidaturaRef);
-                    return { ...projeto, jaCandidatou: candidaturaSnap.exists() };
-                });
+                // Verifica as candidaturas para os projetos restantes
+                const verificacaoCandidaturas = projetosFiltrados.map(
+                    async (projeto) => {
+                        const candidaturaRef = doc(
+                            db,
+                            'projetos',
+                            projeto.id,
+                            'candidaturas',
+                            currentUser.uid
+                        );
+                        const candidaturaSnap = await getDoc(candidaturaRef);
+                        return {
+                            ...projeto,
+                            jaCandidatou: candidaturaSnap.exists(),
+                        };
+                    }
+                );
 
-                //Espera todas as verificações terminarem
-                const projetosComStatusCandidatura = await Promise.all(verificacaoCandidaturas);
+                const projetosComStatusCandidatura = await Promise.all(
+                    verificacaoCandidaturas
+                );
 
-                //Filtro final, remove os projetos onde o usuário já se candidatou
-                const projetosFinais = projetosComStatusCandidatura.filter(p => !p.jaCandidatou);
+                // Filtro final, remove os projetos onde o usuário já se candidatou
+                const projetosDisponiveis = projetosComStatusCandidatura.filter(
+                    (p) => !p.jaCandidatou
+                );
 
-                setProjetos(projetosFinais);
+                //LÓGICA DE RECOMENDAÇÃO
+                const userHabilidades = userData.habilidades || [];
+                const userInteresses = userData.interesses || [];
+                const userCurso = userData.curso || '';
 
+                //Filtragem Primária (obrigatória)
+                const projetosComHabilidadeCompativeis =
+                    projetosDisponiveis.filter((projeto) => {
+                        const projetoHabilidades = projeto.habilidades || [];
+                        // O método .some() retorna true se pelo menos um item do array passar no teste
+                        return projetoHabilidades.some((habilidade) =>
+                            userHabilidades.includes(habilidade)
+                        );
+                    });
+
+                //Cálculo de Pontuação
+                const projetosPontuados = projetosComHabilidadeCompativeis.map(
+                    (projeto) => {
+                        let score = 0;
+                        const projetoHabilidades = projeto.habilidades || [];
+                        const projetoInteresses = projeto.interesses || [];
+                        const projetoArea = projeto.area || '';
+
+                        // +3 pontos por habilidade em comum
+                        projetoHabilidades.forEach((habilidade) => {
+                            if (userHabilidades.includes(habilidade)) {
+                                score += 3;
+                            }
+                        });
+
+                        // +2 pontos por interesse em comum
+                        projetoInteresses.forEach((interesse) => {
+                            if (userInteresses.includes(interesse)) {
+                                score += 2;
+                            }
+                        });
+
+                        // +1 ponto se a área for compatível com o curso
+                        if (
+                            userCurso &&
+                            projetoArea &&
+                            userCurso.toLowerCase().includes(projetoArea.toLowerCase())
+                        ) {
+                            score += 1;
+                        }
+
+                        return { ...projeto, score };
+                    }
+                );
+
+                //Ordenação dos projetos pela pontuação
+                const projetosOrdenados = projetosPontuados.sort(
+                    (a, b) => b.score - a.score
+                );
+
+                setProjetos(projetosOrdenados);
             } catch (err) {
-                console.error("Erro ao buscar projetos:", err);
+                console.error('Erro ao buscar projetos:', err);
                 setError('Não foi possível carregar os projetos.');
             } finally {
                 setLoading(false);
@@ -72,16 +161,22 @@ function ListaProjetosRecomendados() {
         };
 
         fetchProjetosRecomendados();
-    }, [currentUser]); //Roda a busca apenas quando o usuário é definido
+    }, [currentUser, userData]);
 
-    if (loading) return <MensagemFeedback>Carregando projetos...</MensagemFeedback>;
+    if (loading)
+        return <MensagemFeedback>A carregar projetos recomendados...</MensagemFeedback>;
     if (error) return <MensagemFeedback>{error}</MensagemFeedback>;
-    //Se não houver nenhum projeto criado, aparece essa menssagem
-    if (projetos.length === 0) return <MensagemFeedback>Nenhum projeto encontrado para você no momento.</MensagemFeedback>;
+    if (projetos.length === 0)
+        return (
+            <MensagemFeedback>
+                Nenhum projeto recomendado para você no momento. Que tal criar
+                um?
+            </MensagemFeedback>
+        );
 
     return (
         <ListWrapper>
-            {projetos.map(projeto => (
+            {projetos.map((projeto) => (
                 <ProjectCard key={projeto.id} projeto={projeto} />
             ))}
         </ListWrapper>

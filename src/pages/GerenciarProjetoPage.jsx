@@ -197,6 +197,7 @@ function GerenciarProjetoPage() {
     const [sugestoesI, setSugestoesI] = useState([]);
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
     useEffect(() => {
         const fetchTags = async () => {
             try {

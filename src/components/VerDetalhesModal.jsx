@@ -149,8 +149,12 @@ const IntegranteItem = styled.div`
     border-radius: 8px;
     transition: background-color 0.2s;
 
+    /* Aplica estilos condicionalmente com base na prop '$isClickable' */
+    cursor: ${(props) => (props.$isClickable ? 'pointer' : 'default')};
+
     &:hover {
-        background-color: #be2d8264;
+        background-color: ${(props) =>
+            props.$isClickable ? '#be2d8264' : 'transparent'};
     }
 `;
 
@@ -505,7 +509,10 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                 {todosOsIntegrantes.map((p) => (
                                     <IntegranteItem
                                         key={p.uid}
+                                        $isClickable={tipo === 'participante'}
+                                        //A função de clique só é ativada se for um participante
                                         onClick={() =>
+                                            tipo === 'participante' &&
                                             toggleMenuIntegrante(p.uid)
                                         }
                                     >
@@ -518,35 +525,42 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                             {p.nome} {p.sobrenome}{' '}
                                             {p.isDono && '(Dono)'}
                                         </NomeIntegrante>
-                                        <FiChevronDown
-                                            style={{ marginLeft: 'auto' }}
-                                        />
 
-                                        {/* menu suspenso pra quem ta no projeto */}
-                                        {integranteAberto === p.uid && (
-                                            <DropdownMenu>
-                                                <DropdownItem
-                                                    onClick={() =>
-                                                        handleVerPerfilIntegrante(
-                                                            p
-                                                        )
-                                                    }
-                                                >
-                                                    <FiUser /> Ver Perfil
-                                                </DropdownItem>
-                                                {/* Apenas mostra a opção se o integrante não for o próprio utilizador */}
-                                                {p.uid !== currentUser.uid && (
+                                        {/*A seta do menu só aparece para participantes */}
+                                        {tipo === 'participante' && (
+                                            <FiChevronDown
+                                                style={{ marginLeft: 'auto' }}
+                                            />
+                                        )}
+
+                                        {/*O menu suspenso só é renderizado se for participante */}
+                                        {integranteAberto === p.uid &&
+                                            tipo === 'participante' && (
+                                                <DropdownMenu>
                                                     <DropdownItem
                                                         onClick={() =>
-                                                            handleSendMessage(p)
+                                                            handleVerPerfilIntegrante(
+                                                                p
+                                                            )
                                                         }
                                                     >
-                                                        <FiMessageSquare />{' '}
-                                                        Enviar Mensagem
+                                                        <FiUser /> Ver Perfil
                                                     </DropdownItem>
-                                                )}
-                                            </DropdownMenu>
-                                        )}
+                                                    {p.uid !==
+                                                        currentUser.uid && (
+                                                        <DropdownItem
+                                                            onClick={() =>
+                                                                handleSendMessage(
+                                                                    p
+                                                                )
+                                                            }
+                                                        >
+                                                            <FiMessageSquare />{' '}
+                                                            Enviar Mensagem
+                                                        </DropdownItem>
+                                                    )}
+                                                </DropdownMenu>
+                                            )}
                                     </IntegranteItem>
                                 ))}
                             </IntegrantesLista>

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import Botao from '../components/Botao';
-import PerfilCandidatoModal from '../components/PerfilCandidatoModal';
+import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/DashboardHeader';
 import Candidaturas from '../components/Candidaturas';
@@ -18,7 +18,12 @@ import {
     deleteDoc,
     arrayUnion,
     arrayRemove,
+    query,
+    where,
+    addDoc,
 } from 'firebase/firestore';
+import Modal from '../components/Modal';
+import TemCertezaModal from '../components/TemCertezaModal';
 
 const Formulario = styled.form`
     display: flex;
@@ -36,7 +41,7 @@ const Label = styled.label`
     margin-bottom: 8px;
     font-size: 20px;
     font-weight: 600;
-    color: #7C2256;
+    color: #7c2256;
     margin: 5px;
 `;
 
@@ -143,8 +148,7 @@ const TagsContainer = styled.div`
 const Tag = styled.div`
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
     padding: 5px 12px;
     border-radius: 16px;
     font-size: 14px;
@@ -191,14 +195,14 @@ function GerenciarProjetoPage() {
     const [todosOsInteresses, setTodosOsInteresses] = useState([]);
     const [sugestoesH, setSugestoesH] = useState([]);
     const [sugestoesI, setSugestoesI] = useState([]);
+    const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const fetchTags = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
-                const tagsDoBanco = querySnapshot.docs.map((doc) =>
-                    doc.data()
-                );
+                const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
                 setTodasAsHabilidades(
                     tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')
                 );
@@ -309,9 +313,7 @@ function GerenciarProjetoPage() {
     };
 
     const removerHabilidade = (nome) => {
-        setHabilidadesEditaveis(
-            habilidadesEditaveis.filter((h) => h !== nome)
-        );
+        setHabilidadesEditaveis(habilidadesEditaveis.filter((h) => h !== nome));
     };
 
     const handleBuscaInteresseChange = (e) => {
@@ -339,9 +341,7 @@ function GerenciarProjetoPage() {
     };
 
     const removerInteresse = (nome) => {
-        setInteressesEditaveis(
-            interessesEditaveis.filter((i) => i !== nome)
-        );
+        setInteressesEditaveis(interessesEditaveis.filter((i) => i !== nome));
     };
 
     const handleVerPerfil = async (candidato) => {
@@ -377,10 +377,53 @@ function GerenciarProjetoPage() {
                 participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
 
+            const conversasRef = collection(db, 'conversas');
+            const q = query(conversasRef, where('projetoId', '==', id));
+            const conversaSnapshot = await getDocs(q);
+
+            if (conversaSnapshot.empty) {
+                // Cria nova conversa se não existir
+                await addDoc(conversasRef, {
+                    projetoId: id,
+                    participantes: [
+                        currentUser.uid,
+                        candidatoParaAceitar.userId,
+                    ],
+                    participantesInfo: [
+                        {
+                            uid: currentUser.uid,
+                            nome: currentUser.displayName || 'Dono',
+                        },
+                        {
+                            uid: candidatoParaAceitar.userId,
+                            nome: candidatoParaAceitar.nome,
+                            sobrenome: candidatoParaAceitar.sobrenome,
+                        },
+                    ],
+                    unreadCounts: {
+                        [currentUser.uid]: 0,
+                        [candidatoParaAceitar.userId]: 0,
+                    },
+                    criadoEm: new Date(),
+                });
+            } else {
+                const conversaDoc = conversaSnapshot.docs[0];
+                const conversaRef = doc(db, 'conversas', conversaDoc.id);
+                await updateDoc(conversaRef, {
+                    participantes: arrayUnion(candidatoParaAceitar.userId),
+                    participantesInfo: arrayUnion({
+                        uid: candidatoParaAceitar.userId,
+                        nome: candidatoParaAceitar.nome,
+                        sobrenome: candidatoParaAceitar.sobrenome,
+                    }),
+                    [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
+                });
+            }
+
             await deleteDoc(candidaturaRef);
 
-            setCandidaturas(
-                candidaturas.filter((c) => c.id !== candidatoParaAceitar.id)
+            setCandidaturas((prev) =>
+                prev.filter((c) => c.id !== candidatoParaAceitar.id)
             );
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
@@ -392,10 +435,16 @@ function GerenciarProjetoPage() {
                         sobrenome: candidatoParaAceitar.sobrenome,
                     },
                 ],
+                participantIds: [
+                    ...prevProjeto.participantIds,
+                    candidatoParaAceitar.userId,
+                ],
             }));
 
             setCandidatoSelecionado(null);
-            alert(`${candidatoParaAceitar.nome} foi adicionado(a) ao projeto!`);
+            alert(
+                `${candidatoParaAceitar.nome} foi adicionado(a) ao projeto e ao chat!`
+            );
         } catch (err) {
             console.error('Erro ao aceitar candidato:', err);
             alert('Ocorreu um erro ao aceitar a candidatura.');
@@ -461,26 +510,27 @@ function GerenciarProjetoPage() {
         }
     };
 
-    const handleExcluirProjeto = async () => {
-        if (
-            !window.confirm(
-                'ATENÇÃO: Esta ação é permanente. Tem a certeza de que deseja excluir este projeto?'
-            )
-        ) {
-            return;
-        }
+    // Abre o modal
+    const handleExcluirProjeto = () => {
+        setConfirmModalOpen(true);
+    };
 
+    // Ação que exclui o projeto
+    const confirmarExclusao = async () => {
+        setIsDeleting(true);
         try {
             const projetoRef = doc(db, 'projetos', id);
             await deleteDoc(projetoRef);
             alert('Projeto excluído com sucesso.');
+            setConfirmModalOpen(false);
             navigate('/dashboard/meus-projetos');
         } catch (err) {
             console.error('Erro ao excluir projeto:', err);
             alert('Ocorreu um erro ao excluir o projeto.');
+        } finally {
+            setIsDeleting(false);
         }
     };
-
 
     if (loading) {
         return (
@@ -609,7 +659,7 @@ function GerenciarProjetoPage() {
                                     <option value="Marketing">Marketing</option>
                                 </Select>
                             </InputGroup>
-                            
+
                             {/* Interesse e habilidade lado a lado */}
                             <CamposLinha>
                                 <InputGroup style={{ flex: 1 }}>
@@ -712,6 +762,7 @@ function GerenciarProjetoPage() {
                             />
                             <SecaoExcluir>
                                 <Botao
+                                    type="button"
                                     variant="excluir"
                                     onClick={handleExcluirProjeto}
                                 >
@@ -723,13 +774,31 @@ function GerenciarProjetoPage() {
                 </Container>
             </Formulario>
 
-            <PerfilCandidatoModal
+            {/* Modal de confirmação de exclusão */}
+            <Modal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                size="excluir-projeto"
+            >
+                <TemCertezaModal
+                    titulo="Excluir Projeto?"
+                    mensagem="Esta ação é permanente e não pode ser desfeita."
+                    onConfirm={confirmarExclusao}
+                    onClose={() => setConfirmModalOpen(false)}
+                    loading={isDeleting}
+                    textoConfirmar="Sim"
+                    textoCancelar="Não"
+                />
+            </Modal>
+
+            <PerfilUsuarioModal
                 isOpen={!!candidatoSelecionado}
                 onClose={() => setCandidatoSelecionado(null)}
-                candidato={candidatoSelecionado}
+                usuario={candidatoSelecionado} // A prop agora é 'usuario'
                 onAceitar={handleAceitar}
                 onRejeitar={handleRejeitar}
                 loading={isActionLoading}
+                tipo="candidato"
             />
         </>
     );

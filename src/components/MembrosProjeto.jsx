@@ -122,30 +122,42 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
                 <FiUsers size={22} /> Membros do Projeto
             </TituloSecao>
             <SecaoMembros>
-                {membrosComCor.map((membro) => (
-                    <MembroItem key={membro.uid}>
-                        <Avatar $bgColor={membro.avatarColor}>
-                            {getInitials(membro.nome, membro.sobrenome)}
-                        </Avatar>
-                        <MembroInfo>
-                            <span>
-                                <strong>
-                                    {membro.nome} {membro.sobrenome}
-                                    {membro.isDono && ' (Dono)'}
-                                </strong>
-                            </span>
-                            {currentUserId === projeto.donoId &&
-                                !membro.isDono && (
-                                    <BotaoRemover
-                                        onClick={() => onRemoverMembro(membro)}
-                                        title="Remover Membro"
-                                    >
-                                        <FiUserX size={18} />
-                                    </BotaoRemover>
-                                )}
-                        </MembroInfo>
-                    </MembroItem>
-                ))}
+                <MembroItem>
+                    <Avatar>
+                        {getInitials(projeto.donoNome, projeto.donoSobrenome)}
+                    </Avatar>
+                    <MembroInfo>
+                        <span>
+                            <strong>
+                                {projeto.donoNome} {projeto.donoSobrenome}{' '}
+                                (Dono)
+                            </strong>
+                        </span>
+                    </MembroInfo>
+                </MembroItem>
+                {projeto.participantes &&
+                    projeto.participantes
+                        .filter((p) => p.uid !== projeto.donoId)
+                        .map((p) => (
+                            <MembroItem key={p.uid}>
+                                <Avatar>
+                                    {getInitials(p.nome, p.sobrenome)}
+                                </Avatar>
+                                <MembroInfo>
+                                    <span>
+                                        {p.nome} {p.sobrenome}
+                                    </span>
+                                    {currentUserId === projeto.donoId && (
+                                        <BotaoRemover
+                                            onClick={() => onRemoverMembro(p)}
+                                            title="Remover Membro"
+                                        >
+                                            <FiUserX size={18} />
+                                        </BotaoRemover>
+                                    )}
+                                </MembroInfo>
+                            </MembroItem>
+                        ))}
             </SecaoMembros>
         </>
     );

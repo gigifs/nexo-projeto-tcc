@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
+// ... (todos os 'styled-components' permanecem iguais)
 const CardWrapper = styled.div`
     background-color: #f5fafc;
     border-radius: 20px;
@@ -125,7 +126,7 @@ const TeamMemberAvatar = styled.div`
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -154,6 +155,7 @@ const DetalhesBotao = styled(Botao)`
     border-radius: 10px;
 `;
 
+
 const getInitials = (nome, sobrenome) => {
     if (!nome) return '?';
     if (!sobrenome) return nome.substring(0, 2).toUpperCase();
@@ -175,7 +177,8 @@ const getStatusStyle = (status) => {
 
 function MyProjectCard({ projeto, currentUserId }) {
     const [modalAberto, setModalAberto] = useState(false);
-    const { currentUser } = useAuth();
+    // OBTÉM OS DADOS ATUALIZADOS DO UTILIZADOR LOGADO
+    const { currentUser, userData } = useAuth();
     const navigate = useNavigate();
 
     const {
@@ -196,7 +199,6 @@ function MyProjectCard({ projeto, currentUserId }) {
         navigate(`/dashboard/meus-projetos/${id}/gerenciar`);
     };
 
-    // Função para abrir o chat
     const handleChatClick = async () => {
         try {
             const conversasRef = collection(db, 'conversas');
@@ -261,19 +263,25 @@ function MyProjectCard({ projeto, currentUserId }) {
                                 Sua Equipe
                             </TeamTitle>
                             <TeamContainer>
-                                {/* Lógica de limite adicionada aqui com .slice(0, 3) */}
-                                {participantes.slice(0, 3).map((p) => (
-                                    <TeamMemberAvatar
-                                        key={p.uid}
-                                        title={`${p.nome} ${p.sobrenome}`}
-                                    >
-                                        {getInitials(p.nome, p.sobrenome)}
-                                    </TeamMemberAvatar>
-                                ))}
+                                {participantes.slice(0, 3).map((p) => {
+                                    // VERIFICA SE O PARTICIPANTE É O UTILIZADOR ATUAL
+                                    const corDoAvatar = p.uid === currentUser.uid
+                                        ? userData.avatarColor // Se for, usa a cor mais recente
+                                        : p.avatarColor;       // Senão, usa a cor guardada no projeto
+
+                                    return (
+                                        <TeamMemberAvatar
+                                            key={p.uid}
+                                            $bgColor={corDoAvatar} // USA A COR CORRETA
+                                            title={`${p.nome} ${p.sobrenome}`}
+                                        >
+                                            {getInitials(p.nome, p.sobrenome)}
+                                        </TeamMemberAvatar>
+                                    );
+                                })}
                             </TeamContainer>
                         </TeamDetails>
                     ) : (
-                        //Se a condição for falsa, renderiza o placeholder
                         <div />
                     )}
 

@@ -318,6 +318,7 @@ function FormularioCriarProjeto({ onClose }) {
                 donoId: currentUser.uid,
                 donoNome: userData.nome,
                 donoSobrenome: userData.sobrenome,
+                donoAvatarColor: userData.avatarColor || '#0a528a',
                 criadoEm: serverTimestamp(),
                 status: 'Novo',
                 participantIds: [currentUser.uid],
@@ -326,6 +327,7 @@ function FormularioCriarProjeto({ onClose }) {
                         uid: currentUser.uid,
                         nome: userData.nome,
                         sobrenome: userData.sobrenome,
+                        avatarColor: userData.avatarColor || '#0a528a',
                     },
                 ],
             });
@@ -341,6 +343,7 @@ function FormularioCriarProjeto({ onClose }) {
                         uid: currentUser.uid,
                         nome: userData.nome,
                         sobrenome: userData.sobrenome,
+                        avatarColor: userData.avatarColor || '#0a528a',
                     },
                 ],
                 unreadCounts: {

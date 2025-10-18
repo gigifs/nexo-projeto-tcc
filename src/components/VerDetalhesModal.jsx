@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import Botao from './Botao';
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // Adicionado useEffect
 import { useAuth } from '../contexts/AuthContext';
 import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
@@ -143,7 +143,7 @@ const IntegranteItem = styled.div`
     display: flex;
     align-items: center;
     gap: 10px;
-    position: relative; /* Essencial para o posicionamento do menu */
+    position: relative;
     cursor: pointer;
     padding: 5px;
     border-radius: 8px;
@@ -160,8 +160,8 @@ const IntegranteItem = styled.div`
 
 const DropdownMenu = styled.div`
     position: absolute;
-    top: 100%; /* Aparece logo abaixo do item */
-    left: 50px; /* Alinhado com o nome */
+    top: 100%;
+    left: 50px;
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -191,7 +191,7 @@ const Avatar = styled.div`
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -217,7 +217,7 @@ const Descricao = styled.p`
     text-align: justify;
     margin: 0;
     max-height: 150px;
-    overflow-y: auto; /*Adiciona scroll se a descrição for mt grande*/
+    overflow-y: auto;
     padding-right: 10px;
     white-space: pre-line;
 `;
@@ -246,7 +246,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
-    const [integranteAberto, setIntegranteAberto] = useState(null); 
+    const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
+    const [todosOsIntegrantes, setTodosOsIntegrantes] = useState([]);
+    // 2. Novos estados para controlar o modal de perfil do integrante
     const [isPerfilModalOpen, setPerfilModalOpen] = useState(false);
     const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
     const [loadingIntegrante, setLoadingIntegrante] = useState(false);
@@ -275,7 +277,54 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const isOwner = currentUser?.uid === donoId;
     const isParticipant = participantIds.includes(currentUser?.uid);
 
-    // A lógica para o botão "Candidatar-se"
+    // EFEITO PARA BUSCAR AS CORES E MONTAR A LISTA DE INTEGRANTES
+    useEffect(() => {
+        const fetchIntegrantesData = async () => {
+            if (!projeto?.donoId) return;
+
+            // Garante que a lista de participantes não tenha duplicatas
+            const uniqueParticipantes = [
+                ...new Map(participantes.map((p) => [p.uid, p])).values(),
+            ];
+
+            // Junta o dono com os participantes para buscar todos os dados de uma vez
+            const allMemberInfo = [
+                { uid: projeto.donoId, nome: projeto.donoNome, sobrenome: projeto.donoSobrenome },
+                ...uniqueParticipantes,
+            ];
+
+            // Busca os dados completos (incluindo a cor) de cada usuário
+            const promises = allMemberInfo.map(async (member) => {
+                // Previne buscas por undefined uids
+                if (!member.uid) return member;
+                
+                const userDocRef = doc(db, 'users', member.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    return {
+                        ...member,
+                        avatarColor: userDocSnap.data().avatarColor, // Adiciona a cor
+                        isDono: member.uid === projeto.donoId, // Adiciona a flag de dono
+                    };
+                }
+                return { ...member, isDono: member.uid === projeto.donoId }; // Retorna sem cor se não encontrar
+            });
+
+            const integrantesCompletos = await Promise.all(promises);
+
+            // Remove duplicatas (caso o dono esteja na lista de participantes) e membros inválidos
+            const finalIntegrantes = [
+                ...new Map(
+                    integrantesCompletos.filter(item => item.uid).map((item) => [item.uid, item])
+                ).values(),
+            ];
+
+            setTodosOsIntegrantes(finalIntegrantes);
+        };
+
+        fetchIntegrantesData();
+    }, [projeto]); // Roda sempre que o projeto mudar
+
     const handleCandidatura = async () => {
         setLoading(true);
         setFeedback('');
@@ -312,6 +361,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 userId: currentUser.uid,
                 nome: userData.nome,
                 sobrenome: userData.sobrenome,
+                avatarColor: userData.avatarColor || '#0a528a',
                 status: 'pendente',
                 dataCandidatura: serverTimestamp()
             });
@@ -461,11 +511,10 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         }
     };
 
-    // Combina dono e participantes numa lista única para exibição
-    const todosOsIntegrantes = [
-        { uid: donoId, nome: donoNome, sobrenome: donoSobrenome, isDono: true },
-        ...participantes.filter((p) => p.uid !== donoId),
-    ];
+    const getInitials = (nome, sobrenome) => {
+        if (!nome) return '?';
+        return `${nome.charAt(0)}${sobrenome ? sobrenome.charAt(0) : ''}`.toUpperCase();
+    };
 
     return (
         <>
@@ -527,10 +576,8 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                                         }}
 
                                     >
-                                        <Avatar>
-                                            {`${p.nome?.[0] || ''}${
-                                                p.sobrenome?.[0] || ''
-                                            }`.toUpperCase()}
+                                        <Avatar $bgColor={p.avatarColor}>
+                                            {getInitials(p.nome, p.sobrenome)}
                                         </Avatar>
                                         <NomeIntegrante>
                                             {p.nome} {p.sobrenome}{' '}

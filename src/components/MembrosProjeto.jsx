@@ -1,5 +1,9 @@
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FiUsers, FiUserX } from 'react-icons/fi';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../contexts/AuthContext';
 
 const SecaoMembros = styled.div`
     background-color: #e6ebf0;
@@ -34,7 +38,7 @@ const Avatar = styled.div`
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -67,6 +71,39 @@ const getInitials = (nome, sobrenome) => {
 };
 
 function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
+    const { userData } = useAuth();
+    const [membrosComCor, setMembrosComCor] = useState([]);
+
+    // SEU CÓDIGO DE VOLTA: Este useEffect busca a cor atualizada dos participantes.
+    useEffect(() => {
+        const fetchMemberData = async () => {
+            if (!projeto || !projeto.participantes) return;
+            
+            const promises = projeto.participantes.map(async (member) => {
+                const userDocRef = doc(db, 'users', member.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                    return {
+                        ...member,
+                        avatarColor: userDocSnap.data().avatarColor,
+                    };
+                }
+                return member;
+            });
+
+            const membrosCompletos = await Promise.all(promises);
+            setMembrosComCor(membrosCompletos);
+        };
+
+        fetchMemberData();
+    }, [projeto]);
+
+    // LÓGICA DA COR DO DONO: Garante que a sua cor como dono está sempre atualizada.
+    const corDoDono = currentUserId === projeto.donoId 
+        ? userData.avatarColor 
+        : projeto.donoAvatarColor;
+
     return (
         <>
             <TituloSecao>
@@ -74,7 +111,7 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
             </TituloSecao>
             <SecaoMembros>
                 <MembroItem>
-                    <Avatar>
+                    <Avatar $bgColor={corDoDono}>
                         {getInitials(projeto.donoNome, projeto.donoSobrenome)}
                     </Avatar>
                     <MembroInfo>
@@ -86,12 +123,12 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
                         </span>
                     </MembroInfo>
                 </MembroItem>
-                {projeto.participantes &&
-                    projeto.participantes
+                {membrosComCor && // Usamos o estado 'membrosComCor' que o seu useEffect preenche
+                    membrosComCor
                         .filter((p) => p.uid !== projeto.donoId)
                         .map((p) => (
                             <MembroItem key={p.uid}>
-                                <Avatar>
+                                <Avatar $bgColor={p.avatarColor}>
                                     {getInitials(p.nome, p.sobrenome)}
                                 </Avatar>
                                 <MembroInfo>

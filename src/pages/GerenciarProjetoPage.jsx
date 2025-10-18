@@ -25,6 +25,7 @@ import {
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
 
+// ... (todos os 'styled-components' permanecem iguais)
 const Formulario = styled.form`
     display: flex;
     flex-direction: column;
@@ -172,10 +173,11 @@ const CamposLinha = styled.div`
     align-items: flex-start;
 `;
 
+
 function GerenciarProjetoPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth(); // <-- OBTÉM O userData AQUI
 
     const [projeto, setProjeto] = useState(null);
     const [candidaturas, setCandidaturas] = useState([]);
@@ -264,8 +266,9 @@ function GerenciarProjetoPage() {
         };
 
         buscarDados();
-    }, [id]);
+    }, [id, userData]); // <-- ADICIONA O userData AQUI
 
+    // ... (resto do componente, sem alterações)
     const handleSalvar = async (evento) => {
         evento.preventDefault();
         setIsSaving(true);
@@ -369,11 +372,19 @@ function GerenciarProjetoPage() {
                 candidatoParaAceitar.id
             );
 
+            // Busca os dados mais recentes do candidato para pegar a cor do avatar
+            const userRef = doc(db, 'users', candidatoParaAceitar.userId);
+            const userSnap = await getDoc(userRef);
+            const corAvatarCandidato = userSnap.exists()
+                ? userSnap.data().avatarColor
+                : '#0a528a';
+
             await updateDoc(projetoRef, {
                 participantes: arrayUnion({
                     uid: candidatoParaAceitar.userId,
                     nome: candidatoParaAceitar.nome,
                     sobrenome: candidatoParaAceitar.sobrenome,
+                    avatarColor: corAvatarCandidato,
                 }),
                 participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
@@ -408,24 +419,29 @@ function GerenciarProjetoPage() {
                     criadoEm: new Date(),
                 });
             } else {
-                const conversaDoc = conversaSnapshot.docs[0];
-                const conversaRef = doc(db, 'conversas', conversaDoc.id);
-                await updateDoc(conversaRef, {
-                    participantes: arrayUnion(candidatoParaAceitar.userId),
-                    participantesInfo: arrayUnion({
-                        uid: candidatoParaAceitar.userId,
-                        nome: candidatoParaAceitar.nome,
-                        sobrenome: candidatoParaAceitar.sobrenome,
-                    }),
-                    [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
-                });
+                if (!conversaSnapshot.empty) {
+                    const conversaDoc = conversaSnapshot.docs[0];
+                    const conversaRef = doc(db, 'conversas', conversaDoc.id);
+                    await updateDoc(conversaRef, {
+                        participantes: arrayUnion(candidatoParaAceitar.userId),
+                        participantesInfo: arrayUnion({
+                            uid: candidatoParaAceitar.userId,
+                            nome: candidatoParaAceitar.nome,
+                            sobrenome: candidatoParaAceitar.sobrenome,
+                            avatarColor: corAvatarCandidato,
+                        }),
+                        [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
+                    });
+                }
             }
 
+            // Lógica de aceitação (movida para fora do 'else' para executar sempre)
             await deleteDoc(candidaturaRef);
 
             setCandidaturas((prev) =>
                 prev.filter((c) => c.id !== candidatoParaAceitar.id)
             );
+            // Atualiza o estado local do projeto para refletir o novo membro
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
                 participantes: [
@@ -434,6 +450,7 @@ function GerenciarProjetoPage() {
                         uid: candidatoParaAceitar.userId,
                         nome: candidatoParaAceitar.nome,
                         sobrenome: candidatoParaAceitar.sobrenome,
+                        avatarColor: corAvatarCandidato,
                     },
                 ],
                 participantIds: [
@@ -490,6 +507,7 @@ function GerenciarProjetoPage() {
         }
 
         try {
+
             const projetoRef = doc(db, 'projetos', id);
 
             await updateDoc(projetoRef, {
@@ -587,8 +605,9 @@ function GerenciarProjetoPage() {
                     Edite informações, gerencie a equipe e avalie as
                     candidaturas.
                 </DashboardHeader>
-
+                
                 <Container>
+
                     <ColunasContainer>
                         <ColunaEsquerda>
                             <InputGroup>

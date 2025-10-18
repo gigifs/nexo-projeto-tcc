@@ -416,7 +416,6 @@ function MensagensPage() {
                 {conteudoModal.tipo === 'projeto' && (
                     <VerDetalhesModal
                         projeto={conteudoModal.dados}
-                        tipo="participante"
                         projetoId={conteudoModal.dados.id}
                         onClose={() => setModalAberto(false)}
                     />
@@ -426,6 +425,7 @@ function MensagensPage() {
                         isOpen={true}
                         usuario={conteudoModal.dados}
                         onClose={() => setModalAberto(false)}
+                        tipo="integrante"
                     />
                 )}
             </Modal>

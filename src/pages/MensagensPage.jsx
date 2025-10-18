@@ -27,6 +27,7 @@ import JanelaChat from '../components/chat/JanelaChat';
 import Modal from '../components/Modal';
 import VerDetalhesModal from '../components/VerDetalhesModal';
 import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
+import { FiMessageSquare } from 'react-icons/fi';
 
 const ChatLayout = styled.div`
     display: flex;
@@ -40,11 +41,33 @@ const ChatLayout = styled.div`
 
 const Placeholder = styled.div`
     display: flex;
+    flex-direction: column; /* Para empilhar ícone e texto */
     justify-content: center;
     align-items: center;
+    flex-grow: 1;
     height: 100%;
-    color: #888;
-    font-size: 18px;
+    color: #888; /* Cor cinza mais escura para o texto principal */
+    font-size: 24px; /* Tamanho maior para "Selecione uma conversa..." */
+    font-weight: 500; /* Peso médio */
+    padding: 20px;
+    text-align: center;
+    border-radius: 0 20px 20px 0;
+    background-color: #f5fafc;
+
+    svg {
+        /* Estilo para o ícone */
+        font-size: 60px; /* Tamanho maior para o ícone */
+        color: #b0b0b0; /* Cor cinza mais clara para o ícone */
+        margin-bottom: 20px; /* Espaço entre ícone e texto */
+    }
+
+    p {
+        /* Estilo para o subtítulo */
+        font-size: 18px; /* Tamanho menor para o subtítulo */
+        font-weight: 300; /* Peso leve */
+        color: #a0a0a0; /* Cor cinza mais clara */
+        margin-top: 5px; /* Pequeno espaço acima do subtítulo */
+    }
 `;
 
 const getInitials = (name = '') => {
@@ -404,7 +427,11 @@ function MensagensPage() {
                     />
                 ) : (
                     <Placeholder>
-                        Selecione uma conversa para começar
+                        <FiMessageSquare />
+                        Selecione uma conversa...
+                        <p>
+                            Escolha uma conversa na lista para ver as mensagens
+                        </p>
                     </Placeholder>
                 )}
             </ChatLayout>

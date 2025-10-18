@@ -14,6 +14,7 @@ import {
 import { db } from '../firebase';
 //Hook de Autenticação
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 const FormContainer = styled.form`
     padding: 20px 40px 30px 40px;
@@ -185,6 +186,8 @@ function FormularioCriarProjeto({ onClose }) {
     //Pega a informação do usuário logado
     const { currentUser, userData } = useAuth();
 
+    const { addToast } = useToast();
+
     //Estados para os campos do formulário
     const [nomeProjeto, setNomeProjeto] = useState('');
     const [descricao, setDescricao] = useState('');
@@ -196,6 +199,8 @@ function FormularioCriarProjeto({ onClose }) {
     //Estados para o autocomplete
     const [todasAsHabilidades, setTodasAsHabilidades] = useState([]);
     const [sugestoes, setSugestoes] = useState([]);
+
+    const [loadingSubmit, setLoadingSubmit] = useState(false);
 
     //Efeito para buscar as habilidades do Firestore na montagem do componente
     useEffect(() => {
@@ -209,10 +214,11 @@ function FormularioCriarProjeto({ onClose }) {
             } catch (error) {
                 console.error('Erro ao buscar habilidades:', error);
                 setErro('Não foi possível carregar as habilidades.');
+                addToast('Erro ao carregar sugestões de habilidades.', 'error');
             }
         };
         fetchHabilidades();
-    }, []); //O array vazio [] garante que a busca só aconteça 1 vez
+    }, [addToast]); //O array vazio [] garante que a busca só aconteça 1 vez
 
     //Lógica do autocomplete
     const handleHabilidadeChange = (e) => {
@@ -256,6 +262,10 @@ function FormularioCriarProjeto({ onClose }) {
             adicionarHabilidade(habilidadeValida.nome);
         } else {
             setErro(`A habilidade "${habilidadeParaAdicionar}" não é válida.`);
+            addToast(
+                `"${habilidadeParaAdicionar}" não é uma habilidade válida.`,
+                'error'
+            );
         }
     };
 
@@ -279,18 +289,21 @@ function FormularioCriarProjeto({ onClose }) {
     //Lida com o envio do formulário
     const handleSubmit = async (evento) => {
         evento.preventDefault();
-        setErro('');
+        setLoadingSubmit(true);
 
         if (!currentUser) {
-            setErro('Você precisa estar logado para criar um projeto.');
+            addToast('Erro: Faça login para criar um projeto.', 'error');
+            setLoadingSubmit(false);
             return;
         }
         if (!area) {
-            setErro('Por favor, selecione uma área para o projeto.');
+            addToast('Selecione uma área para o projeto.', 'error');
+            setLoadingSubmit(false);
             return;
         }
         if (habilidades.length === 0) {
-            setErro('Adicione pelo menos uma habilidade necessária.');
+            addToast('Adicione pelo menos uma habilidade.', 'error');
+            setLoadingSubmit(false);
             return;
         }
 
@@ -337,11 +350,13 @@ function FormularioCriarProjeto({ onClose }) {
                 ultimaMensagem: null,
             });
 
-            alert('Projeto criado com sucesso!');
+            addToast(`Projeto "${nomeProjeto}" criado com sucesso!`, 'success');
             onClose();
         } catch (error) {
             console.error('Erro ao salvar o projeto.', error);
-            setErro('Ocorreu um erro ao salvar o projeto. Tente novamente.');
+            addToast('Erro ao criar o projeto. Tente novamente.', 'error');
+        } finally {
+            setLoadingSubmit(false); // Desativa o carregamento (seja sucesso ou erro)
         }
     };
 
@@ -357,6 +372,7 @@ function FormularioCriarProjeto({ onClose }) {
                     onChange={(e) => setNomeProjeto(e.target.value)}
                     placeholder="Ex. Plataforma de Match Acadêmico"
                     required
+                    disabled={loadingSubmit}
                 />
             </InputGroup>
 
@@ -368,6 +384,7 @@ function FormularioCriarProjeto({ onClose }) {
                     onChange={(e) => setDescricao(e.target.value)}
                     placeholder="Descreva seu projeto..."
                     required
+                    disabled={loadingSubmit}
                 />
             </InputGroup>
 
@@ -378,6 +395,7 @@ function FormularioCriarProjeto({ onClose }) {
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
                     required
+                    disabled={loadingSubmit}
                 >
                     <option value="" disabled>
                         Selecione uma área
@@ -405,6 +423,7 @@ function FormularioCriarProjeto({ onClose }) {
                             onChange={handleHabilidadeChange}
                             onKeyDown={handleKeyDown}
                             placeholder="Pesquisar habilidade..."
+                            disabled={loadingSubmit}
                         />
                         {sugestoes.length > 0 && (
                             <SugestoesContainer>
@@ -425,7 +444,7 @@ function FormularioCriarProjeto({ onClose }) {
                         type="button"
                         variant="AdicionarHabilidade"
                         onClick={handleAdicionarHabilidade}
-                        disabled={!habilidadeAtual.trim()}
+                        disabled={!habilidadeAtual.trim() || loadingSubmit}
                     >
                         +
                     </Botao>
@@ -438,6 +457,7 @@ function FormularioCriarProjeto({ onClose }) {
                                 color="0d6efd"
                                 cursor="pointer"
                                 onClick={() =>
+                                    !loadingSubmit &&
                                     handleRemoverHabilidade(habilidade)
                                 }
                             />
@@ -449,11 +469,16 @@ function FormularioCriarProjeto({ onClose }) {
             {erro && <MensagemErro>{erro}</MensagemErro>}
 
             <FooterBotoes>
-                <Botao type="button" variant="Cancelar" onClick={onClose}>
+                <Botao
+                    type="button"
+                    variant="Cancelar"
+                    onClick={onClose}
+                    disabled={loadingSubmit}
+                >
                     Cancelar
                 </Botao>
-                <Botao type="submit" variant="Modal">
-                    Criar Projeto
+                <Botao type="submit" variant="Modal" disabled={loadingSubmit}>
+                    {loadingSubmit ? 'A Criar...' : 'Criar Projeto'}
                 </Botao>
             </FooterBotoes>
         </FormContainer>

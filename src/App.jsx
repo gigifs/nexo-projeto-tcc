@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtetorRota from './components/ProtetorRota.jsx';
+import ToastContainer from './components/ToastContainer.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import AguardandoVerificacaoPage from './pages/AguardandoVerificacaoPage.jsx';
 import VerificacaoConcluidaPage from './pages/VerificacaoConcluidaPage.jsx';
@@ -50,7 +51,7 @@ function App() {
                         element={<MeusProjetosPage />}
                     />
                     <Route
-                        path='meus-projetos/:id/gerenciar'
+                        path="meus-projetos/:id/gerenciar"
                         element={<GerenciarProjetoPage />}
                     />
                     <Route path="mensagens" element={<MensagensPage />} />
@@ -65,6 +66,7 @@ function App() {
                     <Route path="perfil" element={<PerfilPage />} />
                 </Route>
             </Routes>
+            <ToastContainer />
         </BrowserRouter>
     );
 }

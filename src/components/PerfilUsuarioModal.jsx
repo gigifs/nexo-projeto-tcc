@@ -25,7 +25,7 @@ const Avatar = styled.div`
     width: 90px;
     height: 90px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 40px;
     font-weight: 700;
@@ -164,7 +164,7 @@ function PerfilUsuarioModal({
             <ModalWrapper>
 
                 <ColunaEsquerda>
-                    <Avatar>{getInitials(usuario.nome, usuario.sobrenome)}</Avatar>
+                    <Avatar $bgColor={usuario.avatarColor}>{getInitials(usuario.nome, usuario.sobrenome)}</Avatar>
                     <LinksSociais>
                         {usuario.github && (
                             <LinkExterno href={usuario.github}>

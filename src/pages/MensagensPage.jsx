@@ -47,7 +47,8 @@ const Placeholder = styled.div`
     font-size: 18px;
 `;
 
-const getInitials = (name = '') => {
+const getInitials = (name = '', sobrenome = '') => {
+    if (!name) return '?';
     const parts = name.split(' ');
     if (parts.length > 1 && parts[1]) {
         return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
@@ -221,6 +222,17 @@ function MensagensPage() {
         [currentUser]
     );
 
+    const getAvatarColorConversa = useCallback(
+        (conversa) => {
+            if (conversa.isGrupo) return '#0a528a'; // Cor padrão para grupos
+            const outroUsuario = conversa.participantesInfo?.find(
+                (p) => p.uid !== currentUser.uid
+            );
+            return outroUsuario?.avatarColor || '#0a528a';
+        },
+        [currentUser]
+    );
+
     const getSubtituloConversa = useCallback(() => {
         if (!conversaAtiva) return '';
         const outrosAEscrever =
@@ -304,6 +316,7 @@ function MensagensPage() {
                 senderId: currentUser.uid,
                 senderNome: userData.nome,
                 senderSobrenome: userData.sobrenome,
+                senderAvatarColor: userData.avatarColor || '#0a528a',
                 timestamp: serverTimestamp(),
             }
         );
@@ -324,6 +337,7 @@ function MensagensPage() {
 
     const handleTyping = useCallback(
         (isTyping) => {
+            if (!conversaAtivaId) return;
             const conversaRef = doc(db, 'conversas', conversaAtivaId);
             if (typingTimeoutRef.current)
                 clearTimeout(typingTimeoutRef.current);
@@ -357,6 +371,7 @@ function MensagensPage() {
             const outroUsuarioInfo = conversaAtiva.participantesInfo.find(
                 (p) => p.uid !== currentUser.uid
             );
+            if (!outroUsuarioInfo) return;
             const userRef = doc(db, 'users', outroUsuarioInfo.uid);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -386,6 +401,7 @@ function MensagensPage() {
                     abaAtiva={abaAtiva}
                     setAbaAtiva={setAbaAtiva}
                     getNomeConversa={getNomeConversa}
+                    getAvatarColorConversa={getAvatarColorConversa}
                 />
 
                 {conversaAtiva ? (
@@ -401,6 +417,7 @@ function MensagensPage() {
                         carregandoMais={carregandoMais}
                         primeiraMensagemVisivel={primeiraMensagemVisivel}
                         getInitials={getInitials}
+                        getAvatarColorConversa={getAvatarColorConversa}
                     />
                 ) : (
                     <Placeholder>

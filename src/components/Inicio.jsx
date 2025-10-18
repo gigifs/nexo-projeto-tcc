@@ -166,4 +166,4 @@ function Inicio({ onSignupClick }) {
     );
 }
 
-export default FormularioLogin;
+export default Inicio;

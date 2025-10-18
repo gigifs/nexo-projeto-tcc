@@ -25,6 +25,7 @@ import {
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
 
+// ... (todos os 'styled-components' permanecem iguais)
 const Formulario = styled.form`
     display: flex;
     flex-direction: column;
@@ -171,10 +172,11 @@ const CamposLinha = styled.div`
     align-items: flex-start;
 `;
 
+
 function GerenciarProjetoPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth(); // <-- OBTÉM O userData AQUI
 
     const [projeto, setProjeto] = useState(null);
     const [candidaturas, setCandidaturas] = useState([]);
@@ -263,8 +265,9 @@ function GerenciarProjetoPage() {
         };
 
         buscarDados();
-    }, [id]);
+    }, [id, userData]); // <-- ADICIONA O userData AQUI
 
+    // ... (resto do componente, sem alterações)
     const handleSalvar = async (evento) => {
         evento.preventDefault();
         setIsSaving(true);
@@ -367,12 +370,18 @@ function GerenciarProjetoPage() {
                 'candidaturas',
                 candidatoParaAceitar.id
             );
-
+    
+            // Busca os dados mais recentes do candidato para pegar a cor do avatar
+            const userRef = doc(db, 'users', candidatoParaAceitar.userId);
+            const userSnap = await getDoc(userRef);
+            const corAvatarCandidato = userSnap.exists() ? userSnap.data().avatarColor : '#0a528a';
+    
             await updateDoc(projetoRef, {
                 participantes: arrayUnion({
                     uid: candidatoParaAceitar.userId,
                     nome: candidatoParaAceitar.nome,
                     sobrenome: candidatoParaAceitar.sobrenome,
+                    avatarColor: corAvatarCandidato,
                 }),
                 participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
@@ -381,32 +390,7 @@ function GerenciarProjetoPage() {
             const q = query(conversasRef, where('projetoId', '==', id));
             const conversaSnapshot = await getDocs(q);
 
-            if (conversaSnapshot.empty) {
-                // Cria nova conversa se não existir
-                await addDoc(conversasRef, {
-                    projetoId: id,
-                    participantes: [
-                        currentUser.uid,
-                        candidatoParaAceitar.userId,
-                    ],
-                    participantesInfo: [
-                        {
-                            uid: currentUser.uid,
-                            nome: currentUser.displayName || 'Dono',
-                        },
-                        {
-                            uid: candidatoParaAceitar.userId,
-                            nome: candidatoParaAceitar.nome,
-                            sobrenome: candidatoParaAceitar.sobrenome,
-                        },
-                    ],
-                    unreadCounts: {
-                        [currentUser.uid]: 0,
-                        [candidatoParaAceitar.userId]: 0,
-                    },
-                    criadoEm: new Date(),
-                });
-            } else {
+            if (!conversaSnapshot.empty) {
                 const conversaDoc = conversaSnapshot.docs[0];
                 const conversaRef = doc(db, 'conversas', conversaDoc.id);
                 await updateDoc(conversaRef, {
@@ -415,6 +399,7 @@ function GerenciarProjetoPage() {
                         uid: candidatoParaAceitar.userId,
                         nome: candidatoParaAceitar.nome,
                         sobrenome: candidatoParaAceitar.sobrenome,
+                        avatarColor: corAvatarCandidato,
                     }),
                     [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
                 });
@@ -425,6 +410,7 @@ function GerenciarProjetoPage() {
             setCandidaturas((prev) =>
                 prev.filter((c) => c.id !== candidatoParaAceitar.id)
             );
+            // Atualiza o estado local do projeto para refletir o novo membro
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
                 participantes: [
@@ -433,6 +419,7 @@ function GerenciarProjetoPage() {
                         uid: candidatoParaAceitar.userId,
                         nome: candidatoParaAceitar.nome,
                         sobrenome: candidatoParaAceitar.sobrenome,
+                        avatarColor: corAvatarCandidato,
                     },
                 ],
                 participantIds: [

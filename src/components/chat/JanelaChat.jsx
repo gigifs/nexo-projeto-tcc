@@ -55,6 +55,7 @@ function JanelaChat({
     carregandoMais,
     primeiraMensagemVisivel,
     getInitials,
+    getAvatarColorConversa,
 }) {
     const fimMensagensRef = useRef(null);
 
@@ -80,6 +81,7 @@ function JanelaChat({
                 getSubtituloConversa={getSubtituloConversa}
                 handleHeaderClick={handleHeaderClick}
                 getInitials={getInitials}
+                getAvatarColorConversa={getAvatarColorConversa}
             />
             <MensagensArea
                 ref={mensagensAreaRef}

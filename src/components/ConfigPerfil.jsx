@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore'; 
+import { doc, setDoc } from 'firebase/firestore';
 import Botao from './Botao';
 import Modal from './Modal';
 import EditarInteressesModal from './EditarInteressesModal';
@@ -13,7 +13,7 @@ const FormContainer = styled.div`
     display: flex;
     background-color: #f5fafc;
     border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
 `;
 
@@ -23,7 +23,7 @@ const ColunaEsquerda = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    background-color: #E6EBF0;
+    background-color: #e6ebf0;
     padding: 30px;
     flex-shrink: 0;
 `;
@@ -53,7 +53,7 @@ const BotaoTrocarCor = styled.button`
     color: #555;
     cursor: pointer;
     text-align: center;
-    
+
     &:hover {
         text-decoration: underline;
         color: #000;
@@ -106,7 +106,14 @@ const InputGroup = styled.div`
 const Label = styled.label`
     font-size: 18px;
     font-weight: 500;
-    color: #333;
+    color: ${(props) => props.color || '#7c2256'};
+
+    span {
+        font-weight: 400;
+        opacity: 0.7;
+        font-size: 0.9em;
+        margin-left: 8px;
+    }
 `;
 const Input = styled.input`
     width: 100%;
@@ -187,7 +194,8 @@ const Tag = styled.span`
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
-    background-color: ${(props) => (props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66')};
+    background-color: ${(props) =>
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
     color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 const ColorPickerContent = styled.div`
@@ -218,6 +226,17 @@ const getInitials = (nome, sobrenome) => {
     return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
 };
 
+// Função para verificar se a cor é muito clara
+const isColorTooLight = (hexColor) => {
+    const hex = hexColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    // Fórmula para calcular a luminosidade percebida
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.9; // Retorna true se a cor for muito clara (próxima a 1)
+};
+
 function ConfigPerfil() {
     const { currentUser, userData, refreshUserData } = useAuth();
     const [formData, setFormData] = useState({
@@ -229,8 +248,10 @@ function ConfigPerfil() {
         linkedin: '',
         avatarColor: '#0a528a',
     });
-    
-    const [tempAvatarColor, setTempAvatarColor] = useState(formData.avatarColor);
+
+    const [tempAvatarColor, setTempAvatarColor] = useState(
+        formData.avatarColor
+    );
     const [isInteressesModalOpen, setIsInteressesModalOpen] = useState(false);
     const [isColorModalOpen, setIsColorModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -261,22 +282,33 @@ function ConfigPerfil() {
         setIsColorModalOpen(true);
     };
 
-    // FUNÇÃO ALTERADA PARA SALVAR A COR IMEDIATAMENTE
+    // FUNÇÃO ALTERADA PARA VALIDAR A COR E SALVAR IMEDIATAMENTE
     const handleConfirmColor = async () => {
+        if (isColorTooLight(tempAvatarColor)) {
+            alert(
+                'A cor escolhida é muito clara e pode não ser visível. Por favor, escolha uma cor mais escura.'
+            );
+            return;
+        }
+
         if (!currentUser) return;
         try {
             // 1. Salva a nova cor diretamente no banco de dados
             const userDocRef = doc(db, 'users', currentUser.uid);
-            await setDoc(userDocRef, { avatarColor: tempAvatarColor }, { merge: true });
-            
+            await setDoc(
+                userDocRef,
+                { avatarColor: tempAvatarColor },
+                { merge: true }
+            );
+
             // 2. Atualiza os dados em toda a aplicação
             await refreshUserData();
-            
+
             // 3. Fecha o modal
             setIsColorModalOpen(false);
         } catch (error) {
-            console.error("Erro ao salvar a cor do avatar:", error);
-            alert("Não foi possível salvar a nova cor. Tente novamente.");
+            console.error('Erro ao salvar a cor do avatar:', error);
+            alert('Não foi possível salvar a nova cor. Tente novamente.');
         }
     };
 
@@ -290,7 +322,7 @@ function ConfigPerfil() {
         setLoading(true);
         try {
             const userDocRef = doc(db, 'users', currentUser.uid);
-            await setDoc(userDocRef, formData, { merge: true }); 
+            await setDoc(userDocRef, formData, { merge: true });
             await refreshUserData();
             alert('Informações salvas com sucesso!');
         } catch (error) {
@@ -316,8 +348,14 @@ function ConfigPerfil() {
     };
 
     const todasAsTags = [
-        ...(userData?.habilidades || []).map((h) => ({ nome: h, tipo: 'habilidade' })),
-        ...(userData?.interesses || []).map((i) => ({ nome: i, tipo: 'interesse' })),
+        ...(userData?.habilidades || []).map((h) => ({
+            nome: h,
+            tipo: 'habilidade',
+        })),
+        ...(userData?.interesses || []).map((i) => ({
+            nome: i,
+            tipo: 'interesse',
+        })),
     ];
 
     return (
@@ -327,68 +365,152 @@ function ConfigPerfil() {
                     <Avatar $bgColor={formData.avatarColor}>
                         {getInitials(formData.nome, formData.sobrenome)}
                     </Avatar>
-                    <BotaoTrocarCor type="button" onClick={handleOpenColorModal}>
+                    <BotaoTrocarCor
+                        type="button"
+                        onClick={handleOpenColorModal}
+                    >
                         Troque sua cor aqui!
                     </BotaoTrocarCor>
                 </ColunaEsquerda>
-                
+
                 <FormContent onSubmit={handleSave}>
                     <ColunaInputs>
                         <InputRow>
-                            <InputGroup><Label htmlFor="nome">Nome</Label><Input id="nome" name="nome" value={formData.nome} onChange={handleChange} /></InputGroup>
-                            <InputGroup><Label htmlFor="sobrenome">Sobrenome</Label><Input id="sobrenome" name="sobrenome" value={formData.sobrenome} onChange={handleChange} /></InputGroup>
+                            <InputGroup>
+                                <Label htmlFor="nome">Nome</Label>
+                                <Input
+                                    id="nome"
+                                    name="nome"
+                                    value={formData.nome}
+                                    onChange={handleChange}
+                                />
+                            </InputGroup>
+                            <InputGroup>
+                                <Label htmlFor="sobrenome">Sobrenome</Label>
+                                <Input
+                                    id="sobrenome"
+                                    name="sobrenome"
+                                    value={formData.sobrenome}
+                                    onChange={handleChange}
+                                />
+                            </InputGroup>
                         </InputRow>
-                        <InputGroup><Label htmlFor="curso">Curso</Label><Input id="curso" name="curso" value={formData.curso} onChange={handleChange} /></InputGroup>
                         <InputGroup>
-                            <Label htmlFor="github">GitHub (opcional)</Label>
-                            <InputIcon><FiGithub size={20} /></InputIcon>
-                            <IconInput id="github" name="github" value={formData.github} onChange={handleChange} placeholder="Ex: http://github.com/seu-git" />
+                            <Label htmlFor="curso">Curso</Label>
+                            <Input
+                                id="curso"
+                                name="curso"
+                                value={formData.curso}
+                                onChange={handleChange}
+                            />
                         </InputGroup>
                         <InputGroup>
-                            <Label htmlFor="linkedin">LinkedIn (opcional)</Label>
-                            <InputIcon><FiLinkedin size={20} /></InputIcon>
-                            <IconInput id="linkedin" name="linkedin" value={formData.linkedin} onChange={handleChange} placeholder="Ex: http://linkedin.com/in/seu-linkedin" />
+                            <Label htmlFor="github" color="#000000">
+                                GitHub<span>(opcional)</span>
+                            </Label>
+                            <InputIcon>
+                                <FiGithub size={20} />
+                            </InputIcon>
+                            <IconInput
+                                id="github"
+                                name="github"
+                                value={formData.github}
+                                onChange={handleChange}
+                                placeholder="Ex: http://github.com/seu-git"
+                            />
+                        </InputGroup>
+                        <InputGroup>
+                            <Label htmlFor="linkedin" color="#0072B1">
+                                LinkedIn<span>(opcional)</span>
+                            </Label>
+                            <InputIcon>
+                                <FiLinkedin size={20} color="#0072B1" />
+                            </InputIcon>
+                            <IconInput
+                                id="linkedin"
+                                name="linkedin"
+                                value={formData.linkedin}
+                                onChange={handleChange}
+                                placeholder="Ex: http://linkedin.com/in/seu-linkedin"
+                            />
                         </InputGroup>
                     </ColunaInputs>
 
                     <ColunaInfo>
                         <InputGroup>
                             <Label htmlFor="bio">Sobre mim</Label>
-                            <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} />
+                            <Textarea
+                                id="bio"
+                                name="bio"
+                                value={formData.bio}
+                                onChange={handleChange}
+                            />
                         </InputGroup>
                         <InputGroup>
                             <Label>Meus Interesses</Label>
                             <Section>
                                 <SectionHeader>
-                                    <EditButton type="button" onClick={() => setIsInteressesModalOpen(true)}>
+                                    <EditButton
+                                        type="button"
+                                        onClick={() =>
+                                            setIsInteressesModalOpen(true)
+                                        }
+                                    >
                                         <FiEdit size={20} />
                                     </EditButton>
                                 </SectionHeader>
                                 <TagsContainer>
                                     {todasAsTags.length > 0 ? (
-                                        todasAsTags.map((tag) => (<Tag key={tag.nome} $tipo={tag.tipo}>{tag.nome}</Tag>))
-                                    ) : (<p>Adicione seus interesses</p>)}
+                                        todasAsTags.map((tag) => (
+                                            <Tag
+                                                key={tag.nome}
+                                                $tipo={tag.tipo}
+                                            >
+                                                {tag.nome}
+                                            </Tag>
+                                        ))
+                                    ) : (
+                                        <p>Adicione seus interesses</p>
+                                    )}
                                 </TagsContainer>
                             </Section>
                         </InputGroup>
                     </ColunaInfo>
 
                     <BotoesFooter>
-                        <Botao variant="Cancelar" type="button" onClick={handleCancel}>
-                            Cancelar
+                        <Botao
+                            variant="SalvarPerfil"
+                            type="submit"
+                            disabled={loading}
+                        >
+                            Salvar
                         </Botao>
-                        <Botao variant="Modal" type="submit" disabled={loading}>
-                            {loading ? 'Salvando...' : 'Salvar'}
+                        <Botao
+                            variant="CancelarPerfil"
+                            type="button"
+                            onClick={handleCancel}
+                        >
+                            Cancelar
                         </Botao>
                     </BotoesFooter>
                 </FormContent>
             </FormContainer>
 
-            <Modal isOpen={isInteressesModalOpen} onClose={() => setIsInteressesModalOpen(false)} size="hab-int">
-                <EditarInteressesModal onSuccess={() => setIsInteressesModalOpen(false)} />
+            <Modal
+                isOpen={isInteressesModalOpen}
+                onClose={() => setIsInteressesModalOpen(false)}
+                size="hab-int"
+            >
+                <EditarInteressesModal
+                    onSuccess={() => setIsInteressesModalOpen(false)}
+                />
             </Modal>
 
-            <Modal isOpen={isColorModalOpen} onClose={handleCancelColor} size="small">
+            <Modal
+                isOpen={isColorModalOpen}
+                onClose={handleCancelColor}
+                size="small"
+            >
                 <ColorPickerContent>
                     <h3>Escolha a cor do seu Avatar</h3>
                     <StyledColorInput

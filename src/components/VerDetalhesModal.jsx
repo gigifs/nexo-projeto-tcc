@@ -246,6 +246,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
     const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
+    const [todosOsIntegrantes, setTodosOsIntegrantes] = useState([]);
     // 2. Novos estados para controlar o modal de perfil do integrante
     const [isPerfilModalOpen, setPerfilModalOpen] = useState(false);
     const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
@@ -255,6 +256,8 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
     const {
         nome,
         donoId,
+        donoNome,
+        donoSobrenome,
         descricao,
         habilidades = [],
         area,
@@ -266,6 +269,8 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
     // EFEITO PARA BUSCAR AS CORES E MONTAR A LISTA DE INTEGRANTES
     useEffect(() => {
         const fetchIntegrantesData = async () => {
+            if (!projeto?.donoId) return;
+
             // Garante que a lista de participantes não tenha duplicatas
             const uniqueParticipantes = [
                 ...new Map(participantes.map((p) => [p.uid, p])).values(),
@@ -279,6 +284,9 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
 
             // Busca os dados completos (incluindo a cor) de cada usuário
             const promises = allMemberInfo.map(async (member) => {
+                // Previne buscas por undefined uids
+                if (!member.uid) return member;
+                
                 const userDocRef = doc(db, 'users', member.uid);
                 const userDocSnap = await getDoc(userDocRef);
                 if (userDocSnap.exists()) {
@@ -293,19 +301,17 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
 
             const integrantesCompletos = await Promise.all(promises);
 
-            // Remove duplicatas (caso o dono esteja na lista de participantes)
+            // Remove duplicatas (caso o dono esteja na lista de participantes) e membros inválidos
             const finalIntegrantes = [
                 ...new Map(
-                    integrantesCompletos.map((item) => [item.uid, item])
+                    integrantesCompletos.filter(item => item.uid).map((item) => [item.uid, item])
                 ).values(),
             ];
 
             setTodosOsIntegrantes(finalIntegrantes);
         };
 
-        if (projeto?.donoId) {
-            fetchIntegrantesData();
-        }
+        fetchIntegrantesData();
     }, [projeto]); // Roda sempre que o projeto mudar
 
     const handleCandidatura = async () => {
@@ -344,6 +350,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                 userId: currentUser.uid,
                 nome: userData.nome,
                 sobrenome: userData.sobrenome,
+                avatarColor: userData.avatarColor || '#0a528a',
                 status: 'pendente',
                 dataCandidatura: new Date(),
             });
@@ -493,11 +500,10 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
         }
     };
 
-    // Combina dono e participantes numa lista única para exibição
-    const todosOsIntegrantes = [
-        { uid: donoId, nome: donoNome, sobrenome: donoSobrenome, isDono: true },
-        ...participantes.filter((p) => p.uid !== donoId),
-    ];
+    const getInitials = (nome, sobrenome) => {
+        if (!nome) return '?';
+        return `${nome.charAt(0)}${sobrenome ? sobrenome.charAt(0) : ''}`.toUpperCase();
+    };
 
     return (
         <>
@@ -558,10 +564,8 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                             toggleMenuIntegrante(p.uid)
                                         }
                                     >
-                                        <Avatar>
-                                            {`${p.nome?.[0] || ''}${
-                                                p.sobrenome?.[0] || ''
-                                            }`.toUpperCase()}
+                                        <Avatar $bgColor={p.avatarColor}>
+                                            {getInitials(p.nome, p.sobrenome)}
                                         </Avatar>
                                         <NomeIntegrante>
                                             {p.nome} {p.sobrenome}{' '}

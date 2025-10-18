@@ -72,7 +72,7 @@ const MainContent = styled.div`
 
 const ProjectsGrid = styled.div`
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 30px;
 `;
 

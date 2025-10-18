@@ -32,7 +32,7 @@ function BuscarProjetosPage() {
                     </Botao>
                 }
             >
-                Encontre projetos de outros estudantes ou crie o seu.
+                Explore e encontre o projeto perfeito para você!
             </DashboardHeader>
             <BuscarProjetos />
             <Modal

@@ -8,12 +8,12 @@ import MyProjectCard from './MyProjectCard';
 const ListWrapper = styled.div`
     display: grid;
     grid-template-columns: repeat(2, 1fr); /*cria duas colunas de tamanho = 1fr (uma fração do espaço disponível)*/
-    gap: 30px;
+    gap: 1.875rem;
     width: 100%;
 `;
 
 const MensagemFeedback = styled.p`
-    font-size: 18px;
+    font-size: 1.125rem;
     color: #666;
     text-align: center;
     width: 100%;
@@ -104,13 +104,26 @@ function ListaMeusProjetos() {
 
     return (
         <ListWrapper>
-            {projetos.map((projeto) => (
-                <MyProjectCard
-                    key={projeto.id}
-                    projeto={projeto}
-                    currentUserId={currentUser.uid}
-                />
-            ))}
+            {projetos
+                .slice()
+                .sort((a, b) => {
+                    // Acessamos o timestamp 'criadoEm'. Usamos optional chaining (?.)
+                    // e .toDate() para converter para um objeto Date do JavaScript.
+                    // Usamos .getTime() para obter os milissegundos desde a época Unix,
+                    // que é um número fácil de comparar.
+                    // Se 'criadoEm' não existir ou for inválido, usamos 0 como padrão.
+                    const timeA = a.criadoEm?.toDate()?.getTime() || 0;
+                    const timeB = b.criadoEm?.toDate()?.getTime() || 0;
+                    return timeB - timeA;
+                })
+                
+                .map((projeto) => (
+                    <MyProjectCard
+                        key={projeto.id}
+                        projeto={projeto}
+                        currentUserId={currentUser.uid}
+                    />
+                ))}
         </ListWrapper>
     );
 }

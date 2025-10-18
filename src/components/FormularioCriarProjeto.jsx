@@ -30,9 +30,16 @@ const Titulo = styled.h2`
     margin-bottom: 30px;
 `;
 
+const CamposEmLinha = styled.div`
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+`;
+
 const InputGroup = styled.div`
     margin-bottom: 20px;
     position: relative;
+    width: 100%;
 `;
 
 const Label = styled.label`
@@ -108,23 +115,23 @@ const Select = styled.select`
     }
 `;
 
-const HabilidadesContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 10px;
-`;
-
+// Container para as tags com altura fixa e rolagem
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 12px;
-    min-height: 28px;
+    min-height: 70px; /* Altura mínima para acomodar 2 linhas de tags */
+    max-height: 70px; /* Altura máxima */
+    overflow-y: auto; /* Adiciona rolagem se passar da altura máxima */
+    padding: 5px;
+    border-radius: 10px;
 `;
 
 const Tag = styled.div`
-    background-color: #d1e7ff;
-    color: #0d6efd;
+    background-color: ${(props) =>
+        props.$tipo === 'habilidade' ? '#d1e7ff' : '#ffcced'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0d6efd' : '#9c27b0')};
     padding: 5px 12px;
     border-radius: 16px;
     font-size: 14px;
@@ -132,13 +139,14 @@ const Tag = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    height: fit-content; /*Garante que a tag não estique verticalmente*/
 `;
 
 const FooterBotoes = styled.div`
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 15px;
-    margin-top: 40px;
+    margin-top: 20px;
     border-top: 1px solid #e0e0e0;
     padding-top: 20px;
 `;
@@ -192,105 +200,94 @@ function FormularioCriarProjeto({ onClose }) {
     const [nomeProjeto, setNomeProjeto] = useState('');
     const [descricao, setDescricao] = useState('');
     const [area, setArea] = useState('');
-    const [habilidadeAtual, setHabilidadeAtual] = useState('');
     const [habilidades, setHabilidades] = useState([]);
+    const [interesses, setInteresses] = useState([]);
     const [erro, setErro] = useState('');
-
-    //Estados para o autocomplete
     const [todasAsHabilidades, setTodasAsHabilidades] = useState([]);
-    const [sugestoes, setSugestoes] = useState([]);
+    const [todosOsInteresses, setTodosOsInteresses] = useState([]);
+    const [buscaHabilidade, setBuscaHabilidade] = useState('');
+    const [buscaInteresse, setBuscaInteresse] = useState('');
+    const [sugestoesH, setSugestoesH] = useState([]);
+    const [sugestoesI, setSugestoesI] = useState([]);
 
-    const [loadingSubmit, setLoadingSubmit] = useState(false);
-
-    //Efeito para buscar as habilidades do Firestore na montagem do componente
     useEffect(() => {
-        const fetchHabilidades = async () => {
+        const fetchTags = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
                 const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
                 setTodasAsHabilidades(
                     tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')
                 );
+                setTodosOsInteresses(
+                    tagsDoBanco.filter((tag) => tag.tipo === 'interesse')
+                );
             } catch (error) {
-                console.error('Erro ao buscar habilidades:', error);
-                setErro('Não foi possível carregar as habilidades.');
-                addToast('Erro ao carregar sugestões de habilidades.', 'error');
+                console.error('Erro ao buscar tags:', error);
+                setErro('Não foi possível carregar as sugestões de tags.');
             }
         };
-        fetchHabilidades();
-    }, [addToast]); //O array vazio [] garante que a busca só aconteça 1 vez
+        fetchTags();
+    }, []);
 
-    //Lógica do autocomplete
     const handleHabilidadeChange = (e) => {
         const valor = e.target.value;
-        setHabilidadeAtual(valor);
-        setErro(''); //Limpa o erro ao digitar uma nova habilidade
-
+        setBuscaHabilidade(valor);
         if (valor) {
-            const sugestoesFiltradas = todasAsHabilidades.filter(
-                (h) =>
-                    h.nome.toLowerCase().includes(valor.toLowerCase()) &&
-                    !habilidades.includes(h.nome)
+            setSugestoesH(
+                todasAsHabilidades.filter(
+                    (h) =>
+                        h.nome.toLowerCase().includes(valor.toLowerCase()) &&
+                        !habilidades.includes(h.nome)
+                )
             );
-            setSugestoes(sugestoesFiltradas);
         } else {
-            setSugestoes([]);
+            setSugestoesH([]);
         }
     };
 
-    //Adiciona uma habilidade à lista do projeto
-    const adicionarHabilidade = (habilidadeNome) => {
-        if (habilidadeNome && !habilidades.includes(habilidadeNome)) {
-            setHabilidades([...habilidades, habilidadeNome]);
-            setErro('');
+    const adicionarHabilidade = (nome) => {
+        if (nome && !habilidades.includes(nome)) {
+            setHabilidades([nome, ...habilidades]);
         }
-        setHabilidadeAtual('');
-        setSugestoes([]);
+        setBuscaHabilidade('');
+        setSugestoesH([]);
     };
 
-    //Valida e adiciona a habilidade
-    const handleAdicionarHabilidade = () => {
-        const habilidadeParaAdicionar = habilidadeAtual.trim();
-        if (!habilidadeParaAdicionar) return;
+    const removerHabilidade = (nome) => {
+        setHabilidades(habilidades.filter((h) => h !== nome));
+    };
 
-        const habilidadeValida = todasAsHabilidades.find(
-            (h) =>
-                h.nome.toLowerCase() === habilidadeParaAdicionar.toLowerCase()
-        );
-
-        if (habilidadeValida) {
-            adicionarHabilidade(habilidadeValida.nome);
-        } else {
-            setErro(`A habilidade "${habilidadeParaAdicionar}" não é válida.`);
-            addToast(
-                `"${habilidadeParaAdicionar}" não é uma habilidade válida.`,
-                'error'
+    const handleInteresseChange = (e) => {
+        const valor = e.target.value;
+        setBuscaInteresse(valor);
+        if (valor) {
+            setSugestoesI(
+                todosOsInteresses.filter(
+                    (i) =>
+                        i.nome.toLowerCase().includes(valor.toLowerCase()) &&
+                        !interesses.includes(i.nome)
+                )
             );
+        } else {
+            setSugestoesI([]);
         }
     };
 
-    //Remove uma habilidade da lista
-    const handleRemoverHabilidade = (habilidadeParaRemover) => {
-        setHabilidades(habilidades.filter((h) => h !== habilidadeParaRemover));
-    };
-
-    //Permite adicionar com a tecla enter
-    const handleKeyDown = (evento) => {
-        if (evento.key === 'Enter') {
-            evento.preventDefault();
-            if (sugestoes.length > 0) {
-                adicionarHabilidade(sugestoes[0].nome);
-            } else {
-                handleAdicionarHabilidade();
-            }
+    const adicionarInteresse = (nome) => {
+        if (nome && !interesses.includes(nome)) {
+            setInteresses([nome, ...interesses]);
         }
+        setBuscaInteresse('');
+        setSugestoesI([]);
     };
 
-    //Lida com o envio do formulário
+    const removerInteresse = (nome) => {
+        setInteresses(interesses.filter((i) => i !== nome));
+    };
+
     const handleSubmit = async (evento) => {
         evento.preventDefault();
-        setLoadingSubmit(true);
-
+        setErro('');
         if (!currentUser) {
             addToast('Erro: Faça login para criar um projeto.', 'error');
             setLoadingSubmit(false);
@@ -314,13 +311,13 @@ function FormularioCriarProjeto({ onClose }) {
                 descricao: descricao,
                 area: area,
                 habilidades: habilidades,
-                interesses: [],
+                interesses: interesses,
                 donoId: currentUser.uid,
                 donoNome: userData.nome,
                 donoSobrenome: userData.sobrenome,
                 criadoEm: serverTimestamp(),
                 status: 'Novo',
-                participantIds: [currentUser.uid], // Adiciona o dono como participante
+                participantIds: [currentUser.uid],
                 participantes: [
                     {
                         uid: currentUser.uid,
@@ -330,7 +327,6 @@ function FormularioCriarProjeto({ onClose }) {
                 ],
             });
 
-            // Cria a conversa para o projeto
             const conversaRef = doc(db, 'conversas', novoProjetoRef.id);
             await setDoc(conversaRef, {
                 isGrupo: true,
@@ -411,23 +407,22 @@ function FormularioCriarProjeto({ onClose }) {
                 </Select>
             </InputGroup>
 
-            <InputGroup>
-                <Label htmlFor="habilidades-projeto">
-                    Habilidades Necessárias
-                </Label>
-                <HabilidadesContainer>
+            <CamposEmLinha>
+                <InputGroup>
+                    <Label htmlFor="habilidades-projeto">
+                        Habilidades Necessárias
+                    </Label>
                     <AutoCompleteWrapper>
                         <Input
                             id="habilidades-projeto"
-                            value={habilidadeAtual}
+                            value={buscaHabilidade}
                             onChange={handleHabilidadeChange}
-                            onKeyDown={handleKeyDown}
                             placeholder="Pesquisar habilidade..."
                             disabled={loadingSubmit}
                         />
-                        {sugestoes.length > 0 && (
+                        {sugestoesH.length > 0 && (
                             <SugestoesContainer>
-                                {sugestoes.map((sugestao) => (
+                                {sugestoesH.map((sugestao) => (
                                     <SugestaoItem
                                         key={sugestao.nome}
                                         onClick={() =>
@@ -440,31 +435,60 @@ function FormularioCriarProjeto({ onClose }) {
                             </SugestoesContainer>
                         )}
                     </AutoCompleteWrapper>
-                    <Botao
-                        type="button"
-                        variant="AdicionarHabilidade"
-                        onClick={handleAdicionarHabilidade}
-                        disabled={!habilidadeAtual.trim() || loadingSubmit}
-                    >
-                        +
-                    </Botao>
-                </HabilidadesContainer>
-                <TagsContainer>
-                    {habilidades.map((habilidade) => (
-                        <Tag key={habilidade}>
-                            {habilidade}
-                            <FaTimes
-                                color="0d6efd"
-                                cursor="pointer"
-                                onClick={() =>
-                                    !loadingSubmit &&
-                                    handleRemoverHabilidade(habilidade)
-                                }
-                            />
-                        </Tag>
-                    ))}
-                </TagsContainer>
-            </InputGroup>
+                    <TagsContainer>
+                        {habilidades.map((habilidade) => (
+                            <Tag key={habilidade} $tipo="habilidade">
+                                {habilidade}
+                                <FaTimes
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() =>
+                                        removerHabilidade(habilidade)
+                                    }
+                                />
+                            </Tag>
+                        ))}
+                    </TagsContainer>
+                </InputGroup>
+
+                <InputGroup>
+                    <Label htmlFor="interesses-projeto">
+                        Interesses do Projeto
+                    </Label>
+                    <AutoCompleteWrapper>
+                        <Input
+                            id="interesses-projeto"
+                            value={buscaInteresse}
+                            onChange={handleInteresseChange}
+                            placeholder="Pesquisar interesse..."
+                        />
+                        {sugestoesI.length > 0 && (
+                            <SugestoesContainer>
+                                {sugestoesI.map((sugestao) => (
+                                    <SugestaoItem
+                                        key={sugestao.nome}
+                                        onClick={() =>
+                                            adicionarInteresse(sugestao.nome)
+                                        }
+                                    >
+                                        {sugestao.nome}
+                                    </SugestaoItem>
+                                ))}
+                            </SugestoesContainer>
+                        )}
+                    </AutoCompleteWrapper>
+                    <TagsContainer>
+                        {interesses.map((interesse) => (
+                            <Tag key={interesse} $tipo="interesse">
+                                {interesse}
+                                <FaTimes
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => removerInteresse(interesse)}
+                                />
+                            </Tag>
+                        ))}
+                    </TagsContainer>
+                </InputGroup>
+            </CamposEmLinha>
 
             {erro && <MensagemErro>{erro}</MensagemErro>}
 

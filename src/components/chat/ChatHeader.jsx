@@ -1,4 +1,3 @@
-import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -30,6 +29,8 @@ const Avatar = styled.div`
 const InfoConversa = styled.div`
     flex-grow: 1;
     overflow: hidden;
+    min-width: 0;
+    max-width: 550px;
 `;
 
 const NomeConversa = styled.h4`
@@ -37,6 +38,9 @@ const NomeConversa = styled.h4`
     font-weight: 600;
     margin: 0;
     color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 `;
 
 const Subtitulo = styled.p`

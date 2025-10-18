@@ -195,6 +195,7 @@ function FormularioCriarProjeto({ onClose }) {
     const { currentUser, userData } = useAuth();
 
     const { addToast } = useToast();
+    const [loadingSubmit, setLoadingSubmit] = useState(false);
 
     //Estados para os campos do formulário
     const [nomeProjeto, setNomeProjeto] = useState('');
@@ -224,10 +225,11 @@ function FormularioCriarProjeto({ onClose }) {
             } catch (error) {
                 console.error('Erro ao buscar tags:', error);
                 setErro('Não foi possível carregar as sugestões de tags.');
+                addToast('Erro ao carregar sugestões.', 'error');
             }
         };
         fetchTags();
-    }, []);
+    }, [addToast]);
 
     const handleHabilidadeChange = (e) => {
         const valor = e.target.value;
@@ -288,6 +290,7 @@ function FormularioCriarProjeto({ onClose }) {
     const handleSubmit = async (evento) => {
         evento.preventDefault();
         setErro('');
+        setLoadingSubmit(true);
         if (!currentUser) {
             addToast('Erro: Faça login para criar um projeto.', 'error');
             setLoadingSubmit(false);

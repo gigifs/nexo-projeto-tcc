@@ -370,12 +370,14 @@ function GerenciarProjetoPage() {
                 'candidaturas',
                 candidatoParaAceitar.id
             );
-    
+
             // Busca os dados mais recentes do candidato para pegar a cor do avatar
             const userRef = doc(db, 'users', candidatoParaAceitar.userId);
             const userSnap = await getDoc(userRef);
-            const corAvatarCandidato = userSnap.exists() ? userSnap.data().avatarColor : '#0a528a';
-    
+            const corAvatarCandidato = userSnap.exists()
+                ? userSnap.data().avatarColor
+                : '#0a528a';
+
             await updateDoc(projetoRef, {
                 participantes: arrayUnion({
                     uid: candidatoParaAceitar.userId,
@@ -390,21 +392,49 @@ function GerenciarProjetoPage() {
             const q = query(conversasRef, where('projetoId', '==', id));
             const conversaSnapshot = await getDocs(q);
 
-            if (!conversaSnapshot.empty) {
-                const conversaDoc = conversaSnapshot.docs[0];
-                const conversaRef = doc(db, 'conversas', conversaDoc.id);
-                await updateDoc(conversaRef, {
-                    participantes: arrayUnion(candidatoParaAceitar.userId),
-                    participantesInfo: arrayUnion({
-                        uid: candidatoParaAceitar.userId,
-                        nome: candidatoParaAceitar.nome,
-                        sobrenome: candidatoParaAceitar.sobrenome,
-                        avatarColor: corAvatarCandidato,
-                    }),
-                    [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
+            if (conversaSnapshot.empty) {
+                // Cria nova conversa se não existir
+                await addDoc(conversasRef, {
+                    projetoId: id,
+                    participantes: [
+                        currentUser.uid,
+                        candidatoParaAceitar.userId,
+                    ],
+                    participantesInfo: [
+                        {
+                            uid: currentUser.uid,
+                            nome: currentUser.displayName || 'Dono',
+                        },
+                        {
+                            uid: candidatoParaAceitar.userId,
+                            nome: candidatoParaAceitar.nome,
+                            sobrenome: candidatoParaAceitar.sobrenome,
+                        },
+                    ],
+                    unreadCounts: {
+                        [currentUser.uid]: 0,
+                        [candidatoParaAceitar.userId]: 0,
+                    },
+                    criadoEm: new Date(),
                 });
+            } else {
+                if (!conversaSnapshot.empty) {
+                    const conversaDoc = conversaSnapshot.docs[0];
+                    const conversaRef = doc(db, 'conversas', conversaDoc.id);
+                    await updateDoc(conversaRef, {
+                        participantes: arrayUnion(candidatoParaAceitar.userId),
+                        participantesInfo: arrayUnion({
+                            uid: candidatoParaAceitar.userId,
+                            nome: candidatoParaAceitar.nome,
+                            sobrenome: candidatoParaAceitar.sobrenome,
+                            avatarColor: corAvatarCandidato,
+                        }),
+                        [`unreadCounts.${candidatoParaAceitar.userId}`]: 0,
+                    });
+                }
             }
 
+            // Lógica de aceitação (movida para fora do 'else' para executar sempre)
             await deleteDoc(candidaturaRef);
 
             setCandidaturas((prev) =>
@@ -476,6 +506,7 @@ function GerenciarProjetoPage() {
         }
 
         try {
+
             const projetoRef = doc(db, 'projetos', id);
 
             await updateDoc(projetoRef, {
@@ -573,8 +604,9 @@ function GerenciarProjetoPage() {
                     Edite informações, gerencie a equipe e avalie as
                     candidaturas.
                 </DashboardHeader>
-
+                
                 <Container>
+
                     <ColunasContainer>
                         <ColunaEsquerda>
                             <InputGroup>

@@ -190,6 +190,7 @@ function Notificacoes({ onClose }) {
         setLoading(true);
         const projetosRef = collection(db, 'projetos');
         const qProjetos = query(projetosRef, where('donoId', '==', currentUser.uid));
+
         const getProjetosEInscrever = async () => {
             const projetosSnapshot = await getDocs(qProjetos);
             const projetosDoUsuario = projetosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -197,6 +198,7 @@ function Notificacoes({ onClose }) {
                 setLoading(false);
                 return () => {};
             }
+
             const unsubscribes = projetosDoUsuario.map(projeto => {
                 const candidaturasRef = collection(db, 'projetos', projeto.id, 'candidaturas');
                 return onSnapshot(candidaturasRef, (snapshot) => {
@@ -206,6 +208,7 @@ function Notificacoes({ onClose }) {
                         projetoNome: projeto.nome,
                         ...doc.data()
                     }));
+                    
                     setNotificacoes(prev => {
                         const outrasNotificacoes = prev.filter(n => n.projetoId !== projeto.id);
                         return [...outrasNotificacoes, ...novasCandidaturas];
@@ -215,6 +218,7 @@ function Notificacoes({ onClose }) {
             });
             return () => unsubscribes.forEach(unsub => unsub());
         };
+
         const unsubscribePromise = getProjetosEInscrever();
         return () => {
             unsubscribePromise.then(cleanup => cleanup && cleanup());
@@ -257,12 +261,18 @@ function Notificacoes({ onClose }) {
         await batch.commit();
     }
 
-    const notificacoesFiltradas = notificacoes.filter(notif => {
-        if (abaAtiva === 'nao_lidas') {
-            return !notif.lida;
-        }
-        return true;
-    });
+    const notificacoesOrdenadas = notificacoes
+        .filter(notif => {
+            if (abaAtiva === 'nao_lidas') {
+                return !notif.lida;
+            }
+            return true;
+        })
+        .sort((a, b) => {
+            const dateA = a.dataCandidatura?.toDate() || 0;
+            const dateB = b.dataCandidatura?.toDate() || 0;
+            return dateB - dateA; // Ordena da mais recente para a mais antiga
+        });
 
     return (
         <NotificacaoContainer>
@@ -283,9 +293,9 @@ function Notificacoes({ onClose }) {
             </AbasContainer>
             <ListaNotificacoes>
                 {loading && <p>Carregando...</p>}
-                {!loading && notificacoesFiltradas.length === 0 && <p>Nenhuma notificação para exibir.</p>}
-                {!loading && notificacoesFiltradas.map((notif) => (
+                {!loading && notificacoesOrdenadas.length === 0 && <p>Nenhuma notificação para exibir.</p>}
 
+                {!loading && notificacoesOrdenadas.map((notif) => (
                     <ItemNotificacao key={`${notif.projetoId}-${notif.id}`} onClick={() => handleNotificacaoClick(notif)}>
                         <Avatar $bgColor={notif.avatarColor}>{getInitials(notif.nome, notif.sobrenome)}</Avatar>
                         <ConteudoTexto>

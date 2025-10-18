@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import Modal from './Modal';
 import Botao from './Botao';
-import { FiGithub, FiLinkedin, FiUser, FiX } from 'react-icons/fi';
+import { FiGithub, FiLinkedin, FiUser } from 'react-icons/fi';
 import { FaGraduationCap } from 'react-icons/fa';
 
 const ModalWrapper = styled.div`
@@ -104,9 +104,21 @@ const SecaoTitulo = styled.h3`
 `;
 
 const Bio = styled.p`
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     margin: 0;
+    max-height: 6.25rem;
+    overflow-y: auto; /*Adiciona scroll se a bio for mt grande*/
+    word-break: break-word;
+
+    /* Esconde a barra de rolagem na maioria dos navegadores */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+
+
 `;
 
 const TagsContainer = styled.div`
@@ -150,9 +162,8 @@ function PerfilUsuarioModal({
     loading,
     tipo = 'candidato',
 }) {
-    if (!isOpen || !usuario) {
-        return null;
-    }
+
+    if (!isOpen || !usuario) return null;
 
     const todasAsTags = [
         ...(usuario.habilidades || []).map((h) => ({ nome: h, tipo: 'habilidade' })),

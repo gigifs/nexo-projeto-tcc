@@ -1,7 +1,14 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Botao from './Botao.jsx';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import {
+    signInWithEmailAndPassword,
+    signOut,
+    setPersistence,
+    browserSessionPersistence,
+    browserLocalPersistence,
+} from 'firebase/auth';
 import { auth } from '../firebase.js';
 
 const FormularioContainer = styled.form`
@@ -40,25 +47,28 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  background-color: #F5FAFC;
-  padding: 12px 15px;
-  font-size: 16px;
-  font-weight: 400;
-  color: #333333;
-  border: 1px solid #00000060;
-  border-radius: 10px;
-  outline: none;
-  margin-bottom: 15px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: #f5fafc;
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #333333;
+    border: 1px solid #00000060;
+    border-radius: 10px;
+    outline: none;
+    margin-bottom: 15px;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 
-  &::placeholder {
-    color: #999999; /* cor do placeholder!! */
-    opacity: 1;
+    &::placeholder {
+        color: #999999; /* cor do placeholder!! */
+        opacity: 1;
+    }
 
-  &:focus {
-    border-color: #5B82E9; 
-    box-shadow: 0 0 0 3px #5b82e948;
-  }
+    &:focus {
+        border-color: #5b82e9;
+        box-shadow: 0 0 0 3px #5b82e948;
+    }
 `;
 
 const OptionsContainer = styled.div`
@@ -136,12 +146,24 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
     const [senha, setSenha] = useState('');
     const [lembrar, setLembrar] = useState(false);
     const [erroLogin, setErroLogin] = useState(''); // estado para erros de login
+    const navigate = useNavigate(); // inicializa o hook de navegação
+    const [loading, setLoading] = useState(false); // estado de loading
 
     const handleSubmit = async (evento) => {
         evento.preventDefault(); // Impede que a página recarregue ao enviar
         setErroLogin(''); // limpa erros antigos
 
+        // Impede o envio se já estiver a carregar
+        if (loading) return;
+
+        setLoading(true); // ativa o loading e garante que ele seja desativado no fim
         try {
+            // Isto garante que a escolha atual do utilizador seja usada para ESTA tentativa.
+            await setPersistence(
+                auth,
+                lembrar ? browserLocalPersistence : browserSessionPersistence
+            );
+
             //tenta fazer o login
             const userCredential = await signInWithEmailAndPassword(
                 auth,
@@ -154,12 +176,19 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
 
             //verificação importante: o email foi verificado?
             if (user.emailVerified) {
-                //se sim, login bem sucedido
-                alert(`Bem-vindo(a) de volta!`);
-                onSuccess();
-                //no futuro, redirecionaremos para a pagina principal
+                // Se sim, login bem sucedido
+                // Após o sucesso do login, guardamos a preferência no localStorage.
+                localStorage.setItem(
+                    'firebasePersistence',
+                    lembrar ? 'local' : 'session'
+                );
+
+                navigate('/dashboard');
+                //redirecionando para a pagina principal
             } else {
-                //se nao, impede o login e avisa
+                // Se o e-mail não for verificado, desconectamos o utilizador
+                // antes de mostrar a mensagem de erro.
+                await signOut(auth);
                 setErroLogin(
                     'Você precisa verificar seu e-mail antes de fazer o login.'
                 );
@@ -176,6 +205,8 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
             } else {
                 setErroLogin('Ocorreu um erro ao tentar fazer o login.');
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -217,14 +248,21 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
                         Lembrar de mim
                     </LembrarDeMim>
                 </CheckboxGroup>
-                <LinkEsqueciSenha href="#">Esqueceu a senha?</LinkEsqueciSenha>
+                <LinkEsqueciSenha
+                    onClick={() => {
+                        onSuccess(); // Fecha o modal de login
+                        navigate('/esqueci-senha'); // Navega para a nova página
+                    }}
+                >
+                    Esqueceu a senha?
+                </LinkEsqueciSenha>
             </OptionsContainer>
 
             {erroLogin && <MensagemErro>{erroLogin}</MensagemErro>}
 
             <ButtonContainer>
-                <Botao variant="Modal" type="submit">
-                    Entrar
+                <Botao variant="Modal" type="submit" disabled={loading}>
+                    {loading ? 'Entrando...' : 'Entrar'}
                 </Botao>
             </ButtonContainer>
 

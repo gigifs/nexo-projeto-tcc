@@ -14,6 +14,136 @@ const BotaoEstilizado = styled.button`
 
     ${(props) => {
         switch (props.$variant) {
+            case 'SalvarPerfil':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 10px;
+                    padding: 10px 45px;
+                    font-size: 20px;
+                    font-weight: 500;
+                    border: none;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
+            case 'CancelarPerfil':
+                return css`
+                    background-color: #7c22562b;
+                    color: #7c2256;
+                    border-radius: 10px;
+                    padding: 10px 45px;
+                    font-size: 20px;
+                    font-weight: 500;
+                    border: none;
+
+                    &:hover {
+                        background-color: #7c22564d;
+                    }
+                `;
+            case 'nao':
+                return css`
+                    background-color: #F6171A;
+                    color: #FFFFFF;
+                    border-radius: 10px;
+                    padding: 10px 20px 10px 20px;
+                    font-size: 22px;
+                    font-weight: 900;
+
+                    &:hover {
+                    background-color: #9f0f11ff;
+                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+
+            case 'sim':
+                return css`
+                    background-color: #49E42A;
+                    color: #FFFFFF;
+                    border-radius: 10px;
+                    padding: 10px 20px 10px 20px;
+                    font-size: 22px;
+                    font-weight: 900;
+
+                    &:hover {
+                    background-color: #218838;
+                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+
+            case 'excluir':
+                return css`
+                    background-color: #f6171a33;
+                    color: #f6171a;
+                    border-radius: 10px;
+                    padding: 8px 20px;
+                    font-size: 20px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #f6171a88;
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+
+            case 'hab-int':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 10px;
+                    padding: 8px 16px;
+                    font-size: 20px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #661745ff;
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+            case 'cancelar-excluir':
+                return css`
+                    background-color: #f5fafc;
+                    color: #7c2256;
+                    border-radius: 10px;
+                    border: 1px solid #00000066;
+                    padding: 8px 16px;
+                    font-size: 20px;
+                    font-weight: 500;
+
+                    &:hover {
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                `;
+            //Novo botão: para a janela modal 'FormularioCriarProjeto.jsx'
+            case 'AdicionarHabilidade':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 10px;
+                    font-size: 20px;
+                    font-weight: bold;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
+            case 'Cancelar':
+                return css`
+                    background-color: #f5fafc;
+                    color: #000000ff;
+                    border: 1px solid #00000067;
+                    border-radius: 10px;
+                    padding: 8px 50px;
+                    font-size: 20px;
+                    font-weight: 400;
+
+                    &:hover {
+                        background-color: #661745ff;
+                        color: #f5fafc;
+                    }
+                `;
+
             case 'Modal':
                 return css`
                     background-color: #7c2256;
@@ -22,6 +152,18 @@ const BotaoEstilizado = styled.button`
                     padding: 8px 50px;
                     font-size: 18px;
                     font-weight: 400;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
+
+            case 'header':
+                return css`
+                    border-radius: 10px;
+                    padding: 8px 16px;
+                    font-size: 24px;
+                    font-weight: 500;
 
                     &:hover {
                         background-color: #661745ff;
@@ -78,7 +220,7 @@ const BotaoEstilizado = styled.button`
                     background-color: #0a528a1a;
                     color: #0a528a;
                     border: 1px solid #0a528a;
-                    height: 45px;
+                    height: 60px;
 
                     &:hover {
                         background-color: #0a528a;
@@ -94,6 +236,17 @@ const BotaoEstilizado = styled.button`
                     &:hover {
                         background-color: #7c2256; /* Fundo padrão */
                         color: #f5fafc; /* Texto branco */
+                    }
+                `;
+            case 'Verificacao':
+                return css`
+                    border-radius: 10px;
+                    padding: 8px 16px;
+                    font-size: 24px;
+                    font-weight: 500;
+
+                    &:hover {
+                        background-color: #661745ff;
                     }
                 `;
             case 'Entrar':

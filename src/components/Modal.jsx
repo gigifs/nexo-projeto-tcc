@@ -24,6 +24,15 @@ const ModalBox = styled.div`
 
     ${(props) => {
         switch (props.size) {
+            case 'excluir-projeto':
+                return css`
+                    max-width: 400px;
+                    border-radius: 30px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                `;
+
             case 'large':
                 return css`
                     max-width: 620px;
@@ -31,6 +40,19 @@ const ModalBox = styled.div`
             case 'small':
                 return css`
                     max-width: 560px;
+                `;
+            case 'hab-int':
+                return css`
+                    border-radius: 20px;
+                    max-width: 560px;
+                `;
+            case 'excluir':
+                return css`
+                    max-width: 460px;
+                    border-radius: 30px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
                 `;
             default:
                 // Tamanho padrão se nenhuma prop 'size' for passada

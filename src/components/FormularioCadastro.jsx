@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Botao from './Botao.jsx';
 import {
@@ -35,6 +36,7 @@ const SubTitulo = styled.h3`
 const ContainerNomes = styled.div`
     display: flex;
     gap: 20px;
+    align-items: baseline;
 `;
 
 const InputGroup = styled.div`
@@ -52,6 +54,7 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
+    width: 100%;
     background-color: #f5fafc;
     padding: 12px 15px;
     font-size: 16px;
@@ -138,6 +141,9 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
     const [senha, setSenha] = useState('');
     const [confirmaSenha, setConfirmaSenha] = useState('');
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     //aqui é a logica para receber o email de fora e exibir
     useEffect(() => {
@@ -150,19 +156,13 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
         evento.preventDefault(); //impede que o navegador recarregue a pagina
         setErro(''); // Limpa erros antigos antes de tentar de novo
 
-        //verificação dominio do email
-        const dominioPermitido = '@cs.unicid.edu.br';
-        if (!email.endsWith(dominioPermitido)) {
-            setErro(`Cadastro permitido apenas para e-mails institucionais.`);
-            return;
-        }
-
         //validação de senha simples, pode aumentar
         if (senha !== confirmaSenha) {
             setErro('As senhas não coincidem!');
             return;
         }
 
+        setLoading(true);
         //firebase a partir daqui
         try {
             // a função é o que pega o email e senha e tenta criar um usuario
@@ -186,16 +186,17 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
             });
 
             const actionCodeSettings = {
-                url: 'http://localhost:5173', // define onde o usuario vai parar apos clicar no link de confirmação
+                url: 'http://localhost:5173/verificacao-concluida', // define onde o usuario vai parar apos clicar no link de confirmação
             };
 
             // função para garantir que o usuario é real, envia um email automatico
             await sendEmailVerification(user, actionCodeSettings);
 
+            // Desconectamos o utilizador para garantir que ele não fique logado
             await signOut(auth);
-            alert(`Bem-vindo(a), ${nome}! Sua conta foi criada com sucesso.`);
-            onSuccess();
-            //no futuro, aqui vamos levar o usuario para a tela aguardando confirmação de email
+
+            // redirecionamos para a tela de espera
+            navigate('/aguardando-verificacao');
         } catch (error) {
             //Se o Firebase retornou um erro
             console.error(
@@ -214,6 +215,9 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
             } else {
                 setErro('Ocorreu um erro ao criar a conta. Tente novamente.');
             }
+        } finally {
+            // Este bloco será executado sempre, garantindo que o botão seja reativado.
+            setLoading(false);
         }
     };
 
@@ -298,8 +302,8 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
             </TextoTermos>
 
             <ButtonContainer>
-                <Botao variant="Modal" type="submit">
-                    Cadastrar
+                <Botao variant="Modal" type="submit" disabled={loading}>
+                    {loading ? 'A registar...' : 'Cadastrar'}
                 </Botao>
             </ButtonContainer>
 

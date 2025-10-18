@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/header.jsx';
 import Inicio from '../components/Inicio.jsx';
 import ComoFunciona from '../components/ComoFunciona.jsx';
@@ -16,6 +18,19 @@ function LandingPage() {
     const [signupModalOpen, setSignupModalOpen] = useState(false);
     // guarda o email digitado no form da seção inicio
     const [initialEmail, setInitialEmail] = useState('');
+
+    const { currentUser } = useAuth(); // Pegamos o utilizador do nosso "cérebro"
+    const navigate = useNavigate();
+
+    //logica de redirecionamento
+    useEffect(() => {
+        // Se existe um utilizador E o seu e-mail está verificado...
+        if (currentUser && currentUser.emailVerified) {
+            // ...navegue para o dashboard!
+            navigate('/dashboard');
+        }
+        // Este efeito é executado sempre que o 'currentUser' mudar.
+    }, [currentUser, navigate]);
 
     //função que troca o modal login pelo de cadastro
     const switchToSignup = () => {
@@ -66,7 +81,7 @@ function LandingPage() {
             >
                 <FormularioLogin
                     onSwitchToSignup={switchToSignup}
-                    onSuccess={() => setLoginModalOpen(false)} // fecha o modal em caso de sucesso
+                    onSuccess={() => setLoginModalOpen(false)}
                 />
             </Modal>
 

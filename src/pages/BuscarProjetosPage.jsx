@@ -1,41 +1,50 @@
-import { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
+import BuscarProjetos from '../components/BuscarProjetos';
 import DashboardHeader from '../components/DashboardHeader';
-import Modal from '../components/Modal';
 import FormularioCriarProjeto from '../components/FormularioCriarProjeto';
-import { useAuth } from '../contexts/AuthContext';
+import Modal from '../components/Modal';
+import { useState } from 'react';
+import Botao from '../components/Botao';
+import { FiPlus } from 'react-icons/fi';
 
-const HomeContainer = styled.div`
-    display: flex;
-    flex-direction: column;
+const PageContainer = styled.div`
+    width: 100%;
+    padding: 0 40px;
+    box-sizing: border-box;
 `;
 
 function BuscarProjetosPage() {
-    // A lógica de modais que pertencem apenas a esta página (como o de Criar Projeto) fica aqui.
-    const [isModalOpen, setModalOpen] = useState(false);
-
-    const { userData } = useAuth();
-    const nomeUsuario = userData?.nome || 'Usuário';
+    const [isCriarProjetoModalOpen, setIsCriarProjetoModalOpen] =
+        useState(false);
 
     return (
-        <HomeContainer>
+        <PageContainer>
             <DashboardHeader
-                titulo={`Buscar Projetos`}
-                botaoTexto="+ Criar Projeto"
-                onBotaoClick={() => setModalOpen(true)}
-                semFundo={true}
+                titulo="Buscar Projetos"
+                semFundo
+                acoes={
+                    <Botao
+                        variant="Principal"
+                        onClick={() => setIsCriarProjetoModalOpen(true)}
+                    >
+                        <FiPlus size={20} /> Criar Projeto
+                    </Botao>
+                }
             >
                 Explore e encontre o projeto perfeito para você!
             </DashboardHeader>
-
+            <BuscarProjetos />
             <Modal
-                isOpen={isModalOpen}
-                onClose={() => setModalOpen(false)}
-                size="large"
+                isOpen={isCriarProjetoModalOpen}
+                onClose={() => setIsCriarProjetoModalOpen(false)}
             >
-                <FormularioCriarProjeto onClose={() => setModalOpen(false)} />
+                <FormularioCriarProjeto
+                    onClose={() => setIsCriarProjetoModalOpen(false)}
+                />
             </Modal>
-        </HomeContainer>
+        </PageContainer>
     );
 }
+
 export default BuscarProjetosPage;

@@ -15,7 +15,7 @@ const Avatar = styled.div`
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -75,7 +75,7 @@ function Mensagem({ mensagem }) {
     return (
         <MensagemLinha $isSender={isSender}>
             {!isSender && (
-                <Avatar>
+                <Avatar $bgColor={mensagem.senderAvatarColor}>
                     {getInitials(mensagem.senderNome, mensagem.senderSobrenome)}
                 </Avatar>
             )}

@@ -115,7 +115,7 @@ const Avatar = styled.div`
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -132,7 +132,7 @@ const DetalhesBotao = styled(Botao)`
 `;
 
 //Pega as iniciais do nome de quem criou o projeto, e as deixam maiúsculas.
-const getInitials = (nome) => {
+const getInitials = (nome, sobrenome) => {
     if (!nome) return '?';
     const parts = nome.split(' ');
     if (parts.length > 1 && parts[1]) {
@@ -163,6 +163,7 @@ function ProjectCard({ projeto }) {
         descricao,
         donoNome,
         donoSobrenome,
+        donoAvatarColor,
         curso,
         status,
         habilidades,
@@ -210,7 +211,7 @@ function ProjectCard({ projeto }) {
                             <span>{curso || 'Curso não informado'}</span>
                         </FooterText>
                         <FooterText>
-                            <Avatar>{getInitials(nomeCompletoDono)}</Avatar>
+                            <Avatar $bgColor={donoAvatarColor}>{getInitials(donoNome, donoSobrenome)}</Avatar>
                             <span>{nomeCompletoDono || 'Nome do Dono'}</span>
                         </FooterText>
                     </OwnerDetails>

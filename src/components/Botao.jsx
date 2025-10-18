@@ -14,6 +14,34 @@ const BotaoEstilizado = styled.button`
 
     ${(props) => {
         switch (props.$variant) {
+            case 'SalvarPerfil':
+                return css`
+                    background-color: #7c2256;
+                    color: #f5fafc;
+                    border-radius: 10px;
+                    padding: 10px 45px;
+                    font-size: 20px;
+                    font-weight: 500;
+                    border: none;
+
+                    &:hover {
+                        background-color: #661745ff;
+                    }
+                `;
+            case 'CancelarPerfil':
+                return css`
+                    background-color: #7c22562b;
+                    color: #7c2256;
+                    border-radius: 10px;
+                    padding: 10px 45px;
+                    font-size: 20px;
+                    font-weight: 500;
+                    border: none;
+
+                    &:hover {
+                        background-color: #7c22564d;
+                    }
+                `;
             case 'nao':
                 return css`
                     background-color: #F6171A;
@@ -100,7 +128,6 @@ const BotaoEstilizado = styled.button`
                         background-color: #661745ff;
                     }
                 `;
-            //Novo botão: para a janela modal 'FormularioCriarProjeto.jsx'
             case 'Cancelar':
                 return css`
                     background-color: #f5fafc;

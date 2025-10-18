@@ -127,7 +127,7 @@ const Avatar = styled.div`
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;
@@ -297,7 +297,7 @@ function Notificacoes({ onClose }) {
 
                 {!loading && notificacoesOrdenadas.map((notif) => (
                     <ItemNotificacao key={`${notif.projetoId}-${notif.id}`} onClick={() => handleNotificacaoClick(notif)}>
-                        <Avatar>{getInitials(notif.nome, notif.sobrenome)}</Avatar>
+                        <Avatar $bgColor={notif.avatarColor}>{getInitials(notif.nome, notif.sobrenome)}</Avatar>
                         <ConteudoTexto>
                             <b>{notif.nome} {notif.sobrenome}</b> gostaria de participar do projeto <NomeProjeto>{notif.projetoNome}</NomeProjeto>
                         </ConteudoTexto>

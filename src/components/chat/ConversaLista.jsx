@@ -116,7 +116,7 @@ const Avatar = styled.div`
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background-color: #0a528a;
+    background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-size: 20px;
     font-weight: 700;
@@ -179,7 +179,8 @@ const BadgeNaoLido = styled.div`
     justify-content: center;
 `;
 
-const getInitials = (name = '') => {
+const getInitials = (name = '', sobrenome = '') => {
+    if (!name) return '?';
     const parts = name.split(' ');
     if (parts.length > 1 && parts[1]) {
         return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
@@ -196,6 +197,7 @@ function ConversaLista({
     abaAtiva,
     setAbaAtiva,
     getNomeConversa,
+    getAvatarColorConversa,
 }) {
     const { currentUser } = useAuth();
 
@@ -238,18 +240,22 @@ function ConversaLista({
                 {conversasFiltradas.map((conversa) => {
                     const unreadCount =
                         conversa.unreadCounts?.[currentUser.uid] || 0;
+                    const nomeCompleto = getNomeConversa(conversa);
+                    const [nome, ...sobrenomeArray] = nomeCompleto.split(' ');
+                    const sobrenome = sobrenomeArray.join(' ');
+                    
                     return (
                         <ItemConversa
                             key={conversa.id}
                             $ativo={conversa.id === conversaAtivaId}
                             onClick={() => onConversaSelect(conversa.id)}
                         >
-                            <Avatar>
-                                {getInitials(getNomeConversa(conversa))}
+                            <Avatar $bgColor={getAvatarColorConversa(conversa)}>
+                                {getInitials(nome, sobrenome)}
                             </Avatar>
                             <InfoConversa>
                                 <NomeConversa>
-                                    {getNomeConversa(conversa)}
+                                    {nomeCompleto}
                                 </NomeConversa>
                                 {conversa.ultimaMensagem && (
                                     <UltimaMensagemContainer>

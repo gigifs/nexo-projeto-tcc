@@ -1,10 +1,7 @@
-// src/components/ToastContainer.jsx
-import React from 'react';
 import styled from 'styled-components';
 import { useToast } from '../contexts/ToastContext'; // Hook para acessar o contexto
 import Toast from './Toast'; // Componente que exibe um toast individual
 
-// Div que posiciona o container de toasts na tela
 const ContainerWrapper = styled.div`
     position: fixed; /* Fica fixo mesmo com scroll */
     bottom: 25px; /* Distância da borda inferior */
@@ -15,7 +12,6 @@ const ContainerWrapper = styled.div`
     align-items: flex-end; /* Alinha os toasts à direita dentro do container */
 `;
 
-// Componente funcional do Container
 const ToastContainer = () => {
     // Pega a lista de 'toasts' e a função 'removeToast' do contexto
     const { toasts, removeToast } = useToast();

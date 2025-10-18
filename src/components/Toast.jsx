@@ -27,7 +27,6 @@ const toastLeave = keyframes`
   }
 `;
 
-// Container principal do Toast
 const ToastWrapper = styled.div`
     background-color: #fff;
     color: #333;
@@ -41,7 +40,7 @@ const ToastWrapper = styled.div`
     position: relative;
     overflow: hidden;
     min-width: 300px;
-    /* Animação de entrada com curva de aceleração */
+    /* Animação de entrada */
     animation: ${toastEnter} 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
 
     /* Aplica animação de saída se $exiting for true */
@@ -81,13 +80,11 @@ const ToastWrapper = styled.div`
     }}
 `;
 
-// Ícone do Toast
 const ToastIcon = styled.div`
     font-size: 24px;
     flex-shrink: 0;
 `;
 
-// Texto da mensagem
 const ToastMessage = styled.p`
     margin: 0;
     font-size: 16px;
@@ -95,7 +92,6 @@ const ToastMessage = styled.p`
     flex-grow: 1; /* Ocupa espaço disponível */
 `;
 
-// Botão 'X' para fechar
 const CloseButton = styled.button`
     background: none;
     border: none;
@@ -119,7 +115,6 @@ const icons = {
     info: <FiInfo />,
 };
 
-// Componente funcional do Toast
 const Toast = ({ message, type = 'info', duration = 4000, onClose }) => {
     // Estado para controlar a animação de saída
     const [exiting, setExiting] = useState(false);

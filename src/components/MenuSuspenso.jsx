@@ -86,13 +86,13 @@ function DropdownMenu() {
 
     return (
         <MenuContainer>
-            <MenuItem href="#">
+            <MenuItem onClick={() => navigate('/dashboard/perfil')}>
                 <FiUser size={34} strokeWidth={2.2} /> Perfil
             </MenuItem>
-            <MenuItem href="#">
+            <MenuItem onClick={() => navigate('/dashboard/mensagens')}>
                 <FiMessageSquare size={34} strokeWidth={2.2} /> Mensagens
             </MenuItem>
-            <MenuItem href="#">
+            <MenuItem onClick={() => navigate('/dashboard/configuracoes')}>
                 <FiSettings size={34} strokeWidth={2.2} /> Configurações
             </MenuItem>
             <Separator />

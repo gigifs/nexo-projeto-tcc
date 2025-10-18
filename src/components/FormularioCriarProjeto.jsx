@@ -14,6 +14,7 @@ import {
 import { db } from '../firebase';
 //Hook de Autenticação
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 const FormContainer = styled.form`
     padding: 20px 40px 30px 40px;
@@ -125,7 +126,6 @@ const TagsContainer = styled.div`
     overflow-y: auto; /* Adiciona rolagem se passar da altura máxima */
     padding: 5px;
     border-radius: 10px;
-
 `;
 
 const Tag = styled.div`
@@ -194,6 +194,9 @@ function FormularioCriarProjeto({ onClose }) {
     //Pega a informação do usuário logado
     const { currentUser, userData } = useAuth();
 
+    const { addToast } = useToast();
+    const [loadingSubmit, setLoadingSubmit] = useState(false);
+
     //Estados para os campos do formulário
     const [nomeProjeto, setNomeProjeto] = useState('');
     const [descricao, setDescricao] = useState('');
@@ -222,10 +225,11 @@ function FormularioCriarProjeto({ onClose }) {
             } catch (error) {
                 console.error('Erro ao buscar tags:', error);
                 setErro('Não foi possível carregar as sugestões de tags.');
+                addToast('Erro ao carregar sugestões.', 'error');
             }
         };
         fetchTags();
-    }, []);
+    }, [addToast]);
 
     const handleHabilidadeChange = (e) => {
         const valor = e.target.value;
@@ -286,16 +290,20 @@ function FormularioCriarProjeto({ onClose }) {
     const handleSubmit = async (evento) => {
         evento.preventDefault();
         setErro('');
+        setLoadingSubmit(true);
         if (!currentUser) {
-            setErro('Você precisa estar logado para criar um projeto.');
+            addToast('Erro: Faça login para criar um projeto.', 'error');
+            setLoadingSubmit(false);
             return;
         }
         if (!area) {
-            setErro('Por favor, selecione uma área para o projeto.');
+            addToast('Selecione uma área para o projeto.', 'error');
+            setLoadingSubmit(false);
             return;
         }
         if (habilidades.length === 0) {
-            setErro('Adicione pelo menos uma habilidade necessária.');
+            addToast('Adicione pelo menos uma habilidade.', 'error');
+            setLoadingSubmit(false);
             return;
         }
 
@@ -344,11 +352,13 @@ function FormularioCriarProjeto({ onClose }) {
                 ultimaMensagem: null,
             });
 
-            alert('Projeto criado com sucesso!');
+            addToast(`Projeto "${nomeProjeto}" criado com sucesso!`, 'success');
             onClose();
         } catch (error) {
             console.error('Erro ao salvar o projeto.', error);
-            setErro('Ocorreu um erro ao salvar o projeto. Tente novamente.');
+            addToast('Erro ao criar o projeto. Tente novamente.', 'error');
+        } finally {
+            setLoadingSubmit(false); // Desativa o carregamento (seja sucesso ou erro)
         }
     };
 
@@ -364,6 +374,7 @@ function FormularioCriarProjeto({ onClose }) {
                     onChange={(e) => setNomeProjeto(e.target.value)}
                     placeholder="Ex. Plataforma de Match Acadêmico"
                     required
+                    disabled={loadingSubmit}
                 />
             </InputGroup>
 
@@ -375,6 +386,7 @@ function FormularioCriarProjeto({ onClose }) {
                     onChange={(e) => setDescricao(e.target.value)}
                     placeholder="Descreva seu projeto..."
                     required
+                    disabled={loadingSubmit}
                 />
             </InputGroup>
 
@@ -385,6 +397,7 @@ function FormularioCriarProjeto({ onClose }) {
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
                     required
+                    disabled={loadingSubmit}
                 >
                     <option value="" disabled>
                         Selecione uma área
@@ -399,7 +412,7 @@ function FormularioCriarProjeto({ onClose }) {
                     <option value="Marketing">Marketing</option>
                 </Select>
             </InputGroup>
-            
+
             <CamposEmLinha>
                 <InputGroup>
                     <Label htmlFor="habilidades-projeto">
@@ -411,6 +424,7 @@ function FormularioCriarProjeto({ onClose }) {
                             value={buscaHabilidade}
                             onChange={handleHabilidadeChange}
                             placeholder="Pesquisar habilidade..."
+                            disabled={loadingSubmit}
                         />
                         {sugestoesH.length > 0 && (
                             <SugestoesContainer>
@@ -485,11 +499,16 @@ function FormularioCriarProjeto({ onClose }) {
             {erro && <MensagemErro>{erro}</MensagemErro>}
 
             <FooterBotoes>
-                <Botao type="button" variant="Cancelar" onClick={onClose}>
+                <Botao
+                    type="button"
+                    variant="Cancelar"
+                    onClick={onClose}
+                    disabled={loadingSubmit}
+                >
                     Cancelar
                 </Botao>
-                <Botao type="submit" variant="Modal">
-                    Criar Projeto
+                <Botao type="submit" variant="Modal" disabled={loadingSubmit}>
+                    {loadingSubmit ? 'A Criar...' : 'Criar Projeto'}
                 </Botao>
             </FooterBotoes>
         </FormContainer>

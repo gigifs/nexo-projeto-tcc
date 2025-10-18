@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/DashboardHeader.jsx';
 import QuadroPerfil from '../components/QuadroPerfil.jsx';
 
@@ -10,12 +11,14 @@ const PerfilContainer = styled.div`
 `;
 
 function PerfilPage() {
+    const navigate = useNavigate();
+
     return (
         <PerfilContainer>
             <DashboardHeader
                 titulo="Seu Perfil"
                 botaoTexto="Editar Perfil"
-                onBotaoClick={() => alert('Função Editar Perfil a ser implementada!')}
+                onBotaoClick={() => navigate('/dashboard/configuracoes')}
             >
                 É assim que você aparece para os outros colaboradores.
             </DashboardHeader>

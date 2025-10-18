@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import Botao from './Botao';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
@@ -11,7 +11,7 @@ import {
     setDoc,
     getDoc,
     updateDoc,
-    arrayRemove,
+    serverTimestamp,
     collection,
     query,
     where,
@@ -219,6 +219,7 @@ const Descricao = styled.p`
     max-height: 150px;
     overflow-y: auto; /*Adiciona scroll se a descrição for mt grande*/
     padding-right: 10px;
+    white-space: pre-line;
 `;
 
 const Footer = styled.div`
@@ -240,17 +241,22 @@ const getStatusStyle = (status) => {
     }
 };
 
-function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
+function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const { currentUser, userData } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
-    const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
-    // 2. Novos estados para controlar o modal de perfil do integrante
+    const [integranteAberto, setIntegranteAberto] = useState(null); 
     const [isPerfilModalOpen, setPerfilModalOpen] = useState(false);
     const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
     const [loadingIntegrante, setLoadingIntegrante] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
+
+    useEffect(() => {
+            const handleClickOutside = () => setIntegranteAberto(null);
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
 
     const {
         nome,
@@ -261,9 +267,13 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
         habilidades = [],
         area,
         participantes = [],
+        participantIds = [],
     } = projeto;
 
     const statusStyle = getStatusStyle(projeto.status);
+    //Verifica se o usuário atual é o dono do projeto.
+    const isOwner = currentUser?.uid === donoId;
+    const isParticipant = participantIds.includes(currentUser?.uid);
 
     // A lógica para o botão "Candidatar-se"
     const handleCandidatura = async () => {
@@ -303,7 +313,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                 nome: userData.nome,
                 sobrenome: userData.sobrenome,
                 status: 'pendente',
-                dataCandidatura: new Date(),
+                dataCandidatura: serverTimestamp()
             });
 
             setFeedback('Candidatura enviada com sucesso!');
@@ -325,32 +335,33 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
         setLoading(true);
         setFeedback('');
 
+        if (!currentUser) {
+            setFeedback('Você precisa estar logado para sair do projeto.');
+            setLoading(false);
+            return;
+        }
+
         try {
             const projetoRef = doc(db, 'projetos', projetoId);
-            const participanteParaRemover = participantes.find(
-                (p) => p.uid === currentUser.uid
+            const projetoSnap = await getDoc(projetoRef);
+            if (!projetoSnap.exists()) throw new Error('Projeto não encontrado.');
+            const projetoData = projetoSnap.data();
+
+            const novosParticipantIds = (projetoData.participantIds || []).filter(
+                id => id !== currentUser.uid
+            );
+            const novosParticipantes = (projetoData.participantes || []).filter(
+                p => p.uid !== currentUser.uid
             );
 
-            if (participanteParaRemover) {
-                await updateDoc(projetoRef, {
-                    participantIds: arrayRemove(currentUser.uid),
-                    participantes: arrayRemove(participanteParaRemover),
-                });
-            } else {
-                await updateDoc(projetoRef, {
-                    participantIds: arrayRemove(currentUser.uid),
-                });
-            }
+            await updateDoc(projetoRef, {
+                participantIds: novosParticipantIds,
+                participantes: novosParticipantes,
+            });
 
             setFeedback('Você saiu do projeto com sucesso.');
-            setConfirmOpen(false); // Fecha o modal de confirmação
-
-            // Fecha o modal de detalhes após um pequeno atraso
-            setTimeout(() => {
-                if (onClose) {
-                    onClose();
-                }
-            }, 1500);
+            setConfirmOpen(false);
+            setTimeout(() => onClose && onClose(), 1500);
         } catch (error) {
             console.error('Erro ao sair do projeto:', error);
             setFeedback('Ocorreu um erro ao tentar sair do projeto.');
@@ -362,29 +373,27 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
     // Função para iniciar/abrir uma conversa privada
     const handleSendMessage = async (destinatario) => {
         if (!currentUser || !userData) return;
-
-        // Não permite enviar mensagem para si mesmo
         if (destinatario.uid === currentUser.uid) return;
 
         const conversasRef = collection(db, 'conversas');
-        // Procura por uma conversa que tenha EXATAMENTE os dois participantes
+        const pairKey = [currentUser.uid, destinatario.uid].sort().join('_');
+
         const q = query(
-            conversasRef,
-            where('isGrupo', '==', false),
-            where('participantes', 'in', [
-                [currentUser.uid, destinatario.uid],
-                [destinatario.uid, currentUser.uid],
-            ])
-        );
+        conversasRef,
+        where('isGrupo', '==', false),
+        where('pairKey', '==', pairKey),
+        // Garante que a consulta só considere documentos onde o utilizador atual é participante
+        where('participantes', 'array-contains', currentUser.uid)
+    );
 
         try {
             const querySnapshot = await getDocs(q);
             let conversaId;
 
             if (querySnapshot.empty) {
-                // Se não existir, cria uma nova conversa
                 const novaConversa = await addDoc(conversasRef, {
                     isGrupo: false,
+                    pairKey,
                     participantes: [currentUser.uid, destinatario.uid],
                     participantesInfo: [
                         {
@@ -403,14 +412,15 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                         [destinatario.uid]: 0,
                     },
                     ultimaMensagem: null,
+                    criadoEm: serverTimestamp(), 
                 });
                 conversaId = novaConversa.id;
             } else {
-                // Se já existir, pega o ID
                 conversaId = querySnapshot.docs[0].id;
             }
 
-            // Navega para a página de mensagens, abrindo a conversa correta
+            if (onClose) onClose(); 
+
             navigate('/dashboard/mensagens', {
                 state: { activeChatId: conversaId },
             });
@@ -509,12 +519,13 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                 {todosOsIntegrantes.map((p) => (
                                     <IntegranteItem
                                         key={p.uid}
-                                        $isClickable={tipo === 'participante'}
+                                        $isClickable={isParticipant}
                                         //A função de clique só é ativada se for um participante
-                                        onClick={() =>
-                                            tipo === 'participante' &&
-                                            toggleMenuIntegrante(p.uid)
-                                        }
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (isParticipant) toggleMenuIntegrante(p.uid);
+                                        }}
+
                                     >
                                         <Avatar>
                                             {`${p.nome?.[0] || ''}${
@@ -527,17 +538,16 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                         </NomeIntegrante>
 
                                         {/*A seta do menu só aparece para participantes */}
-                                        {tipo === 'participante' && (
+                                        {isParticipant && (
                                             <FiChevronDown
                                                 style={{ marginLeft: 'auto' }}
                                             />
                                         )}
 
                                         {/*O menu suspenso só é renderizado se for participante */}
-                                        {integranteAberto === p.uid &&
-                                            tipo === 'participante' && (
+                                        {integranteAberto === p.uid && isParticipant && (
                                                 <DropdownMenu>
-                                                    <DropdownItem
+                                                    <DropdownItem role="button"
                                                         onClick={() =>
                                                             handleVerPerfilIntegrante(
                                                                 p
@@ -548,7 +558,7 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                                                     </DropdownItem>
                                                     {p.uid !==
                                                         currentUser.uid && (
-                                                        <DropdownItem
+                                                        <DropdownItem role="button"
                                                             onClick={() =>
                                                                 handleSendMessage(
                                                                     p
@@ -574,23 +584,26 @@ function VerDetalhesModal({ projeto, projetoId, tipo = 'visitante', onClose }) {
                 </DescricaoContainer>
 
                 <Footer>
-                    {tipo === 'participante' ? (
+                    {isParticipant && !isOwner && (
                         <Botao
                             variant="excluir"
                             onClick={handleSairDoProjeto}
                             disabled={loading}
                         >
-                            {loading ? 'A sair...' : 'Sair do Projeto'}
+                            {loading ? 'Saindo...' : 'Sair do Projeto'}
                         </Botao>
-                    ) : (
+                    )} 
+                    
+                    {!isParticipant && !isOwner && (
                         <Botao
                             variant="hab-int"
                             onClick={handleCandidatura}
                             disabled={loading}
                         >
-                            {loading ? 'A enviar...' : 'Candidatar-se'}
+                            {loading ? 'Enviando...' : 'Candidatar-se'}
                         </Botao>
                     )}
+
                     {feedback && (
                         <p style={{ marginTop: '10px' }}>{feedback}</p>
                     )}

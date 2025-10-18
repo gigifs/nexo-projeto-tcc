@@ -28,51 +28,52 @@ import TemCertezaModal from '../components/TemCertezaModal';
 const Formulario = styled.form`
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1.25rem;
 `;
 
 const InputGroup = styled.div`
     display: flex;
     flex-direction: column;
-    margin-bottom: 15px;
+    margin-bottom: 0.938rem;
 `;
 
 const Label = styled.label`
-    margin-bottom: 8px;
-    font-size: 20px;
+    margin-bottom: 0.5rem;
+    font-size: 1.188rem;
     font-weight: 600;
     color: #7c2256;
-    margin: 5px;
+    margin: 0.313rem;
 `;
 
 const Input = styled.input`
-    padding: 10px;
-    border-radius: 8px;
+    padding: 0.625rem;
+    border-radius: 0.5rem;
     border: 1px solid #ccc;
-    font-size: 16px;
+    font-size: 1rem;
+    min-height: 2.5rem; 
 `;
 
 const Textarea = styled.textarea`
-    padding: 10px;
-    border-radius: 8px;
+    padding: 0.625rem;
+    border-radius: 0.5rem;
     border: 1px solid #ccc;
-    font-size: 16px;
-    min-height: 100px;
+    font-size: 1rem;
+    min-height: 6.25rem;
     resize: vertical;
     font-family: inherit;
 `;
 
 const Container = styled.div`
-    padding: 20px;
+    padding: 1.25rem;
     background-color: #f5fafc;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 1.25rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
 `;
 
 const ColunasContainer = styled.div`
     display: flex;
-    gap: 30px;
-    margin-top: 20px;
+    gap: 1.875rem;
+    margin-top: 1.25rem;
 
     @media (max-width: 768px) {
         flex-direction: column;
@@ -88,17 +89,17 @@ const ColunaDireita = styled.div`
 `;
 
 const SecaoExcluir = styled.div`
-    margin-top: 40px;
-    padding-top: 20px;
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
     border-top: 1px solid #e0e0e0;
     text-align: center;
 `;
 
 const Select = styled.select`
-    padding: 10px;
-    border-radius: 8px;
+    padding: 0.625rem;
+    border-radius: 0.5rem;
     border: 1px solid #ccc;
-    font-size: 16px;
+    font-size: 1rem;
     width: 100%;
 `;
 
@@ -111,21 +112,21 @@ const SugestoesContainer = styled.ul`
     position: absolute;
     width: 100%;
     top: 100%;
-    margin-top: 2px;
+    margin-top: 0.125rem;
     left: 0;
     z-index: 2001;
     background-color: #ffffff;
     border: 1px solid #eee;
-    border-radius: 8px;
-    max-height: 150px;
+    border-radius: 0.5rem;
+    max-height: 9.375rem;
     overflow-y: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
     padding: 0;
     list-style: none;
 `;
 
 const SugestaoItem = styled.li`
-    padding: 10px 15px;
+    padding: 0.625rem 0.938rem;
     cursor: pointer;
     &:hover {
         background-color: #f5f5f5;
@@ -134,28 +135,28 @@ const SugestaoItem = styled.li`
 
 const TagsInputContainer = styled.div`
     display: flex;
-    gap: 8px;
+    gap: 0.5rem;
 `;
 
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-    min-height: 28px;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+    min-height: 1.75rem;
 `;
 
 const Tag = styled.div`
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
     color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
-    padding: 5px 12px;
-    border-radius: 16px;
-    font-size: 14px;
+    padding: 0.313rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
 
     /* Estilo para o ícone de remover a tag */
     svg {
@@ -167,7 +168,7 @@ const Tag = styled.div`
 
 const CamposLinha = styled.div`
     display: flex;
-    gap: 20px;
+    gap: 1.25rem;
     align-items: flex-start;
 `;
 

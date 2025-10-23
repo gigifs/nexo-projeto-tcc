@@ -363,7 +363,8 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 sobrenome: userData.sobrenome,
                 avatarColor: userData.avatarColor || '#0a528a',
                 status: 'pendente',
-                dataCandidatura: serverTimestamp()
+                dataCandidatura: serverTimestamp(),
+                lida: false
             });
 
             setFeedback('Candidatura enviada com sucesso!');

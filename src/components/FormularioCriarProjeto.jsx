@@ -351,8 +351,11 @@ function FormularioCriarProjeto({ onClose }) {
                 },
                 ultimaMensagem: null,
             });
-
-            addToast(`Projeto "${nomeProjeto}" criado com sucesso!`, 'success');
+            const nomeCurto =
+                nomeProjeto.length > 30
+                    ? nomeProjeto.substring(0, 30) + '...'
+                    : nomeProjeto;
+            addToast(`Projeto "${nomeCurto}" criado com sucesso!`, 'success');
             onClose();
         } catch (error) {
             console.error('Erro ao salvar o projeto.', error);

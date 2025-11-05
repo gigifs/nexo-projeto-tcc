@@ -8,8 +8,8 @@ import { FiUsers } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useToast } from '../contexts/ToastContext';
 
-// ... (todos os 'styled-components' permanecem iguais)
 const CardWrapper = styled.div`
     background-color: #f5fafc;
     border-radius: 20px;
@@ -86,8 +86,8 @@ const Tag = styled.span`
     font-size: 14px;
     font-weight: 500;
     background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 
 const CardFooter = styled.div`
@@ -155,7 +155,6 @@ const DetalhesBotao = styled(Botao)`
     border-radius: 10px;
 `;
 
-
 const getInitials = (nome, sobrenome) => {
     if (!nome) return '?';
     if (!sobrenome) return nome.substring(0, 2).toUpperCase();
@@ -177,7 +176,7 @@ const getStatusStyle = (status) => {
 
 function MyProjectCard({ projeto, currentUserId }) {
     const [modalAberto, setModalAberto] = useState(false);
-    // OBTÉM OS DADOS ATUALIZADOS DO UTILIZADOR LOGADO
+    const { addToast } = useToast();
     const { currentUser, userData } = useAuth();
     const navigate = useNavigate();
 
@@ -215,11 +214,11 @@ function MyProjectCard({ projeto, currentUserId }) {
                     state: { activeChatId: conversaId },
                 });
             } else {
-                alert('Chat para este projeto não encontrado!');
+                addToast('Chat para este projeto não encontrado!', 'error');
             }
         } catch (error) {
             console.error('Erro ao buscar chat:', error);
-            alert('Não foi possível abrir o chat.');
+            addToast('Não foi possível abrir o chat.', 'error');
         }
     };
 
@@ -265,9 +264,10 @@ function MyProjectCard({ projeto, currentUserId }) {
                             <TeamContainer>
                                 {participantes.slice(0, 3).map((p) => {
                                     // VERIFICA SE O PARTICIPANTE É O UTILIZADOR ATUAL
-                                    const corDoAvatar = p.uid === currentUser.uid
-                                        ? userData.avatarColor // Se for, usa a cor mais recente
-                                        : p.avatarColor;       // Senão, usa a cor guardada no projeto
+                                    const corDoAvatar =
+                                        p.uid === currentUser.uid
+                                            ? userData.avatarColor // Se for, usa a cor mais recente
+                                            : p.avatarColor; // Senão, usa a cor guardada no projeto
 
                                     return (
                                         <TeamMemberAvatar

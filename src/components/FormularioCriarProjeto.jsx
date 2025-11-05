@@ -130,8 +130,8 @@ const TagsContainer = styled.div`
 
 const Tag = styled.div`
     background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#d1e7ff' : '#ffcced'};
-    color: ${(props) => (props.$tipo === 'habilidade' ? '#0d6efd' : '#9c27b0')};
+        props.$tipo === 'habilidade' ? '#d1e7ff' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0d6efd' : '#FE3F85')};
     padding: 5px 12px;
     border-radius: 16px;
     font-size: 14px;

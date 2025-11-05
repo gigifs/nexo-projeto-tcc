@@ -53,7 +53,7 @@ const BadgeContador = styled.span`
     position: absolute;
     top: -0.2rem;
     right: -0.4rem;
-    background-color: red;
+    background-color: #e80e0eff;
     color: white;
     border-radius: 50%;
     width: 1.3rem;

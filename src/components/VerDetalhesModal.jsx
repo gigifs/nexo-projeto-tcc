@@ -676,9 +676,6 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                         </Botao>
                     )}
 
-                    {feedback && (
-                        <p style={{ marginTop: '10px' }}>{feedback}</p>
-                    )}
                 </Footer>
             </ModalWrapper>
 

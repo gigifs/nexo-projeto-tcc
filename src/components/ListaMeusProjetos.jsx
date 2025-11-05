@@ -4,6 +4,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import MyProjectCard from './MyProjectCard';
+import { useToast } from '../contexts/ToastContext';
 
 const ListWrapper = styled.div`
     display: grid;
@@ -25,6 +26,7 @@ function ListaMeusProjetos() {
     const [projetos, setProjetos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { addToast } = useToast();
 
     useEffect(() => {
         if (!currentUser) {
@@ -67,7 +69,8 @@ function ListaMeusProjetos() {
             setLoading(false);
         }, (err) => {
             console.error("Erro ao buscar projetos (dono):", err);
-            setError('Não foi possível carregar seus projetos.');
+            addToast('Não foi possível carregar seus projetos.', 'error');
+            setError('Erro ao carregar seus projetos.');
             setLoading(false);
         });
 
@@ -83,6 +86,7 @@ function ListaMeusProjetos() {
             setLoading(false);
         }, (err) => {
             console.error("Erro ao buscar projetos (membro):", err);
+            addToast('Não foi possível carregar os projetos em que você participa.', 'error');
             setError('Não foi possível carregar seus projetos.');
             setLoading(false);
         });

@@ -5,56 +5,70 @@ import { NavLink } from 'react-router-dom';
 const TabsContainer = styled.nav`
     width: 100%;
     background-color: #f5fafc;
-    padding: 0 30px;
-    border-radius: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+    padding: 0 15px; /* Reduced horizontal padding */
+    border-radius: 15px; /* Slightly smaller radius */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Softer shadow */
     display: flex;
-    justify-content: center;
-    gap: 40px; /* Espaço entre os botões */
+    justify-content: center; /* Keeps items centered */
+    gap: 20px; /* Reduced gap */
+
+    /* Responsive adjustments */
+    @media (max-width: 1400px) { /* Breakpoint for smaller notebooks/tablets */
+        justify-content: center; /* Distribute space more evenly */
+        gap: 10rem;
+    }
+
+    @media (min-width: 1600px) { /* Breakpoint for smaller tablets/large phones */
+        justify-content: space-between; /* Distribute space more evenly */
+        overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
+        padding: 0 20rem 0 20rem;
+        /* Optional: Hide scrollbar visually */
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+        &::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+    }
 `;
 
-// Usamos styled(NavLink) para estilizar o componente NavLink do router
 const TabLink = styled(NavLink)`
     position: relative;
-    padding: 16px 225px;
-    font-size: 20px;
-    font-weight: 400;
+    padding: 14px 25px; /* SIGNIFICANTLY reduced horizontal padding, adjusted vertical */
+    font-size: 18px; /* Slightly smaller font */
+    font-weight: 500; /* Medium weight for inactive */
     cursor: pointer;
     background: none;
     border: none;
-    color: #000000ff; /* Cor padrão para inativo */
+    color: #555; /* Darker grey for inactive */
     text-decoration: none;
     transition: all 0.2s ease-in-out;
-    white-space: nowrap;
+    white-space: nowrap; /* Keep text on one line */
+    border-radius: 10px 10px 0 0; /* Add slight rounding to top corners */
+    border-bottom: 3px solid transparent; /* Placeholder for the active line */
 
     &:hover {
-        color: #7c2256; /* Cor roxa no hover */
-        font-weight: 500;
+        color: #7c2256;
+        background-color: #e6ebf0; /* Subtle background on hover */
     }
 
-    /* 3. Criamos a nossa linha customizada com o ::after */
-    &::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
+    /* Remove the ::after pseudo-element */
 
-        width: 100%; /* A linha terá 100% da largura do TabLink (incluindo o padding) */
-        height: 3px; /* A espessura da linha */
-        background-color: #7c2256;
-
-        transform: scaleX(0); /* Começa "invisível" (encolhida) */
-        transition: transform 0.3s ease;
-    }
-
-    /* 4. Quando o link estiver ativo, a linha aparece */
+    /* Style for the active link */
     &.active {
         color: #7c2256;
-        font-weight: 500;
+        font-weight: 700; /* Bolder for active */
+        border-bottom-color: #7c2256; /* Use border instead of ::after */
+        background-color: #e6ebf0; /* Match hover background */
+    }
 
-        &::after {
-            transform: scaleX(1); /* A linha expande para 100% da sua largura */
-        }
+    /* Responsive adjustments for the link itself */
+    @media (max-width: 992px) {
+        padding: 12px 18px;
+        font-size: 17px;
+    }
+    @media (max-width: 768px) {
+        padding: 10px 15px;
+        font-size: 16px;
     }
 `;
 
@@ -62,6 +76,7 @@ function NavegacaoAbas({ abas }) {
     return (
         <TabsContainer>
             {abas.map((aba) => (
+                // 'end' prop ensures the NavLink is only active for the exact path
                 <TabLink key={aba.path} to={aba.path} end>
                     {aba.label}
                 </TabLink>

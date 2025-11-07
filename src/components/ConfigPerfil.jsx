@@ -7,6 +7,7 @@ import Botao from './Botao';
 import Modal from './Modal';
 import EditarInteressesModal from './EditarInteressesModal';
 import { FiEdit, FiGithub, FiLinkedin } from 'react-icons/fi';
+import { useToast } from '../contexts/ToastContext';
 
 // Container principal (Layout original)
 const FormContainer = styled.div`
@@ -255,6 +256,7 @@ function ConfigPerfil() {
     const [isInteressesModalOpen, setIsInteressesModalOpen] = useState(false);
     const [isColorModalOpen, setIsColorModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const { addToast } = useToast();
 
     useEffect(() => {
         if (userData) {
@@ -285,8 +287,8 @@ function ConfigPerfil() {
     // FUNÇÃO ALTERADA PARA VALIDAR A COR E SALVAR IMEDIATAMENTE
     const handleConfirmColor = async () => {
         if (isColorTooLight(tempAvatarColor)) {
-            alert(
-                'A cor escolhida é muito clara e pode não ser visível. Por favor, escolha uma cor mais escura.'
+            addToast(
+                'A cor escolhida é muito clara e pode não ser visível. Por favor, escolha uma cor mais escura.', 'info'
             );
             return;
         }
@@ -308,7 +310,7 @@ function ConfigPerfil() {
             setIsColorModalOpen(false);
         } catch (error) {
             console.error('Erro ao salvar a cor do avatar:', error);
-            alert('Não foi possível salvar a nova cor. Tente novamente.');
+            addToast('Não foi possível salvar a nova cor. Tente novamente.', 'error');
         }
     };
 
@@ -324,10 +326,10 @@ function ConfigPerfil() {
             const userDocRef = doc(db, 'users', currentUser.uid);
             await setDoc(userDocRef, formData, { merge: true });
             await refreshUserData();
-            alert('Informações salvas com sucesso!');
+            addToast('Informações salvas com sucesso!', 'success');
         } catch (error) {
             console.error('Erro ao salvar as informações:', error);
-            alert('Ocorreu um erro ao salvar. Tente novamente.');
+            addToast('Ocorreu um erro ao salvar. Tente novamente.', 'error');
         } finally {
             setLoading(false);
         }

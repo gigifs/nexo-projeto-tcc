@@ -55,7 +55,7 @@ const LinkExterno = styled.a.attrs({
     text-decoration: none;
 
     &:hover {
-        color: #0072B1;
+        color: #0072b1;
     }
 
     svg {
@@ -117,8 +117,6 @@ const Bio = styled.p`
     &::-webkit-scrollbar {
         display: none; /* Chrome, Safari and Opera */
     }
-
-
 `;
 
 const TagsContainer = styled.div`
@@ -133,9 +131,8 @@ const Tag = styled.span`
     font-size: 14px;
     font-weight: 600;
     background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0'};
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 
 const FooterAcoes = styled.div`
@@ -162,20 +159,26 @@ function PerfilUsuarioModal({
     loading,
     tipo = 'candidato',
 }) {
-
     if (!isOpen || !usuario) return null;
 
     const todasAsTags = [
-        ...(usuario.habilidades || []).map((h) => ({ nome: h, tipo: 'habilidade' })),
-        ...(usuario.interesses || []).map((i) => ({ nome: i, tipo: 'interesse' })),
+        ...(usuario.habilidades || []).map((h) => ({
+            nome: h,
+            tipo: 'habilidade',
+        })),
+        ...(usuario.interesses || []).map((i) => ({
+            nome: i,
+            tipo: 'interesse',
+        })),
     ];
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} size="large">
             <ModalWrapper>
-
                 <ColunaEsquerda>
-                    <Avatar $bgColor={usuario.avatarColor}>{getInitials(usuario.nome, usuario.sobrenome)}</Avatar>
+                    <Avatar $bgColor={usuario.avatarColor}>
+                        {getInitials(usuario.nome, usuario.sobrenome)}
+                    </Avatar>
                     <LinksSociais>
                         {usuario.github && (
                             <LinkExterno href={usuario.github}>
@@ -196,14 +199,16 @@ function PerfilUsuarioModal({
                             <FiUser /> {usuario.nome} {usuario.sobrenome}
                         </Nome>
                         <Curso>
-                            <FaGraduationCap /> {usuario.curso || 'Curso não informado'}
+                            <FaGraduationCap />{' '}
+                            {usuario.curso || 'Curso não informado'}
                         </Curso>
                     </InfoPrincipal>
 
                     <Secao>
                         <SecaoTitulo>Sobre mim</SecaoTitulo>
                         <Bio>
-                            {usuario.bio || 'Este usuário ainda não preencheu a sua biografia.'}
+                            {usuario.bio ||
+                                'Este usuário ainda não preencheu a sua biografia.'}
                         </Bio>
                     </Secao>
 
@@ -232,7 +237,9 @@ function PerfilUsuarioModal({
                             </Botao>
                             <Botao
                                 variant="excluir"
-                                onClick={() => onRejeitar && onRejeitar(usuario)}
+                                onClick={() =>
+                                    onRejeitar && onRejeitar(usuario)
+                                }
                                 disabled={loading}
                             >
                                 Rejeitar

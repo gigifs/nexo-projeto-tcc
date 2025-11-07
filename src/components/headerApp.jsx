@@ -7,7 +7,13 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import MenuSuspenso from './MenuSuspenso.jsx';
 import Notificacoes from './Notificacoes.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
-import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    onSnapshot,
+} from 'firebase/firestore';
 import { db } from '../firebase';
 
 const HeaderEstilizado = styled.header`
@@ -21,34 +27,33 @@ const HeaderEstilizado = styled.header`
     position: sticky; /* Mantém no topo */
     top: 0;
     z-index: 10; /* Fica acima do conteúdo, mas abaixo do menu lateral */
-    
+
     @media (max-width: 768px) {
         padding: 0.5rem 1.25rem;
         justify-content: right;
-
     }
 `;
 
 // Novo: Ícone do Menu Hambúrguer
 const MenuToggleButton = styled.button`
-  display: none; /* Escondido em telas grandes */
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  margin-right: 15px; /* Espaço entre o ícone e o logo (se visível) ou user area */
-  color: #7c2256; /* Cor roxa */
+    display: none; /* Escondido em telas grandes */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin-right: 15px; /* Espaço entre o ícone e o logo (se visível) ou user area */
+    color: #7c2256; /* Cor roxa */
 
-  @media (max-width: 1024px) {
-    display: block; /* Mostra em telas menores */
-    z-index: 11; /* Garante que fique acima de outros elementos do header */
-  }
+    @media (max-width: 1024px) {
+        display: block; /* Mostra em telas menores */
+        z-index: 11; /* Garante que fique acima de outros elementos do header */
+    }
 `;
 
 // Novo: Container para agrupar logo e botão de menu (opcional, mas ajuda no layout)
 const LeftSection = styled.div`
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 `;
 
 const Logo = styled.img`
@@ -68,7 +73,7 @@ const UserArea = styled.div`
 
     /* Garante que a UserArea vá para a direita quando o logo some */
     @media (max-width: 1024px) {
-      margin-left: auto;
+        margin-left: auto;
     }
 `;
 
@@ -131,9 +136,8 @@ const getInitials = (nome, sobrenome) => {
     return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
 };
 
-
-function HeaderApp() {
-    const { userData, currentUser} = useAuth();
+function HeaderApp({ isMenuOpen, onToggleMenu }) {
+    const { userData, currentUser } = useAuth();
     const [menuAberto, setMenuAberto] = useState(false);
     const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
     const [contagemNotificacoes, setContagemNotificacoes] = useState(0);
@@ -153,53 +157,61 @@ function HeaderApp() {
         if (!currentUser) return;
 
         const projetosRef = collection(db, 'projetos');
-        const qProjetos = query(projetosRef, where('donoId', '==', currentUser.uid));
+        const qProjetos = query(
+            projetosRef,
+            where('donoId', '==', currentUser.uid)
+        );
 
         let unsubscribes = [];
 
         const buscarContagem = async () => {
             try {
-            const projetosSnapshot = await getDocs(qProjetos);
-            const projetos = projetosSnapshot.docs.map(doc => doc.id);
-            console.log("Projetos encontrados:", projetosSnapshot.docs.length);
-            if (projetos.length === 0) {
-                setContagemNotificacoes(0);
-                return;
-            }
-
-            // array que vai armazenar os totais de cada projeto
-            const contagensPorProjeto = {};
-
-            unsubscribes = projetos.map((id) => {
-                const ref = collection(db, 'projetos', id, 'candidaturas');
-                const q = query(ref, where('lida', '==', false));
-                
-                return onSnapshot(q, (snapshot) => {
-                console.log("Snapshot do projeto", id, snapshot.size);
-                // atualiza o total de não lidas deste projeto
-                contagensPorProjeto[id] = snapshot.size;
-
-                // soma total de todas as não lidas dos projetos
-                const totalNaoLidas = Object.values(contagensPorProjeto).reduce(
-                    (acc, count) => acc + count,
-                    0
+                const projetosSnapshot = await getDocs(qProjetos);
+                const projetos = projetosSnapshot.docs.map((doc) => doc.id);
+                console.log(
+                    'Projetos encontrados:',
+                    projetosSnapshot.docs.length
                 );
+                if (projetos.length === 0) {
+                    setContagemNotificacoes(0);
+                    return;
+                }
 
-                setContagemNotificacoes(totalNaoLidas);
-            });
-        });
-    } catch (error) {
-        console.error("Erro ao buscar contagem de notificações:", error);
-        addToast("Erro ao carregar contagem de notificações.", "error");
-    }
-};
+                // array que vai armazenar os totais de cada projeto
+                const contagensPorProjeto = {};
 
-  buscarContagem();
+                unsubscribes = projetos.map((id) => {
+                    const ref = collection(db, 'projetos', id, 'candidaturas');
+                    const q = query(ref, where('lida', '==', false));
 
-  return () => {
-    unsubscribes.forEach((unsub) => unsub && unsub());
-  };
-}, [currentUser]);
+                    return onSnapshot(q, (snapshot) => {
+                        console.log('Snapshot do projeto', id, snapshot.size);
+                        // atualiza o total de não lidas deste projeto
+                        contagensPorProjeto[id] = snapshot.size;
+
+                        // soma total de todas as não lidas dos projetos
+                        const totalNaoLidas = Object.values(
+                            contagensPorProjeto
+                        ).reduce((acc, count) => acc + count, 0);
+
+                        setContagemNotificacoes(totalNaoLidas);
+                    });
+                });
+            } catch (error) {
+                console.error(
+                    'Erro ao buscar contagem de notificações:',
+                    error
+                );
+                addToast('Erro ao carregar contagem de notificações.', 'error');
+            }
+        };
+
+        buscarContagem();
+
+        return () => {
+            unsubscribes.forEach((unsub) => unsub && unsub());
+        };
+    }, [currentUser]);
 
     return (
         <HeaderEstilizado>
@@ -216,38 +228,43 @@ function HeaderApp() {
                 <IconeNotificacao onClick={toggleNotificacoes}>
                     <FiBell size={32} strokeWidth={2.5} />
                     {contagemNotificacoes > 0 && (
-                        <BadgeContador>{contagemNotificacoes > 9 ? '9+' : contagemNotificacoes}</BadgeContador>
+                        <BadgeContador>
+                            {contagemNotificacoes > 9
+                                ? '9+'
+                                : contagemNotificacoes}
+                        </BadgeContador>
                     )}
                 </IconeNotificacao>
 
+                {currentUser && (
+                    <>
+                        {notificacoesAbertas && (
+                            <Notificacoes
+                                onClose={() => setNotificacoesAbertas(false)}
+                            />
+                        )}
 
-        {currentUser && (
-          <>
-            {notificacoesAbertas && (
-              <Notificacoes onClose={() => setNotificacoesAbertas(false)} />
-            )}
+                        {/* ALTERADO: Passamos a cor do avatar dinamicamente */}
+                        <Avatar $bgColor={userData?.avatarColor}>
+                            {getInitials(userData?.nome, userData?.sobrenome)}
+                        </Avatar>
 
-            {/* ALTERADO: Passamos a cor do avatar dinamicamente */}
-            <Avatar $bgColor={userData?.avatarColor}>
-                {getInitials(userData?.nome, userData?.sobrenome)}
-            </Avatar>
+                        <Nome>{userData?.nome}</Nome>
 
-            <Nome>{userData?.nome}</Nome>
+                        <UserProfile onClick={toggleMenu}>
+                            <FiChevronDown
+                                size={30}
+                                strokeWidth={2.5}
+                                color="#030214b3"
+                            />
+                        </UserProfile>
 
-            <UserProfile onClick={toggleMenu}>
-              <FiChevronDown
-                size={30}
-                strokeWidth={2.5}
-                color="#030214b3"
-              />
-            </UserProfile>
-
-            {menuAberto && <MenuSuspenso />}
-          </>
-        )}
-      </UserArea>
-    </HeaderEstilizado>
-  );
+                        {menuAberto && <MenuSuspenso />}
+                    </>
+                )}
+            </UserArea>
+        </HeaderEstilizado>
+    );
 }
 
 export default HeaderApp;

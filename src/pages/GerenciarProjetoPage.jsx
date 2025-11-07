@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import Botao from '../components/Botao';
 import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import DashboardHeader from '../components/DashboardHeader';
 import Candidaturas from '../components/Candidaturas';
 import MembrosProjeto from '../components/MembrosProjeto';
@@ -51,7 +52,7 @@ const Input = styled.input`
     border-radius: 0.5rem;
     border: 1px solid #ccc;
     font-size: 1rem;
-    min-height: 2.5rem; 
+    min-height: 2.5rem;
 `;
 
 const Textarea = styled.textarea`
@@ -149,8 +150,8 @@ const TagsContainer = styled.div`
 
 const Tag = styled.div`
     background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
     padding: 0.313rem 0.75rem;
     border-radius: 1rem;
     font-size: 0.875rem;
@@ -163,7 +164,7 @@ const Tag = styled.div`
     svg {
         cursor: pointer;
         color: ${(props) =>
-            props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0'};
+            props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85'};
     }
 `;
 
@@ -173,11 +174,11 @@ const CamposLinha = styled.div`
     align-items: flex-start;
 `;
 
-
 function GerenciarProjetoPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { currentUser, userData } = useAuth(); // <-- OBTÉM O userData AQUI
+    const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
 
     const [projeto, setProjeto] = useState(null);
     const [candidaturas, setCandidaturas] = useState([]);
@@ -507,7 +508,6 @@ function GerenciarProjetoPage() {
         }
 
         try {
-
             const projetoRef = doc(db, 'projetos', id);
 
             await updateDoc(projetoRef, {
@@ -522,10 +522,35 @@ function GerenciarProjetoPage() {
                 ),
             }));
 
-            alert(`${membroParaRemover.nome} foi removido(a) do projeto.`);
+            const conversasRef = collection(db, 'conversas');
+            const qConversa = query(conversasRef, where('projetoId', '==', id));
+            const conversaSnapshot = await getDocs(qConversa);
+
+            if (!conversaSnapshot.empty) {
+                const conversaDoc = conversaSnapshot.docs[0];
+                const conversaRef = doc(db, 'conversas', conversaDoc.id);
+                // Prepara a informação do participante a ser removida
+                const participanteParaRemover = {
+                    uid: membroParaRemover.uid,
+                    nome: membroParaRemover.nome,
+                    sobrenome: membroParaRemover.sobrenome,
+                    avatarColor: membroParaRemover.avatarColor, // Garante que a cor está incluída se precisar comparar objetos completos
+                };
+
+                await updateDoc(conversaRef, {
+                    participantes: arrayRemove(membroParaRemover.uid),
+                    participantesInfo: arrayRemove(participanteParaRemover),
+                });
+                console.log('Membro removido da conversa.'); // Log para depuração
+            }
+
+            addToast(
+                `${membroParaRemover.nome} foi removido(a) do projeto.`,
+                'success'
+            );
         } catch (err) {
             console.error('Erro ao remover membro:', err);
-            alert('Ocorreu um erro ao remover o membro.');
+            addToast('Ocorreu um erro ao remover o membro.', 'error');
         }
     };
 
@@ -538,14 +563,32 @@ function GerenciarProjetoPage() {
     const confirmarExclusao = async () => {
         setIsDeleting(true);
         try {
+            const conversasRef = collection(db, 'conversas');
+            const qConversa = query(conversasRef, where('projetoId', '==', id));
+            const conversaSnapshot = await getDocs(qConversa);
+
+            if (!conversaSnapshot.empty) {
+                const conversaDoc = conversaSnapshot.docs[0];
+                await deleteDoc(doc(db, 'conversas', conversaDoc.id));
+                console.log('Conversa do projeto excluída.'); // Log para depuração
+            } else {
+                console.log('Nenhuma conversa encontrada para este projeto.'); // Log para depuração
+            }
+
             const projetoRef = doc(db, 'projetos', id);
             await deleteDoc(projetoRef);
-            alert('Projeto excluído com sucesso.');
+
+            const nomeCurto =
+                nomeEditavel.length > 30
+                    ? nomeEditavel.substring(0, 30) + '...'
+                    : nomeEditavel; // Usar nomeEditavel que está no escopo
+            addToast(`Projeto "${nomeCurto}" excluído com sucesso.`, 'success');
+
             setConfirmModalOpen(false);
             navigate('/dashboard/meus-projetos');
         } catch (err) {
             console.error('Erro ao excluir projeto:', err);
-            alert('Ocorreu um erro ao excluir o projeto.');
+            addToast('Ocorreu um erro ao excluir o projeto.', 'error');
         } finally {
             setIsDeleting(false);
         }
@@ -605,9 +648,8 @@ function GerenciarProjetoPage() {
                     Edite informações, gerencie a equipe e avalie as
                     candidaturas.
                 </DashboardHeader>
-                
-                <Container>
 
+                <Container>
                     <ColunasContainer>
                         <ColunaEsquerda>
                             <InputGroup>

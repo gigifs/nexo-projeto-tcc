@@ -52,8 +52,8 @@ const StatusTag = styled.span`
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
-    background-color: ${props => props.$color || '#e0e0e0'};
-    color: ${props => props.$textColor || '#000'};
+    background-color: ${(props) => props.$color || '#e0e0e0'};
+    color: ${(props) => props.$textColor || '#000'};
 `;
 
 const DescricaoProjeto = styled.p`
@@ -73,8 +73,8 @@ const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap; /* Permite que as tags quebrem a linha */
     gap: 6px;
-    height: 30px;      /* Altura fixa para apenas UMA linha de tags */
-    overflow: hidden;  /* Esconde qualquer tag que passe para a segunda linha */
+    height: 30px; /* Altura fixa para apenas UMA linha de tags */
+    overflow: hidden; /* Esconde qualquer tag que passe para a segunda linha */
 `;
 
 //Tags com cores condicionais de acordo com o tipo
@@ -84,14 +84,15 @@ const Tag = styled.span`
     font-size: 14px;
     font-weight: 500;
     /*Define a cor com base na propriedade '$tipo'*/
-    background-color: ${props => (props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced')};
-    color: ${props => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
+    background-color: ${(props) =>
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 
 const CardFooter = styled.div`
     display: flex;
     justify-content: space-between;
-    align-items: flex-end; 
+    align-items: flex-end;
     margin-top: auto; /*Empurra o rodapé pro final do card*/
     border-top: 1px solid #eee; /*Barra entre tags e curso, pode tirar caso não gostem*/
 `;
@@ -147,9 +148,9 @@ const getStatusStyle = (status) => {
         case 'Novo':
             return { $color: '#FFE0B2', $textColor: '#E65100' };
         case 'Em Andamento':
-            return { $color: '#786de080', $textColor: '#372b9cff'};
+            return { $color: '#786de080', $textColor: '#372b9cff' };
         case 'Concluido':
-            return { $color: '', $textColor: ''};
+            return { $color: '', $textColor: '' };
         default:
             return { $color: '#e0e0e0', $textColor: '#000' };
     }
@@ -171,12 +172,15 @@ function ProjectCard({ projeto }) {
     } = projeto;
 
     const statusStyle = getStatusStyle(status);
-    const nomeCompletoDono = `${donoNome || ''} ${donoSobrenome || ""}`.trim();
-
+    const nomeCompletoDono = `${donoNome || ''} ${donoSobrenome || ''}`.trim();
 
     const tagsParaExibir = [
-        ...(habilidades || []).slice(0, 3).map(h => ({ nome: h, tipo: 'habilidade' })),
-        ...(interesses || []).slice(0, 3).map(i => ({ nome: i, tipo: 'interesse' }))
+        ...(habilidades || [])
+            .slice(0, 3)
+            .map((h) => ({ nome: h, tipo: 'habilidade' })),
+        ...(interesses || [])
+            .slice(0, 3)
+            .map((i) => ({ nome: i, tipo: 'interesse' })),
     ];
 
     return (
@@ -185,8 +189,8 @@ function ProjectCard({ projeto }) {
                 <CardHeader>
                     <TituloProjeto>{nome}</TituloProjeto>
                     {status && (
-                        <StatusTag 
-                            $color={statusStyle.$color} 
+                        <StatusTag
+                            $color={statusStyle.$color}
                             $textColor={statusStyle.$textColor}
                         >
                             {status}
@@ -211,7 +215,9 @@ function ProjectCard({ projeto }) {
                             <span>{curso || 'Curso não informado'}</span>
                         </FooterText>
                         <FooterText>
-                            <Avatar $bgColor={donoAvatarColor}>{getInitials(donoNome, donoSobrenome)}</Avatar>
+                            <Avatar $bgColor={donoAvatarColor}>
+                                {getInitials(donoNome, donoSobrenome)}
+                            </Avatar>
                             <span>{nomeCompletoDono || 'Nome do Dono'}</span>
                         </FooterText>
                     </OwnerDetails>
@@ -222,11 +228,8 @@ function ProjectCard({ projeto }) {
                 </CardFooter>
             </CardWrapper>
 
-            <Modal 
-                isOpen={modalAberto}
-                onClose={() => setModalAberto(false)}
-            >
-                    <VerDetalhesModal projeto={projeto} projetoId={projeto.id} />
+            <Modal isOpen={modalAberto} onClose={() => setModalAberto(false)}>
+                <VerDetalhesModal projeto={projeto} projetoId={projeto.id} />
             </Modal>
         </>
     );

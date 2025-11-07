@@ -150,8 +150,8 @@ const TagsContainer = styled.div`
 
 const Tag = styled.div`
     background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
     padding: 0.313rem 0.75rem;
     border-radius: 1rem;
     font-size: 0.875rem;
@@ -164,7 +164,7 @@ const Tag = styled.div`
     svg {
         cursor: pointer;
         color: ${(props) =>
-            props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0'};
+            props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85'};
     }
 `;
 

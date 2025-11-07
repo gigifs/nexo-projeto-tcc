@@ -6,6 +6,7 @@ import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
 import Modal from './Modal';
 import TemCertezaModal from './TemCertezaModal';
+import { useToast } from '../contexts/ToastContext';
 import {
     doc,
     setDoc,
@@ -245,7 +246,6 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const { currentUser, userData } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [feedback, setFeedback] = useState('');
     const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
     const [todosOsIntegrantes, setTodosOsIntegrantes] = useState([]);
     // 2. Novos estados para controlar o modal de perfil do integrante
@@ -253,6 +253,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
     const [loadingIntegrante, setLoadingIntegrante] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
+    const { addToast } = useToast(); // Hook para exibir toasts
 
     useEffect(() => {
             const handleClickOutside = () => setIntegranteAberto(null);
@@ -325,74 +326,95 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         fetchIntegrantesData();
     }, [projeto]); // Roda sempre que o projeto mudar
 
+    /**
+     * Função executada quando o usuário clica em "Candidatar-se".
+     * Verifica se o usuário pode se candidatar e cria um documento na subcoleção
+     * 'candidaturas' do projeto no Firestore.
+     */
     const handleCandidatura = async () => {
         setLoading(true);
-        setFeedback('');
 
+        // Validações iniciais
         if (!currentUser || !userData) {
-            setFeedback('Você precisa estar logado para se candidatar.');
+            addToast('Você precisa estar logado para se candidatar.', 'error');
             setLoading(false);
             return;
         }
-
         if (currentUser.uid === projeto.donoId) {
-            setFeedback('Você não pode se candidatar ao seu próprio projeto.');
+            addToast('Você não pode se candidatar ao seu próprio projeto.', 'error');
             setLoading(false);
             return;
         }
 
         try {
+            // Referência ao possível documento de candidatura deste usuário para este projeto
             const candidaturaRef = doc(
                 db,
                 'projetos',
                 projetoId,
                 'candidaturas',
-                currentUser.uid
+                currentUser.uid // O ID da candidatura é o UID do candidato
             );
 
+            // Verifica se já existe uma candidatura
             const candidaturaSnap = await getDoc(candidaturaRef);
             if (candidaturaSnap.exists()) {
-                setFeedback('Você já se candidatou a este projeto.');
+                addToast('Você já se candidatou a este projeto.', 'info');
                 setLoading(false);
                 return;
             }
 
+            // Cria o documento da candidatura
             await setDoc(candidaturaRef, {
                 userId: currentUser.uid,
                 nome: userData.nome,
                 sobrenome: userData.sobrenome,
                 avatarColor: userData.avatarColor || '#0a528a',
-                status: 'pendente',
-                dataCandidatura: serverTimestamp()
+                status: 'pendente', // Status inicial
+                dataCandidatura: serverTimestamp(), // Data/hora do servidor
+                lida: false // Marca como não lida inicialmente
             });
 
-            setFeedback('Candidatura enviada com sucesso!');
+            // Feedback de sucesso
+            addToast('Candidatura enviada com sucesso!', 'success');
+             // Fecha o modal após sucesso
+             if (onClose) onClose();
+
         } catch (error) {
             console.error('Erro ao enviar candidatura:', error);
-            setFeedback(
-                'Ocorreu um erro ao enviar sua candidatura. Tente novamente.'
-            );
+            // Verifica se o erro é de permissão (indicativo de que a regra de escrita na subcoleção pode estar errada)
+             if (error.code === 'permission-denied') {
+                 addToast('Erro de permissão ao enviar candidatura. Verifique as regras do Firestore.', 'error');
+             } else {
+                 addToast('Ocorreu um erro ao enviar sua candidatura. Tente novamente.', 'error');
+             }
         } finally {
-            setLoading(false);
+            setLoading(false); // Garante que o loading termine
         }
     };
 
+    // Função para abrir modal de confirmação de saída
     const handleSairDoProjeto = () => {
         setConfirmOpen(true);
     };
 
+    /**
+     * Função executada após confirmação para remover o usuário atual do projeto.
+     * Atualiza os arrays 'participantIds' e 'participantes' no documento do projeto.
+     */
     const confirmarSaidaDoProjeto = async () => {
         setLoading(true);
-        setFeedback('');
 
         if (!currentUser) {
-            setFeedback('Você precisa estar logado para sair do projeto.');
+            addToast('Você precisa estar logado para sair do projeto.', 'error');
             setLoading(false);
             return;
         }
 
         try {
             const projetoRef = doc(db, 'projetos', projetoId);
+
+            // --- Lógica para buscar e atualizar o projeto
             const projetoSnap = await getDoc(projetoRef);
             if (!projetoSnap.exists()) throw new Error('Projeto não encontrado.');
             const projetoData = projetoSnap.data();
@@ -409,18 +431,19 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 participantes: novosParticipantes,
             });
 
-            setFeedback('Você saiu do projeto com sucesso.');
-            setConfirmOpen(false);
-            setTimeout(() => onClose && onClose(), 1500);
+            addToast('Você saiu do projeto com sucesso.', 'success');
+            setConfirmOpen(false); // Fecha o modal de confirmação
+            setTimeout(() => onClose && onClose(), 1500); // Fecha o modal principal após um delay
         } catch (error) {
             console.error('Erro ao sair do projeto:', error);
-            setFeedback('Ocorreu um erro ao tentar sair do projeto.');
+            addToast('Ocorreu um erro ao tentar sair do projeto.', 'error');
+            setConfirmOpen(false); // Fecha o modal de confirmação mesmo com erro
         } finally {
             setLoading(false);
         }
     };
 
-    // Função para iniciar/abrir uma conversa privada
+    // Função para iniciar chat privado
     const handleSendMessage = async (destinatario) => {
         if (!currentUser || !userData) return;
         if (destinatario.uid === currentUser.uid) return;
@@ -469,22 +492,24 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 conversaId = querySnapshot.docs[0].id;
             }
 
-            if (onClose) onClose(); 
+            if (onClose) onClose(); // Fecha o modal atual
 
+            // Navega para a página de mensagens, passando o ID da conversa ativa
             navigate('/dashboard/mensagens', {
                 state: { activeChatId: conversaId },
             });
         } catch (error) {
             console.error('Erro ao iniciar conversa:', error);
-            alert('Não foi possível iniciar a conversa.');
+            addToast('Não foi possível iniciar a conversa.', 'error');
         }
     };
 
+    // Função para alternar menu de integrante
     const toggleMenuIntegrante = (uid) => {
         setIntegranteAberto(integranteAberto === uid ? null : uid);
     };
 
-    // Nova função para buscar dados do integrante e abrir o modal
+    // Função para buscar dados do integrante e abrir modal
     const handleVerPerfilIntegrante = async (integrante) => {
         setLoadingIntegrante(true);
         setPerfilModalOpen(true);
@@ -651,9 +676,6 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                         </Botao>
                     )}
 
-                    {feedback && (
-                        <p style={{ marginTop: '10px' }}>{feedback}</p>
-                    )}
                 </Footer>
             </ModalWrapper>
 

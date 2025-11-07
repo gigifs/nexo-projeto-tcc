@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
+import { useToast } from '../contexts/ToastContext';
 
 const LayoutContainer = styled.div`
     background-color: #f5fafc;
@@ -126,6 +127,8 @@ function PrivacidadeSeguranca() {
     const [deleteError, setDeleteError] = useState('');
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    const { addToast } = useToast();
+
     // Função para limpar as mensagens de feedback após um tempo
     const limparMensagem = () => {
         setTimeout(() => {
@@ -211,7 +214,7 @@ function PrivacidadeSeguranca() {
             await deleteUser(currentUser);
 
             // Se a exclusão der certo, fecha o modal e desloga
-            alert('Sua conta foi excluída com sucesso.');
+            addToast('Sua conta foi excluída com sucesso.', 'success');
             setShowDeleteModal(false);
             await logout();
         } catch (error) {

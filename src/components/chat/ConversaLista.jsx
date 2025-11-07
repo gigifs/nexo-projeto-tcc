@@ -177,6 +177,7 @@ const BadgeNaoLido = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 `;
 
 const getInitials = (name = '', sobrenome = '') => {
@@ -243,7 +244,7 @@ function ConversaLista({
                     const nomeCompleto = getNomeConversa(conversa);
                     const [nome, ...sobrenomeArray] = nomeCompleto.split(' ');
                     const sobrenome = sobrenomeArray.join(' ');
-                    
+
                     return (
                         <ItemConversa
                             key={conversa.id}
@@ -254,9 +255,7 @@ function ConversaLista({
                                 {getInitials(nome, sobrenome)}
                             </Avatar>
                             <InfoConversa>
-                                <NomeConversa>
-                                    {nomeCompleto}
-                                </NomeConversa>
+                                <NomeConversa>{nomeCompleto}</NomeConversa>
                                 {conversa.ultimaMensagem && (
                                     <UltimaMensagemContainer>
                                         <RemetenteMensagem>

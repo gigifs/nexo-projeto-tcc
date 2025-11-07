@@ -70,13 +70,10 @@ const Placeholder = styled.div`
     }
 `;
 
-const getInitials = (name = '', sobrenome = '') => {
-    if (!name) return '?';
-    const parts = name.split(' ');
-    if (parts.length > 1 && parts[1]) {
-        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
+const getInitials = (nome, sobrenome) => {
+    if (!nome) return '?';
+    if (!sobrenome) return nome.substring(0, 2).toUpperCase();
+    return `${nome[0]}${sobrenome[0]}`.toUpperCase();
 };
 
 const formatarTimestamp = (timestamp) => {
@@ -212,24 +209,47 @@ function MensagensPage() {
         }
     }, [conversaAtivaId, currentUser]);
 
-    // Efeito para status de outro usuário em chat privado
+    // ✅ EFEITO CORRIGIDO: Ouve o status e DADOS do outro usuário
     useEffect(() => {
         if (!conversaAtiva || conversaAtiva.isGrupo) {
             setStatusOutroUsuario(null);
             return;
         }
+
         const outroUsuario = conversaAtiva.participantesInfo.find(
             (p) => p.uid !== currentUser.uid
         );
+
         if (!outroUsuario) return;
+
         const userDocRef = doc(db, 'users', outroUsuario.uid);
+
         const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
-                setStatusOutroUsuario(docSnap.data().status);
+                const userData = docSnap.data();
+                setStatusOutroUsuario(userData.status);
+
+                setConversas((prevConversas) =>
+                    prevConversas.map((c) => {
+                        if (c.id === conversaAtivaId) {
+                            const novosParticipantesInfo = c.participantesInfo.map(
+                                (p) => {
+                                    if (p.uid === outroUsuario.uid) {
+                                        return { ...p, avatarColor: userData.avatarColor };
+                                    }
+                                    return p;
+                                }
+                            );
+                            return { ...c, participantesInfo: novosParticipantesInfo };
+                        }
+                        return c;
+                    })
+                );
             }
         });
+
         return () => unsubscribe();
-    }, [conversaAtiva, currentUser]);
+    }, [conversaAtivaId, currentUser, conversaAtiva]); // Adicionado conversaAtiva como dependência
 
     // Funções passadas como props
     const getNomeConversa = useCallback(
@@ -247,6 +267,7 @@ function MensagensPage() {
 
     const getAvatarColorConversa = useCallback(
         (conversa) => {
+            if (!conversa) return '#0a528a';
             if (conversa.isGrupo) return '#0a528a'; // Cor padrão para grupos
             const outroUsuario = conversa.participantesInfo?.find(
                 (p) => p.uid !== currentUser.uid

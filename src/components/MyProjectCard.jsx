@@ -257,7 +257,7 @@ function MyProjectCard({ projeto, currentUserId }) {
             }
         } catch (error) {
             console.error('Erro ao buscar chat:', error);
-            ddToast('Não foi possível abrir o chat.', 'error');
+            addToast('Não foi possível abrir o chat.', 'error');
         }
     };
 

@@ -5,70 +5,74 @@ import { NavLink } from 'react-router-dom';
 const TabsContainer = styled.nav`
     width: 100%;
     background-color: #f5fafc;
-    padding: 0 15px; /* Reduced horizontal padding */
-    border-radius: 15px; /* Slightly smaller radius */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Softer shadow */
+    padding: 0 0.95rem;
+    border-radius: 0.95rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
-    justify-content: center; /* Keeps items centered */
-    gap: 20px; /* Reduced gap */
+    justify-content: center;
+    gap: 1.25rem;
 
-    /* Responsive adjustments */
-    @media (max-width: 1400px) { /* Breakpoint for smaller notebooks/tablets */
-        justify-content: center; /* Distribute space more evenly */
-        gap: 10rem;
-    }
-
-    @media (min-width: 1600px) { /* Breakpoint for smaller tablets/large phones */
-        justify-content: space-between; /* Distribute space more evenly */
-        overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
+    @media (min-width: 1600px) {
+        justify-content: space-between;
+        overflow-x: auto;
         padding: 0 20rem 0 20rem;
-        /* Optional: Hide scrollbar visually */
+        /* Esconde o scroll */
         -ms-overflow-style: none;  /* IE and Edge */
         scrollbar-width: none;  /* Firefox */
         &::-webkit-scrollbar {
             display: none; /* Chrome, Safari, Opera */
         }
     }
+
+    @media (max-width: 1400px) {
+        justify-content: center;
+        gap: 10rem;
+    }
+
+    @media (max-width: 568px) {
+        gap: 0.5rem;
+    }
 `;
 
 const TabLink = styled(NavLink)`
     position: relative;
-    padding: 14px 25px; /* SIGNIFICANTLY reduced horizontal padding, adjusted vertical */
-    font-size: 18px; /* Slightly smaller font */
-    font-weight: 500; /* Medium weight for inactive */
+    padding: 0.875rem 1.6rem;
+    font-size: 1.125rem;
+    font-weight: 500;
     cursor: pointer;
     background: none;
     border: none;
-    color: #555; /* Darker grey for inactive */
+    color: #555;
     text-decoration: none;
     transition: all 0.2s ease-in-out;
-    white-space: nowrap; /* Keep text on one line */
-    border-radius: 10px 10px 0 0; /* Add slight rounding to top corners */
-    border-bottom: 3px solid transparent; /* Placeholder for the active line */
+    white-space: nowrap;
+    border-radius: 10px 10px 0 0;
+    border-bottom: 3px solid transparent;
 
     &:hover {
         color: #7c2256;
-        background-color: #e6ebf0; /* Subtle background on hover */
+        background-color: #e6ebf0;
     }
 
-    /* Remove the ::after pseudo-element */
-
-    /* Style for the active link */
+    /* Style pra aba ativa */
     &.active {
         color: #7c2256;
-        font-weight: 700; /* Bolder for active */
-        border-bottom-color: #7c2256; /* Use border instead of ::after */
-        background-color: #e6ebf0; /* Match hover background */
+        font-weight: 700;
+        border-bottom-color: #7c2256;
+        background-color: #e6ebf0;
     }
 
-    /* Responsive adjustments for the link itself */
     @media (max-width: 992px) {
-        padding: 12px 18px;
-        font-size: 17px;
+        padding: 0.75rem 1.125rem;
+        font-size: 1.065rem;
     }
     @media (max-width: 768px) {
-        padding: 10px 15px;
-        font-size: 16px;
+        padding: 0.625rem 0.95rem;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 568px) {
+        font-size: 0.9rem;
     }
 `;
 

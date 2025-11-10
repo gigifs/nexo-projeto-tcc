@@ -237,6 +237,16 @@ const BotaoEstilizado = styled.button`
                         background-color: #7c2256; /* Fundo padrão */
                         color: #f5fafc; /* Texto branco */
                     }
+
+                    @media (max-width: 1024px) {
+                        padding: 4px 8px;
+                        font-size: 18px;
+                    }
+
+                    @media (max-width: 1200px) {
+                        padding: 4px 8px;
+                        font-size: 19px;
+                    }
                 `;
             case 'Verificacao':
                 return css`
@@ -257,6 +267,16 @@ const BotaoEstilizado = styled.button`
                         background-color: #f5fafc; /* Fundo padrão */
                         color: #7c2256; /* Texto branco */
                         border-color: #7c2256;
+                    }
+
+                    @media (max-width: 1024px) {
+                        padding: 4px 8px;
+                        font-size: 18px;
+                    }
+
+                    @media (max-width: 1200px) {
+                        padding: 4px 8px;
+                        font-size: 19px;
                     }
                 `;
         }

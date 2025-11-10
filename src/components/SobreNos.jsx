@@ -3,41 +3,40 @@ import { BolinhasContainer, Bolinha } from './Bolinhas.jsx';
 
 const SectionContainer = styled.section`
     background-color: #f5fafc;
-    border-radius: 30px;
-    padding-top: 20px;
-    padding-bottom: 40px;
-    margin: 50px auto;
+    border-radius: 1.875rem;
+    padding: 1.25rem 0.6rem 2.5rem 0.6rem;
+    margin: 3.125rem auto;
     text-align: center;
-    max-width: 1700px;
-    scroll-margin-top: 80px;
+    max-width: 106.25rem;
+    scroll-margin-top: 5rem;
 
     @media (max-width: 768px) {
-        padding: 20px 20px 40px 20px;
+        padding: 1.25rem 1.25rem 2.5rem 1.25rem;
     }
 `;
 
 const Titulo = styled.h2`
-    font-size: 50px;
+    font-size: 3.125rem;
     color: #000000;
     font-weight: 500;
     margin-top: 0;
-    margin-bottom: 40px;
+    margin-bottom: 2.5rem;
 
     @media (max-width: 768px) {
-        font-size: 44px;
+        font-size: 2.75rem;
     }
 `;
 
 const Paragrafo = styled.p`
-    font-size: 28px;
+    font-size: 1.75rem;
     color: #000000;
     font-weight: 400;
-    max-width: 1500px;
+    max-width: 93.75rem;
     margin: 0 auto; /* Centraliza o parágrafo */
     line-height: 1.4;
 
     @media (max-width: 768px) {
-        font-size: 24px;
+        font-size: 1.5rem;
     }
 `;
 

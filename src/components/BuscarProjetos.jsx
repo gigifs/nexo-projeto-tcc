@@ -7,9 +7,8 @@ import ModalFiltroBuscarProjeto from './ModalFiltroProjetos';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import ProjectCard from './ProjectCard'; // 1. Importa o card reutilizável
+import ProjectCard from './ProjectCard'; 
 
-// --- ESTILOS ---
 
 const Container = styled.div`
     width: 100%;
@@ -20,13 +19,13 @@ const TopActions = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 25px;
+    gap: 1.25rem;
+    margin-bottom: 1.56rem;
 `;
 
 const SearchAndFilter = styled.div`
     display: flex;
-    gap: 20px;
+    gap: 1.25rem;
     flex-grow: 1;
 `;
 
@@ -37,10 +36,10 @@ const SearchInputGroup = styled.div`
 
 const SearchInput = styled.input`
     width: 100%;
-    padding: 12px 15px 12px 45px;
+    padding: 0.75rem 0.95rem 0.75rem 2.8rem;
     border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 0.8rem;
+    font-size: 1rem;
     box-sizing: border-box;
     &:focus {
         outline: none;
@@ -51,7 +50,7 @@ const SearchInput = styled.input`
 
 const SearchIcon = styled(FiSearch)`
     position: absolute;
-    left: 15px;
+    left: 0.95rem;
     top: 50%;
     transform: translateY(-50%);
     color: #555;
@@ -60,20 +59,26 @@ const SearchIcon = styled(FiSearch)`
 const FilterButton = styled(Botao)`
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
+    border-radius: 0.8rem;
 `;
 
 const MainContent = styled.div`
     display: grid;
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 2.5rem;
     align-items: start;
 `;
 
 const ProjectsGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
+    gap: 1.875rem;
+
+    //* Quando a tela for menor que 768px, muda para 1 coluna de exibição para os cards */
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
 `;
 
 function BuscarProjetos() {
@@ -184,7 +189,7 @@ function BuscarProjetos() {
                     {loading ? (
                         <p>A carregar projetos...</p>
                     ) : filteredProjects.length > 0 ? (
-                        // 2. Utiliza o componente ProjectCard aqui
+                        
                         filteredProjects.map((project) => (
                             <ProjectCard key={project.id} projeto={project} />
                         ))

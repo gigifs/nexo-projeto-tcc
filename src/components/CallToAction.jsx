@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import Botao from './Botao.jsx';
 
 const CtaContainer = styled.section`
-    padding: 40px;
+    padding: 2.5rem;
     text-align: center;
     color: #f5fafc;
 
@@ -16,30 +16,30 @@ const CtaContainer = styled.section`
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px; /* Espaço entre título, subtítulo e botão */
+    gap: 1.5rem; /* Espaço entre título, subtítulo e botão */
 `;
 
 const Titulo = styled.h2`
-    font-size: 32px;
+    font-size: 2rem;
     font-weight: 600;
-    max-width: 1400px;
+    max-width: 87.5rem;
     line-height: 1.2;
     margin: 0;
 
     @media (max-width: 768px) {
-        font-size: 30px;
+        font-size: 1.875rem;
     }
 `;
 
 const Subtitulo = styled.p`
-    font-size: 28px;
+    font-size: 1.75rem;
     font-weight: 400;
-    max-width: 1270px;
+    max-width: 79.4rem;
     line-height: 1.2;
     margin: 0;
 
     @media (max-width: 768px) {
-        font-size: 26px;
+        font-size: 1.6rem;
     }
 `;
 

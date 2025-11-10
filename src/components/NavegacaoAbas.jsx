@@ -12,11 +12,6 @@ const TabsContainer = styled.nav`
     justify-content: center;
     gap: 1.25rem;
 
-    @media (max-width: 1400px) {
-        justify-content: center;
-        gap: 10rem;
-    }
-
     @media (min-width: 1600px) {
         justify-content: space-between;
         overflow-x: auto;
@@ -27,6 +22,15 @@ const TabsContainer = styled.nav`
         &::-webkit-scrollbar {
             display: none; /* Chrome, Safari, Opera */
         }
+    }
+
+    @media (max-width: 1400px) {
+        justify-content: center;
+        gap: 10rem;
+    }
+
+    @media (max-width: 568px) {
+        gap: 0.5rem;
     }
 `;
 
@@ -65,6 +69,10 @@ const TabLink = styled(NavLink)`
     @media (max-width: 768px) {
         padding: 0.625rem 0.95rem;
         font-size: 1rem;
+    }
+
+    @media (max-width: 568px) {
+        font-size: 0.9rem;
     }
 `;
 

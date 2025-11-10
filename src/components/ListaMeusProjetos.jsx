@@ -11,6 +11,11 @@ const ListWrapper = styled.div`
     grid-template-columns: repeat(2, 1fr); /*cria duas colunas de tamanho = 1fr (uma fração do espaço disponível)*/
     gap: 1.875rem;
     width: 100%;
+
+    /* Quando a tela for menor que 768px, muda para 1 coluna de exibição para os cards */
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
 `;
 
 const MensagemFeedback = styled.p`

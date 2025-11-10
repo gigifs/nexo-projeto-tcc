@@ -174,12 +174,14 @@ const CamposLinha = styled.div`
     align-items: flex-start;
 `;
 
+
+
 function GerenciarProjetoPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
     const { addToast } = useToast();
-
+    
     const [projeto, setProjeto] = useState(null);
     const [candidaturas, setCandidaturas] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -283,11 +285,11 @@ function GerenciarProjetoPage() {
                 habilidades: habilidadesEditaveis,
                 interesses: interessesEditaveis,
             });
-            alert('Projeto atualizado com sucesso!');
+            addToast('Projeto atualizado com sucesso!', 'success');
             navigate('/dashboard/meus-projetos');
         } catch (err) {
             console.error('Erro ao atualizar o projeto!');
-            alert('ERRO, ALTERAÇÕES NÃO FORAM SALVAS!!!');
+            addToast('ERRO, ALTERAÇÕES NÃO FORAM SALVAS!!!', 'error');
         } finally {
             setIsSaving(false);
         }

@@ -56,8 +56,13 @@ const TimestampTexto = styled.span`
     display: block;
 `;
 
-const getInitials = (name = '', sobrenome = '') => {
-    return `${name.charAt(0)}${sobrenome.charAt(0)}`.toUpperCase();
+const getInitials = (nome, sobrenome) => {
+    if (!nome) return '?';
+    const parts = nome.split(' ');
+    if (parts.length > 1 && parts[1]) {
+        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return nome.substring(0, 2).toUpperCase();
 };
 
 const formatarTimestamp = (timestamp) => {

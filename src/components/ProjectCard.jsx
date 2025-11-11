@@ -1,9 +1,12 @@
 import styled from 'styled-components';
 import Botao from './Botao';
 import { FaGraduationCap } from 'react-icons/fa';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Adicionado useEffect
 import Modal from './Modal';
 import VerDetalhesModal from './VerDetalhesModal';
+import { doc, getDoc } from 'firebase/firestore'; // Importações do Firestore
+import { db } from '../firebase'; // Importação da instância do DB
+
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -52,8 +55,8 @@ const StatusTag = styled.span`
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
-    background-color: ${(props) => props.$color || '#e0e0e0'};
-    color: ${(props) => props.$textColor || '#000'};
+    background-color: ${props => props.$color || '#e0e0e0'};
+    color: ${props => props.$textColor || '#000'};
 `;
 
 const DescricaoProjeto = styled.p`
@@ -73,8 +76,8 @@ const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap; /* Permite que as tags quebrem a linha */
     gap: 6px;
-    height: 30px; /* Altura fixa para apenas UMA linha de tags */
-    overflow: hidden; /* Esconde qualquer tag que passe para a segunda linha */
+    height: 30px;      /* Altura fixa para apenas UMA linha de tags */
+    overflow: hidden;  /* Esconde qualquer tag que passe para a segunda linha */
 `;
 
 //Tags com cores condicionais de acordo com o tipo
@@ -84,9 +87,8 @@ const Tag = styled.span`
     font-size: 14px;
     font-weight: 500;
     /*Define a cor com base na propriedade '$tipo'*/
-    background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
-    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
+    background-color: ${props => (props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced')};
+    color: ${props => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
 `;
 
 const CardFooter = styled.div`
@@ -158,29 +160,55 @@ const getStatusStyle = (status) => {
 
 function ProjectCard({ projeto }) {
     const [modalAberto, setModalAberto] = useState(false);
+    const [donoInfo, setDonoInfo] = useState({
+        nome: projeto.donoNome,
+        sobrenome: projeto.donoSobrenome,
+        avatarColor: projeto.donoAvatarColor,
+    });
 
     const {
         nome,
         descricao,
-        donoNome,
-        donoSobrenome,
-        donoAvatarColor,
+        donoId, // Precisamos do ID do dono para a busca
         curso,
         status,
         habilidades,
         interesses,
     } = projeto;
 
+    // EFEITO PARA BUSCAR OS DADOS ATUALIZADOS DO DONO
+    useEffect(() => {
+        const fetchDonoData = async () => {
+            if (!donoId) return;
+
+            try {
+                const userDocRef = doc(db, 'users', donoId);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                    const donoData = userDocSnap.data();
+                    setDonoInfo({
+                        nome: donoData.nome,
+                        sobrenome: donoData.sobrenome,
+                        avatarColor: donoData.avatarColor,
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao buscar dados do dono do projeto:", error);
+            }
+        };
+
+        fetchDonoData();
+    }, [donoId]);
+
     const statusStyle = getStatusStyle(status);
-    const nomeCompletoDono = `${donoNome || ''} ${donoSobrenome || ''}`.trim();
+    const nomeCompletoDono = `${donoInfo.nome || ''} ${donoInfo.sobrenome || ""}`.trim();
+    const avatarInicial = getInitials(donoInfo.nome, donoInfo.sobrenome);
+
 
     const tagsParaExibir = [
-        ...(habilidades || [])
-            .slice(0, 3)
-            .map((h) => ({ nome: h, tipo: 'habilidade' })),
-        ...(interesses || [])
-            .slice(0, 3)
-            .map((i) => ({ nome: i, tipo: 'interesse' })),
+        ...(habilidades || []).slice(0, 3).map(h => ({ nome: h, tipo: 'habilidade' })),
+        ...(interesses || []).slice(0, 3).map(i => ({ nome: i, tipo: 'interesse' }))
     ];
 
     return (
@@ -215,20 +243,21 @@ function ProjectCard({ projeto }) {
                             <span>{curso || 'Curso não informado'}</span>
                         </FooterText>
                         <FooterText>
-                            <Avatar $bgColor={donoAvatarColor}>
-                                {getInitials(donoNome, donoSobrenome)}
-                            </Avatar>
+                            <Avatar $bgColor={donoInfo.avatarColor}>{avatarInicial}</Avatar>
                             <span>{nomeCompletoDono || 'Nome do Dono'}</span>
                         </FooterText>
                     </OwnerDetails>
-                    {/*Tirar o alerta assim que o modal 'VerDetalhes' for integrado.*/}
+                    
                     <DetalhesBotao onClick={() => setModalAberto(true)}>
                         Ver Detalhes
                     </DetalhesBotao>
                 </CardFooter>
             </CardWrapper>
 
-            <Modal isOpen={modalAberto} onClose={() => setModalAberto(false)}>
+            <Modal
+                isOpen={modalAberto}
+                onClose={() => setModalAberto(false)}
+            >
                 <VerDetalhesModal projeto={projeto} projetoId={projeto.id} />
             </Modal>
         </>

@@ -1,15 +1,16 @@
 import styled from 'styled-components';
 import Botao from './Botao';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Adicionado useEffect
 import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
 import VerDetalhesModal from './VerDetalhesModal';
 import { FiUsers } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'; // Adicionado doc e getDoc
 import { useToast } from '../contexts/ToastContext';
 
+// ... (todos os 'styled-components' permanecem iguais)
 const CardWrapper = styled.div`
     background-color: #f5fafc;
     border-radius: 20px;
@@ -86,8 +87,8 @@ const Tag = styled.span`
     font-size: 14px;
     font-weight: 500;
     background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
-    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
+        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
 `;
 
 const CardFooter = styled.div`
@@ -155,6 +156,7 @@ const DetalhesBotao = styled(Botao)`
     border-radius: 10px;
 `;
 
+
 const getInitials = (nome, sobrenome) => {
     if (!nome) return '?';
     if (!sobrenome) return nome.substring(0, 2).toUpperCase();
@@ -177,7 +179,7 @@ const getStatusStyle = (status) => {
 function MyProjectCard({ projeto, currentUserId }) {
     const [modalAberto, setModalAberto] = useState(false);
     const { addToast } = useToast();
-    const { currentUser, userData } = useAuth();
+    const { currentUser } = useAuth();
     const navigate = useNavigate();
 
     const {
@@ -190,6 +192,43 @@ function MyProjectCard({ projeto, currentUserId }) {
         interesses = [],
         participantes = [],
     } = projeto;
+
+    // NOVO: Estado para armazenar os dados atualizados dos membros
+    const [teamMembers, setTeamMembers] = useState(participantes);
+
+    // EFEITO PARA BUSCAR OS DADOS ATUALIZADOS DOS PARTICIPANTES
+    useEffect(() => {
+        const fetchTeamData = async () => {
+            if (!participantes || participantes.length === 0) return;
+
+            const promises = participantes.map(async (member) => {
+                if (!member.uid) return member; // Retorna o membro original se não houver UID
+
+                try {
+                    const userDocRef = doc(db, 'users', member.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    if (userDocSnap.exists()) {
+                        const userData = userDocSnap.data();
+                        return {
+                            ...member, // Mantém os dados originais
+                            ...userData, // Sobrescreve com os dados mais recentes
+                        };
+                    }
+                    return member; // Retorna o membro original se o documento não for encontrado
+                } catch (error) {
+                    console.error("Erro ao buscar dados do participante:", error);
+                    return member; // Retorna o membro original em caso de erro
+                }
+            });
+
+            const updatedMembers = await Promise.all(promises);
+            setTeamMembers(updatedMembers);
+        };
+
+        fetchTeamData();
+    }, [participantes]); // Roda sempre que a lista de participantes mudar
+
 
     const statusStyle = getStatusStyle(status);
     const isOwner = currentUserId === donoId;
@@ -214,7 +253,7 @@ function MyProjectCard({ projeto, currentUserId }) {
                     state: { activeChatId: conversaId },
                 });
             } else {
-                addToast('Chat para este projeto não encontrado!', 'error');
+                addToast('Chat para este projeto não encontrado!', 'error');;
             }
         } catch (error) {
             console.error('Erro ao buscar chat:', error);
@@ -255,30 +294,23 @@ function MyProjectCard({ projeto, currentUserId }) {
                 </TagsContainer>
 
                 <CardFooter>
-                    {participantes && participantes.length > 0 ? (
+                    {teamMembers && teamMembers.length > 0 ? (
                         <TeamDetails>
                             <TeamTitle>
                                 <FiUsers size={18} />
                                 Sua Equipe
                             </TeamTitle>
                             <TeamContainer>
-                                {participantes.slice(0, 3).map((p) => {
-                                    // VERIFICA SE O PARTICIPANTE É O UTILIZADOR ATUAL
-                                    const corDoAvatar =
-                                        p.uid === currentUser.uid
-                                            ? userData.avatarColor // Se for, usa a cor mais recente
-                                            : p.avatarColor; // Senão, usa a cor guardada no projeto
-
-                                    return (
-                                        <TeamMemberAvatar
-                                            key={p.uid}
-                                            $bgColor={corDoAvatar} // USA A COR CORRETA
-                                            title={`${p.nome} ${p.sobrenome}`}
-                                        >
-                                            {getInitials(p.nome, p.sobrenome)}
-                                        </TeamMemberAvatar>
-                                    );
-                                })}
+                                {/* ALTERADO: Mapeia o estado 'teamMembers' */}
+                                {teamMembers.slice(0, 3).map((p) => (
+                                    <TeamMemberAvatar
+                                        key={p.uid}
+                                        $bgColor={p.avatarColor} // USA A COR ATUALIZADA
+                                        title={`${p.nome} ${p.sobrenome}`}
+                                    >
+                                        {getInitials(p.nome, p.sobrenome)}
+                                    </TeamMemberAvatar>
+                                ))}
                             </TeamContainer>
                         </TeamDetails>
                     ) : (

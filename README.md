@@ -1,0 +1,1 @@
+Por mais que eu tenha feito milhares de coisas para salvar a linha 260 do myProjectCard, a branch continua subindo faltando o 'a' em addToast. Deveria ser addToast('Não foi possível abrir o chat.', 'error'), mas está subindo como ddToast('Não foi possível abrir o chat.', 'error')

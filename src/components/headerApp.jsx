@@ -130,7 +130,7 @@ const Nome = styled.span`
     color: #000000ff;
     align-self: center;
     /* Esconder o nome em telas muito pequenas, se necessário */
-    @media (max-width: 576px) {
+    @media (max-width: 568px) {
         display: none;
     }
 `;

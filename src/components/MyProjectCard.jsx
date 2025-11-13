@@ -10,21 +10,21 @@ import { db } from '../firebase';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'; // Adicionado doc e getDoc
 import { useToast } from '../contexts/ToastContext';
 
-// ... (todos os 'styled-components' permanecem iguais)
+
 const CardWrapper = styled.div`
     background-color: #f5fafc;
-    border-radius: 20px;
-    padding: 25px;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 0.95rem;
     transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
-    height: 310px;
+    height: 19.375rem;
     position: relative;
     &:hover {
-        transform: translateY(-5px);
+        transform: translateY(-0.3rem);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
 `;
@@ -33,11 +33,11 @@ const CardHeader = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 10px;
+    gap: 0.6rem;
 `;
 
 const TituloProjeto = styled.h3`
-    font-size: 22px;
+    font-size: 1.375rem;
     font-weight: 600;
     color: #000;
     margin: 0;
@@ -51,9 +51,9 @@ const TituloProjeto = styled.h3`
 `;
 
 const StatusTag = styled.span`
-    padding: 6px 14px;
-    border-radius: 5px;
-    font-size: 14px;
+    padding: 0.375rem 0.875rem;
+    border-radius: 0.3rem;
+    font-size: 0.875rem;
     font-weight: 600;
     white-space: nowrap;
     background-color: ${(props) => props.$color || '#e0e0e0'};
@@ -61,7 +61,7 @@ const StatusTag = styled.span`
 `;
 
 const DescricaoProjeto = styled.p`
-    font-size: 16px;
+    font-size: 1rem;
     color: #333;
     line-height: 1.4;
     margin: 0;
@@ -76,15 +76,15 @@ const DescricaoProjeto = styled.p`
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap; /* Permite que as tags quebrem a linha */
-    gap: 6px;
-    height: 30px; /* Altura fixa para apenas UMA linha de tags */
+    gap: 0.375rem;
+    height: 1.875rem; /* Altura fixa para apenas UMA linha de tags */
     overflow: hidden; /* Esconde qualquer tag que passe para a segunda linha */
 `;
 
 const Tag = styled.span`
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 14px;
+    padding: 0.375rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
     font-weight: 500;
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
@@ -96,40 +96,40 @@ const CardFooter = styled.div`
     justify-content: space-between;
     align-items: flex-end;
     margin-top: auto;
-    padding-top: 5px;
+    padding-top: 0.3rem;
     border-top: 1px solid #eee;
 `;
 
 const TeamDetails = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0.5rem;
     align-items: flex-start;
 `;
 
 const TeamTitle = styled.h4`
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
     color: #000000;
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
 `;
 
 const TeamContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 0.375rem;
 `;
 
 const TeamMemberAvatar = styled.div`
-    width: 35px;
-    height: 35px;
+    width: 2.2rem;
+    height: 2.2rem;
     border-radius: 50%;
     background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -140,20 +140,32 @@ const TeamMemberAvatar = styled.div`
 
     /* Sobreposição dos avatares */
     &:not(:first-child) {
-        margin-left: -16px;
+        margin-left: -1rem;
     }
 `;
 
 const ActionButtonsContainer = styled.div`
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.6rem;
 `;
 
 const DetalhesBotao = styled(Botao)`
-    font-size: 16px;
-    padding: 6px 10px;
-    border-radius: 10px;
+    font-size: 1rem;
+    padding: 0.375rem 0.6rem;
+    border-radius: 0.6rem;
+`;
+
+const GerenciarButton = styled(DetalhesBotao)`
+    /* Esconde o texto mobile */
+    .mobile-text { display: none; }
+    .desktop-text { display: inline; }
+
+    @media (max-width: 480px) {
+        /* Esconde o texto desktop e mostra o mobile */
+        .desktop-text { display: none; }
+        .mobile-text { display: inline; }
+    }
 `;
 
 
@@ -193,7 +205,7 @@ function MyProjectCard({ projeto, currentUserId }) {
         participantes = [],
     } = projeto;
 
-    // NOVO: Estado para armazenar os dados atualizados dos membros
+    // Estado para armazenar os dados atualizados dos membros
     const [teamMembers, setTeamMembers] = useState(participantes);
 
     // EFEITO PARA BUSCAR OS DADOS ATUALIZADOS DOS PARTICIPANTES
@@ -323,9 +335,10 @@ function MyProjectCard({ projeto, currentUserId }) {
                         </DetalhesBotao>
 
                         {isOwner ? (
-                            <DetalhesBotao onClick={handleGerenciarClick}>
-                                Gerenciar Projeto
-                            </DetalhesBotao>
+                            <GerenciarButton onClick={handleGerenciarClick}> 
+                                <span className="desktop-text">Gerenciar Projeto</span>
+                                <span className="mobile-text">Gerenciar</span>
+                            </GerenciarButton>
                         ) : (
                             <DetalhesBotao onClick={() => setModalAberto(true)}>
                                 Ver Detalhes

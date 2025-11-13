@@ -172,9 +172,22 @@ const CamposLinha = styled.div`
     display: flex;
     gap: 1.25rem;
     align-items: flex-start;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 `;
 
+const AcoesContainer = styled.div`
+    display: flex;
+    gap: 0.6rem; /* Controla o espaço entre os botões */
+    flex-shrink: 0; /* Impede que este container seja "espremido" pelo título */
 
+    @media (max-width: 768px) {
+        justify-content: flex-end;
+        width: 100%; /* Garante que o container ocupe a largura */
+    }
+`;
 
 function GerenciarProjetoPage() {
     const { id } = useParams();
@@ -269,9 +282,8 @@ function GerenciarProjetoPage() {
         };
 
         buscarDados();
-    }, [id, userData]); // <-- ADICIONA O userData AQUI
+    }, [id, userData]);
 
-    // ... (resto do componente, sem alterações)
     const handleSalvar = async (evento) => {
         evento.preventDefault();
         setIsSaving(true);
@@ -626,14 +638,13 @@ function GerenciarProjetoPage() {
                     titulo="Gerenciador de Projeto"
                     semFundo={false}
                     acoes={
-                        <div>
+                        <AcoesContainer> 
                             <Botao
                                 type="button"
                                 variant="Cancelar"
                                 onClick={() =>
                                     navigate('/dashboard/meus-projetos')
                                 }
-                                style={{ marginRight: '10px' }}
                             >
                                 Cancelar
                             </Botao>
@@ -644,7 +655,7 @@ function GerenciarProjetoPage() {
                             >
                                 {isSaving ? 'A guardar...' : 'Salvar'}
                             </Botao>
-                        </div>
+                        </AcoesContainer>
                     }
                 >
                     Edite informações, gerencie a equipe e avalie as

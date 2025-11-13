@@ -142,6 +142,11 @@ const BotaoEstilizado = styled.button`
                         background-color: #661745ff;
                         color: #f5fafc;
                     }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 16px;
+                    }
                 `;
 
             case 'Modal':
@@ -156,6 +161,11 @@ const BotaoEstilizado = styled.button`
                     &:hover {
                         background-color: #661745ff;
                     }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 16px;
+                    }
                 `;
 
             case 'header':
@@ -167,6 +177,11 @@ const BotaoEstilizado = styled.button`
 
                     &:hover {
                         background-color: #661745ff;
+                    }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 14px;
                     }
                 `;
 

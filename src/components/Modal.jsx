@@ -16,18 +16,34 @@ const ModalOverlay = styled.div`
 
 const ModalBox = styled.div`
     background-color: #f5fafc;
-    padding: 20px;
-    border-radius: 40px;
+    padding: 1.25rem;
+    border-radius: 2.5rem;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
     position: relative;
     width: 90%;
+    max-height: 90vh; /* altura máxima segura para desktop */
+    overflow-y: auto;
+
+    /* Esconde a barra de rolagem */
+    scrollbar-width: none; /* Para Firefox */
+    -ms-overflow-style: none; /* Para IE e Edge antigos */
+    /* Para Chrome, Safari, Opera (navegadores WebKit) */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        max-height: 85vh; /* altura máxima de 80% para mobile */
+        width: 95%;
+        padding: 1.2rem 0.6rem 1rem 0.6rem;
+    }
 
     ${(props) => {
         switch (props.size) {
             case 'excluir-projeto':
                 return css`
-                    max-width: 400px;
-                    border-radius: 30px;
+                    max-width: 25rem;
+                    border-radius: 1.875rem;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
@@ -35,21 +51,21 @@ const ModalBox = styled.div`
 
             case 'large':
                 return css`
-                    max-width: 620px;
+                    max-width: 38.75rem;
                 `;
             case 'small':
                 return css`
-                    max-width: 560px;
+                    max-width: 35rem;
                 `;
             case 'hab-int':
                 return css`
-                    border-radius: 20px;
-                    max-width: 560px;
+                    border-radius: 1.25rem;
+                    max-width: 35rem;
                 `;
             case 'excluir':
                 return css`
-                    max-width: 460px;
-                    border-radius: 30px;
+                    max-width: 28.75rem;
+                    border-radius: 1.875rem;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
@@ -57,7 +73,7 @@ const ModalBox = styled.div`
             default:
                 // Tamanho padrão se nenhuma prop 'size' for passada
                 return css`
-                    max-width: 700px;
+                    max-width: 43.75rem;
                 `;
         }
     }}
@@ -65,11 +81,11 @@ const ModalBox = styled.div`
 
 const CloseButton = styled.button`
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 1.25rem;
+    right: 1.25rem;
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 1.5rem;
     cursor: pointer;
     color: #000000;
     transition: all 0.3s ease-in-out;

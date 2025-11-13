@@ -18,29 +18,42 @@ import {
 
 const NotificacaoContainer = styled.div`
     position: absolute;
-    top: 60px;
-    right: 120px;
-    width: 450px;
+    top: 3.75rem;
+    right: 7.5rem;
+    width: 28.125rem;
     background-color: #f5fafc;
-    border-radius: 20px;
+    border-radius: 1.25rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
     z-index: 100;
-    padding: 30px 20px 20px 20px;
+    padding: 1.875rem 1.25rem 1.25rem 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    //background-color: green;
+    gap: 0.95rem;
+    
+    @media (max-width: 768px) {
+        position: fixed; /* ocupa a tela toda */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%; /* largura total */
+        height: 100%; /* altura total */
+        border-radius: 0;
+        z-index: 2100; /* garante que fica acima de tudo */
+        padding: 1.25rem;
+    }
+
 `;
 
 const Header = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 5px;
+    padding: 0 0.3rem;
 `;
 
 const Titulo = styled.h2`
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
 `;
@@ -49,9 +62,9 @@ const BotaoLimpar = styled.button`
     background-color: #7C2256;
     color: #f5fafc;
     border: none;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 14px;
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -64,7 +77,7 @@ const BotaoLimpar = styled.button`
 const CloseButton = styled.button`
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 1.25rem;
     cursor: pointer;
     color: #000000;
     line-height: 1;
@@ -73,15 +86,15 @@ const CloseButton = styled.button`
 const AbasContainer = styled.div`
     display: flex;
     background-color: #e6ebf0;
-    border-radius: 12px;
-    padding: 5px;
+    border-radius: 0.75rem;
+    padding: 0.3rem;
 `;
 
 const Aba = styled.button`
     flex: 1;
-    padding: 8px;
+    padding: 0.5rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     background-color: ${({ $ativo }) => ($ativo ? '#FFFFFF' : 'transparent')};
     color: ${({ $ativo }) => ($ativo ? '#7C2256' : '#333')};
     font-weight: ${({ $ativo }) => ($ativo ? '700' : '400')};
@@ -92,10 +105,15 @@ const Aba = styled.button`
 const ListaNotificacoes = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    max-height: 350px;
+    gap: 0.75rem;
+    max-height: 21.875rem;
     overflow-y: auto;
-    padding: 0 10px 0 0;
+    padding: 0 0.6rem 0 0;
+
+    @media (max-width: 768px) {
+        max-height: none;
+        flex-grow: 1; /* lista ocupa todo o espaço disponível */
+    }
 `;
 
 //cada notificação é um botão basicamnete
@@ -110,11 +128,11 @@ const ItemNotificacao = styled.button`
     width: 100%;        /* Ocupa toda a largura */
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
+    gap: 0.95rem;
+    padding: 0.95rem;
     word-break: break-word;
     background-color: #e6ebf0;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     cursor: pointer;
     transition: background-color 0.2s;
 
@@ -124,12 +142,12 @@ const ItemNotificacao = styled.button`
 `;
 
 const Avatar = styled.div`
-    width: 40px;
-    height: 40px;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 50%;
     background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -139,7 +157,7 @@ const Avatar = styled.div`
 
 const ConteudoTexto = styled.div`
     flex-grow: 1;
-    font-size: 16px;
+    font-size: 1rem;
     color: #333;
     line-height: 1.3;
 `;
@@ -151,7 +169,7 @@ const NomeProjeto = styled.span`
 const Acoes = styled.div`
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.6rem;
 `;
 
 const IconeLixeira = styled.div`
@@ -167,8 +185,8 @@ const IconeLixeira = styled.div`
 `;
 
 const BolinhaNaoLida = styled.div`
-    width: 8px;
-    height: 8px;
+    width: 0.5rem;
+    height: 0.5rem;
     background-color: #28a745;
     border-radius: 50%;
 `;
@@ -278,7 +296,7 @@ function Notificacoes({ onClose }) {
         <NotificacaoContainer>
             <Header>
                 <Titulo>Notificações</Titulo>
-                <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.95rem'}}>
                     <BotaoLimpar onClick={handleLimparTudo}>Limpar</BotaoLimpar>
                     <CloseButton onClick={onClose}><FiX /></CloseButton>
                 </div>

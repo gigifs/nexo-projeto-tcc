@@ -6,16 +6,20 @@ import { doc, setDoc } from 'firebase/firestore';
 import Botao from './Botao';
 import Modal from './Modal';
 import EditarInteressesModal from './EditarInteressesModal';
-import { FiEdit, FiGithub, FiLinkedin } from 'react-icons/fi';
+import { FiEdit, FiGithub, FiLinkedin, FiEdit3  } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
 
 // Container principal (Layout original)
 const FormContainer = styled.div`
     display: flex;
     background-color: #f5fafc;
-    border-radius: 20px;
+    border-radius: 1.25rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 `;
 
 // A coluna da esquerda com a cor de fundo cinza
@@ -23,19 +27,19 @@ const ColunaEsquerda = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 0.95rem;
     background-color: #e6ebf0;
-    padding: 30px;
+    padding: 1.875rem;
     flex-shrink: 0;
 `;
 
 const Avatar = styled.div`
-    width: 150px;
-    height: 150px;
+    width: 9.375rem;
+    height: 9.375rem;
     border-radius: 50%;
     background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
-    font-size: 60px;
+    font-size: 3.75rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -47,85 +51,99 @@ const Avatar = styled.div`
 const BotaoTrocarCor = styled.button`
     background: none;
     border: none;
-    padding: 0;
+    padding: 0.6rem 0.8rem 0.6rem 0.8rem;
     margin: 0;
-    font-size: 14px;
-    font-weight: 500;
-    color: #555;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #7c2256;
     cursor: pointer;
     text-align: center;
+    border-radius: 0.6rem;
+    background-color: #f5fafc;
 
     &:hover {
-        text-decoration: underline;
-        color: #000;
+        box-shadow: 0 4px 12px rgba(92, 19, 73, 0.46);
     }
 `;
 
 // Container para o restante do formulário (a parte branca da direita)
 const FormContent = styled.form`
     flex-grow: 1;
-    padding: 30px 40px;
+    padding: 1.875rem 2.5rem;
     display: grid;
     grid-template-columns: 2fr 1.5fr;
-    gap: 35px;
+    gap: 2.188rem;
+
+    @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+        gap: 1.875rem;
+        padding: 1.25rem;
+    }
+
+    @media (max-width: 480px) {
+        padding: 0.94rem 0.6rem 0.94rem 0.6rem;
+    }
 `;
 
 const ColunaInputs = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1.25rem;
 `;
 
 const ColunaInfo = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1.25rem;
 `;
 
 const BotoesFooter = styled.div`
     grid-column: 1 / -1;
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
-    padding-top: 20px;
+    gap: 1.25rem;
+    margin-top: 1.875rem;
+    padding-top: 1.25rem;
     border-top: 1px solid #ddd;
 `;
 
-// --- DEMAIS ESTILOS ---
 const InputRow = styled.div`
     display: flex;
-    gap: 20px;
+    gap: 1.25rem;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 `;
 const InputGroup = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0.5rem;
     width: 100%;
     position: relative;
 `;
 const Label = styled.label`
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 500;
     color: ${(props) => props.color || '#7c2256'};
 
     span {
         font-weight: 400;
         opacity: 0.7;
-        font-size: 0.9em;
-        margin-left: 8px;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
     }
 `;
 const Input = styled.input`
     width: 100%;
     box-sizing: border-box;
     background-color: #ffffff;
-    padding: 12px 15px;
-    font-size: 16px;
+    padding: 0.75rem 0.94rem;
+    font-size: 1rem;
     font-weight: 400;
     color: #333;
     border: 1px solid #ccc;
-    border-radius: 10px;
+    border-radius: 0.6rem;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     &:focus {
@@ -137,15 +155,15 @@ const Textarea = styled.textarea`
     width: 100%;
     box-sizing: border-box;
     background-color: #ffffff;
-    padding: 12px 15px;
-    font-size: 16px;
+    padding: 0.75rem 0.94rem;
+    font-size: 1rem;
     font-weight: 400;
     color: #333;
     border: 1px solid #ccc;
-    border-radius: 10px;
+    border-radius: 0.6rem;
     outline: none;
     resize: vertical;
-    min-height: 160px;
+    min-height: 10rem;
     font-family: inherit;
     transition: border-color 0.2s, box-shadow 0.2s;
     &:focus {
@@ -154,25 +172,25 @@ const Textarea = styled.textarea`
     }
 `;
 const IconInput = styled(Input)`
-    padding-left: 40px;
+    padding-left: 2.5rem;
 `;
 const InputIcon = styled.div`
     position: absolute;
-    top: 42px;
-    left: 12px;
+    top: 2.625rem;
+    left: 0.75rem;
     color: #555;
 `;
 const Section = styled.div`
     border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 0.6rem;
+    padding: 0.94rem;
     background-color: #fff;
 `;
 const SectionHeader = styled.div`
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 0.6rem;
 `;
 const EditButton = styled.button`
     background: none;
@@ -188,27 +206,27 @@ const EditButton = styled.button`
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.5rem;
 `;
 const Tag = styled.span`
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
+    padding: 0.375rem 0.75rem;
+    border-radius: 1.25rem;
+    font-size: 0.875rem;
     font-weight: 600;
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
     color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 const ColorPickerContent = styled.div`
-    padding: 15px;
+    padding: 0.94rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 1.25rem;
 `;
 const StyledColorInput = styled.input`
-    width: 100px;
-    height: 100px;
+    width: 6.25rem;
+    height: 6.25rem;
     border: none;
     background: none;
     cursor: pointer;
@@ -371,7 +389,7 @@ function ConfigPerfil() {
                         type="button"
                         onClick={handleOpenColorModal}
                     >
-                        Troque sua cor aqui!
+                        <FiEdit3 /> Cor do Avatar
                     </BotaoTrocarCor>
                 </ColunaEsquerda>
 
@@ -520,7 +538,7 @@ function ConfigPerfil() {
                         value={tempAvatarColor}
                         onChange={(e) => setTempAvatarColor(e.target.value)}
                     />
-                    <div style={{ display: 'flex', gap: '15px' }}>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
                         <Botao variant="Cancelar" onClick={handleCancelColor}>
                             Cancelar
                         </Botao>

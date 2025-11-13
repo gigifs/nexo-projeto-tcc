@@ -1,4 +1,3 @@
-// src/components/Toast.jsx
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { FiX, FiCheckCircle, FiAlertTriangle, FiInfo } from 'react-icons/fi';

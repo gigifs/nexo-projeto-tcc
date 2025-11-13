@@ -1,4 +1,3 @@
-// src/components/NavegacaoAbas.jsx
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
 

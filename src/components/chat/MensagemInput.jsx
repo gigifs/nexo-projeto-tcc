@@ -8,6 +8,11 @@ const InputArea = styled.form`
     border-top: 1px solid #ddd;
     background-color: #e6ebf0;
     border-radius: 0 0 20px 0; /* Arredonda os cantos inferiores */
+
+    @media (max-width: 1024px) {
+        border-radius: 0 0 20px 20px;
+        padding: 15px;
+    }
 `;
 
 const InputMensagem = styled.input`
@@ -20,7 +25,6 @@ const InputMensagem = styled.input`
     margin-right: 10px;
 `;
 
-// As props onEnviarMensagem e onTyping são recebidas do componente pai (MensagensPage)
 function MensagemInput({ onEnviarMensagem, onTyping }) {
     const [novaMensagem, setNovaMensagem] = useState('');
 

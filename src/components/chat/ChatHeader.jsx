@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const ChatHeaderContainer = styled.div`
     display: flex;
@@ -8,8 +9,43 @@ const ChatHeaderContainer = styled.div`
     padding: 15px 20px;
     border-bottom: 1px solid #ddd;
     background-color: #e6ebf0;
+    border-radius: 0 20px 0 0;
+
+    @media (max-width: 1024px) {
+        border-radius: 20px 20px 0 0;
+        padding: 10px 15px;
+        gap: 10px;
+    }
+`;
+
+const BackButton = styled.button`
+    display: none;
+    background: none;
+    border: none;
+    color: #333;
     cursor: pointer;
-    border-radius: 0 20px 0 0; /* Arredonda os cantos certos */
+    font-size: 24px;
+    padding: 5px;
+    margin-right: 5px;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 1024px) {
+        display: flex;
+    }
+`;
+
+const InfoContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-grow: 1;
+    min-width: 0; /* Para o ellipsis funcionar */
+    cursor: pointer;
+
+    @media (max-width: 1024px) {
+        gap: 10px;
+    }
 `;
 
 const Avatar = styled.div`
@@ -55,10 +91,10 @@ function ChatHeader({
     handleHeaderClick,
     getInitials,
     getAvatarColorConversa,
+    onCloseChat,
 }) {
     const { currentUser } = useAuth();
 
-    // Esta função agora pode ser mais simples, pois getInitials é passado via props
     const getNomeConversa = () => {
         if (!conversa) return '';
         if (conversa.isGrupo) return conversa.nomeGrupo;
@@ -69,12 +105,20 @@ function ChatHeader({
     };
 
     return (
-        <ChatHeaderContainer onClick={handleHeaderClick}>
-            <Avatar $bgColor={getAvatarColorConversa(conversa)}>{getInitials(getNomeConversa())}</Avatar>
-            <InfoConversa>
-                <NomeConversa>{getNomeConversa()}</NomeConversa>
-                <Subtitulo>{getSubtituloConversa()}</Subtitulo>
-            </InfoConversa>
+        <ChatHeaderContainer>
+            <BackButton onClick={onCloseChat}>
+                <FiArrowLeft />
+            </BackButton>
+
+            <InfoContainer onClick={handleHeaderClick}>
+                <Avatar $bgColor={getAvatarColorConversa(conversa)}>
+                    {getInitials(getNomeConversa())}
+                </Avatar>
+                <InfoConversa>
+                    <NomeConversa>{getNomeConversa()}</NomeConversa>
+                    <Subtitulo>{getSubtituloConversa()}</Subtitulo>
+                </InfoConversa>
+            </InfoContainer>
         </ChatHeaderContainer>
     );
 }

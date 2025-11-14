@@ -23,26 +23,26 @@ import PerfilUsuarioModal from './PerfilUsuarioModal';
 import { useNavigate } from 'react-router-dom';
 
 const ModalWrapper = styled.div`
-    padding: 10px 30px 20px 30px;
+    padding: 0.6rem 1.875rem 1.25rem 1.875rem;
     color: #333;
 `;
 
 const Header = styled.div`
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 1.56rem;
 `;
 
 const TituloProjeto = styled.h2`
-    font-size: 28px;
+    font-size: 1.75rem;
     font-weight: 700;
     color: #000;
-    margin: 10px 0 5px 0;
+    margin: 0.6rem 0 0.3rem 0;
     line-height: 1.2;
     word-break: break-word;
     text-align: center; /* Centraliza o texto do título */
 
-    /* Define a altura máxima para 4 linhas (4 * 28px * 1.2) */
-    max-height: 135px;
+    /* Define a altura máxima para 4 linhas (4 * 28px(1.75rem) * 1.2) */
+    max-height: 8.438rem; /* 135px */
     overflow-y: auto; /* Ativa a rolagem vertical se o conteúdo for maior */
 
     /* Esconde a barra de rolagem na maioria dos navegadores */
@@ -51,10 +51,18 @@ const TituloProjeto = styled.h2`
     &::-webkit-scrollbar {
         display: none; /* Chrome, Safari and Opera */
     }
+
+    @media (max-width: 1024px) {
+        font-size: 1.5rem
+    }
+
+    @media (max-width: 768px) {
+        font-size: 1.3rem;
+    }
 `;
 
 const CriadoPor = styled.p`
-    font-size: 16px;
+    font-size: 1rem;
     color: #000000;
     margin: 0;
 
@@ -62,32 +70,41 @@ const CriadoPor = styled.p`
         font-weight: 600;
         color: #7c2256;
     }
+
+    @media (max-width: 768px) {
+        font-size: 0.9rem;
+    }
 `;
 
 const Secao = styled.div``;
 
 const ConteudoSuperior = styled.div`
     display: flex;
-    gap: 30px;
-    margin-bottom: 20px;
+    gap: 1.875rem;
+    margin-bottom: 1.25rem;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
 `;
 
 const ColunaEsquerda = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1.25rem;
 `;
 
 const ColunaDireita = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1.25rem;
     background-color: #be2d8211;
-    padding: 20px;
-    border-radius: 10px;
-    max-height: 250px;
+    padding: 1.25rem;
+    border-radius: 0.6rem;
+    max-height: 15.625rem;
     overflow-y: auto; /*Adiciona scroll se a descrição for mt grande*/
 
     /* Esconde a barra de rolagem na maioria dos navegadores */
@@ -96,25 +113,29 @@ const ColunaDireita = styled.div`
     &::-webkit-scrollbar {
         display: none; /* Chrome, Safari and Opera */
     }
+
+    @media (max-width: 768px) {
+        max-height: none; /* Remove a altura máxima em mobile */
+    }
 `;
 
 const SecaoTitulo = styled.h4`
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 600;
     color: #000;
-    margin: 0 0 10px 0;
+    margin: 0 0 0.6rem 0;
 `;
 
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.5rem;
 `;
 
 const Tag = styled.span`
-    padding: 5px 12px;
-    border-radius: 16px;
-    font-size: 14px;
+    padding: 0.3rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
     font-weight: 500;
     background-color: ${(props) =>
         props.$tipo === 'status'
@@ -137,17 +158,17 @@ const Tag = styled.span`
 const IntegrantesLista = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 0.95rem;
 `;
 
 const IntegranteItem = styled.div`
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.6rem;
     position: relative;
     cursor: pointer;
-    padding: 5px;
-    border-radius: 8px;
+    padding: 0.3rem;
+    border-radius: 0.5rem;
     transition: background-color 0.2s;
 
     /* Aplica estilos condicionalmente com base na prop '$isClickable' */
@@ -162,26 +183,26 @@ const IntegranteItem = styled.div`
 const DropdownMenu = styled.div`
     position: absolute;
     top: 100%;
-    left: 50px;
+    left: 3.125rem;
     background-color: #fff;
-    border-radius: 10px;
+    border-radius: 0.6rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 8px;
+    padding: 0.5rem;
     z-index: 10;
-    width: 180px;
+    width: 11.25rem;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 0.3rem;
 `;
 
 const DropdownItem = styled.div`
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.6rem;
 
     &:hover {
         background-color: #f0f0f0;
@@ -189,12 +210,12 @@ const DropdownItem = styled.div`
 `;
 
 const Avatar = styled.div`
-    width: 35px;
-    height: 35px;
+    width: 2.2rem;
+    height: 2.2rem;
     border-radius: 50%;
     background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -203,29 +224,29 @@ const Avatar = styled.div`
 `;
 
 const NomeIntegrante = styled.span`
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 500;
     color: #000000;
 `;
 
 const DescricaoContainer = styled.div`
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;
 `;
 
 const Descricao = styled.p`
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     text-align: justify;
     margin: 0;
-    max-height: 150px;
+    max-height: 9.375rem;
     overflow-y: auto;
-    padding-right: 10px;
+    padding-right: 0.6rem;
     white-space: pre-line;
 `;
 
 const Footer = styled.div`
     text-align: center;
-    padding-top: 20px;
+    padding-top: 1.25rem;
     border-top: 2px solid #eee;
 `;
 

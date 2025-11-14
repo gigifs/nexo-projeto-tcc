@@ -57,10 +57,39 @@ const SearchIcon = styled(FiSearch)`
 `;
 
 const FilterButton = styled(Botao)`
+    background-color: #F5FAFC;
+    color: #000000;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     border-radius: 0.8rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.11);
+
+    &:hover {
+        background-color: #F5FAFC;
+        color: #661745ff;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(92, 19, 73, 0.46);
+    }
+
+    /* O span para desktop (padrão) */
+    .desktop-text {
+        display: inline; /* Visível por padrão */
+    }
+
+    /* O span para mobile */
+    .mobile-text {
+        display: none; /* Escondido por padrão */
+    }
+
+    @media (max-width: 768px) {
+        .desktop-text {
+            display: none; /* Esconde o texto de desktop */
+        }
+        .mobile-text {
+            display: inline; /* Mostra o texto de mobile */
+        }
+    }
 `;
 
 const MainContent = styled.div`
@@ -179,7 +208,11 @@ function BuscarProjetos() {
                         variant="Modal"
                         onClick={() => setIsFilterModalOpen(true)}
                     >
-                        <FiFilter size={20} /> Filtrar por Interesse
+                        <FiFilter size={20} />
+                        {/* Texto para desktop */}
+                        <span className="desktop-text">Filtrar por Interesse</span>
+                        {/* Texto para mobile */}
+                        <span className="mobile-text">Filtrar</span>
                     </FilterButton>
                 </SearchAndFilter>
             </TopActions>

@@ -5,32 +5,36 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 
 const QuadroPerfilContainer = styled.div`
     background-color: #f5fafc;
-    border-radius: 20px;
+    border-radius: 1.25rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     width: 100%;
     display: flex;
     align-items: stretch;
     overflow: hidden;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 `;
 
 const FotoLinksContainer = styled.div`
     background-color: #e6ebf0;
-    padding: 30px 25px;
+    padding: 1.875rem 1.56rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 1.25rem;
     flex-shrink: 0;
 `;
 
 // ALTERADO: Avatar agora aceita a propriedade $bgColor
 const Avatar = styled.div`
-    width: 120px;
-    height: 120px;
+    width: 7.5rem;
+    height: 7.5rem;
     background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
     font-weight: 700;
-    font-size: 56px;
+    font-size: 3.5rem;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -40,29 +44,43 @@ const Avatar = styled.div`
 const LinksSociais = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.6rem;
     align-items: flex-start;
     width: 100%;
+
+    @media (max-width: 768px) {
+        flex-direction: row;
+        justify-content: center;
+    }
 `;
 
 const LinkExterno = styled.a`
-    width: 143px;
-    height: 44px;
+    width: 8.95rem;
+    height: 2.75rem;
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding-left: 10px;
-    font-size: 30px;
+    gap: 0.5rem;
+    padding-left: 0.6rem;
+    font-size: 1.875rem;
     font-weight: 500;
     color: #000;
     text-decoration: none;
     transition: color 0.2s ease-in-out;
     svg {
-        font-size: 30px;
+        font-size: 1.875rem;
+        flex-shrink: 0; /* Não deixa o ícone encolher */
+
+        @media (max-width: 768px) {
+            font-size: 1.5rem;
+        }
     }
     &:hover {
         color: #0a528a;
+    }
+
+    @media (max-width: 768px) {
+        font-size: 1.25rem;
     }
 `;
 
@@ -70,40 +88,48 @@ const InfoDetalhadaContainer = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    padding: 20px;
-    padding-bottom: 40px;
+    gap: 1.875rem;
+    padding: 1.25rem;
+    padding-bottom: 2.5rem;
 `;
 
 const InfoPessoais = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 0.3rem;
 `;
 
 const InfoLinha = styled.div`
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 20px;
+    gap: 0.5rem;
+    font-size: 1.25rem;
     color: #000;
     svg {
         color: #333;
-        font-size: 22px;
+        font-size: 1.375rem;
     }
 `;
 
 const Nome = styled.h2`
     font-weight: 600;
     margin: 0;
-    font-size: 36px;
+    font-size: 2.25rem;
+
+    @media (max-width: 768px) {
+        font-size: 1.5rem;
+    }
 `;
 
 const Curso = styled.p`
     font-weight: 400;
     margin: 0;
-    font-size: 36px;
+    font-size: 2.25rem;
     color: #555;
+
+    @media (max-width: 768px) {
+        font-size: 1.5rem;
+    }
 `;
 
 const Secao = styled.div`
@@ -111,37 +137,49 @@ const Secao = styled.div`
 `;
 
 const SecaoTitulo = styled.h3`
-    font-size: 36px;
+    font-size: 2.25rem;
     font-weight: 600;
     color: #000;
-    margin: 0 0 8px 0;
+    margin: 0 0 0.5rem 0;
+
+    @media (max-width: 768px) {
+        font-size: 1.5rem;
+    }
 `;
 
 const SecaoConteudo = styled.p`
-    font-size: 30px;
+    font-size: 1.875rem;
     font-weight: 400;
     color: #333;
     line-height: 1.4;
     margin: 0;
     word-break: break-word;
+
+    @media (max-width: 768px) {
+        font-size: 1.2rem;
+    }
 `;
 
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 0.6rem;
 `;
 
 const Tag = styled.span`
-    padding: 8px 16px;
-    border-radius: 30px;
-    font-size: 16px;
+    padding: 0.5rem 1rem;
+    border-radius: 1.875rem;
+    font-size: 1rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background-color: ${(props) => (props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66')};
     color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
+
+    @media (max-width: 768px) {
+        font-size: 0.8rem;
+    }
 `;
 
 const getInitials = (nome, sobrenome) => {
@@ -169,7 +207,7 @@ function QuadroPerfil() {
                         <FiGithub /> GitHub
                     </LinkExterno>
                     <LinkExterno href={userData?.linkedin || '#'} target="_blank">
-                        <FiLinkedin size={30} /> LinkedIn
+                        <FiLinkedin /> LinkedIn
                     </LinkExterno>
                 </LinksSociais>
             </FotoLinksContainer>

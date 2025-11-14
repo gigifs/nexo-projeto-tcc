@@ -13,56 +13,82 @@ import {
 import { auth, db } from '../firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '../contexts/ToastContext';
+import { FiMail, FiLock } from "react-icons/fi";
 
 const LayoutContainer = styled.div`
     background-color: #f5fafc;
-    border-radius: 20px;
-    padding: 40px 160px;
+    border-radius: 1.25rem;
+    padding: 2.5rem 10rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     display: flex;
-    gap: 180px; /* Espaço entre as colunas */
+    gap: 11.25rem; /* Espaço entre as colunas */
+
+    @media (max-width: 1600px) {
+        padding: 2.5rem 5rem;
+        gap: 3.75rem;
+    }
+
+    @media (max-width: 1400px) {
+        padding: 0.95rem 1.875rem;
+        gap: 1.875rem;
+    }
+
+    @media (max-width: 1024px) {
+        padding: 1.875rem;
+        gap: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        padding: 1.56rem;
+        gap: 1.875rem;
+    }
 `;
 
 const Coluna = styled.div`
     flex: 1; /* Faz as duas colunas terem a mesma largura */
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Espaço vertical entre as seções */
+    gap: 1rem; /* Espaço vertical entre as seções */
 `;
 
 const Secao = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Espaço entre o título e o conteúdo da seção */
+    gap: 0.6rem; /* Espaço entre o título e o conteúdo da seção */
 `;
 
 const TituloSecao = styled.h3`
-    font-size: 28px;
+    font-size: 1.25rem;
     font-weight: 500;
     color: #7c2256; /* Cor roxa */
     margin: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 `;
 
 const Label = styled.label`
     font-weight: 500;
-    font-size: 24px;
+    font-size: 1.125rem;
     color: #0a528a;
 `;
 
 const InputGroup = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0.375rem;
 `;
 
 const Input = styled.input`
     background-color: #f5fafc;
-    padding: 12px 15px;
-    font-size: 20px;
+    padding: 0.75rem 0.95rem;
+    font-size: 1rem;
     font-weight: 400;
     color: #333333;
     border: 1px solid #00000060;
-    border-radius: 10px;
+    border-radius: 0.6rem;
     outline: none;
     margin: 0;
     transition:
@@ -84,12 +110,11 @@ const InfoBox = styled.div`
     background-color: #e0575a33;
     color: #000000ff;
     border: 1px solid #00000066;
-    padding: 20px;
-    border-radius: 8px;
-    font-size: 20px;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 1.125rem;
     line-height: 1.2;
     font-weight: 400;
-    text-align: justify;
 
     b {
         font-weight: 500;
@@ -97,16 +122,20 @@ const InfoBox = styled.div`
 `;
 
 const Mensagem = styled.p`
-    font-size: 14px;
+    font-size: 0.875rem;
     text-align: left;
-    min-height: 20px; // Garante que o layout não "pule" quando a mensagem aparece
+    min-height: 1.25rem; // Garante que o layout não "pule" quando a mensagem aparece
     color: ${(props) => (props.$sucesso ? 'green' : 'red')};
-    margin: 8px 0 0 0;
+    margin: 0.5rem 0 0 0;
 `;
 
 const ButtonContainer = styled.div`
     display: flex;
     align-items: center;
+
+    @media (max-width: 768px) {
+        padding: 0.6rem;
+    }
 `;
 
 function PrivacidadeSeguranca() {
@@ -234,14 +263,18 @@ function PrivacidadeSeguranca() {
         <LayoutContainer>
             <Coluna>
                 <Secao>
-                    <TituloSecao>E-mail</TituloSecao>
+                    <TituloSecao>
+                        <FiMail size={20}/> E-mail
+                        </TituloSecao>
                     {/* Exibe o e-mail do usuário logado, desabilitado para edição */}
                     <Input value={currentUser?.email || ''} disabled />
                 </Secao>
 
                 <form onSubmit={handleAlterarSenha}>
                     <Secao>
-                        <TituloSecao>Alterar Senha</TituloSecao>
+                        <TituloSecao>
+                            <FiLock size={20}/> Alterar Senha
+                            </TituloSecao>
                         <InputGroup>
                             <Label>Senha Atual</Label>
                             <Input
@@ -275,7 +308,7 @@ function PrivacidadeSeguranca() {
                             />
                         </InputGroup>
 
-                        <div style={{ marginTop: '12px' }}>
+                        <div style={{ marginTop: '0.75rem' }}>
                             <Botao
                                 variant="hab-int"
                                 type="submit"

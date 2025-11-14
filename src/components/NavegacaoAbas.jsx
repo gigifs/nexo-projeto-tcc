@@ -1,4 +1,3 @@
-// src/components/NavegacaoAbas.jsx
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
 
@@ -12,26 +11,33 @@ const TabsContainer = styled.nav`
     justify-content: center;
     gap: 1.25rem;
 
-    @media (min-width: 1600px) {
-        justify-content: space-between;
-        overflow-x: auto;
-        padding: 0 20rem 0 20rem;
-        /* Esconde o scroll */
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
+    @media (max-width: 568px) {
+        justify-content: flex-start; 
+        overflow-x: auto; 
+        padding: 0 0.5rem 0 0.5rem; 
+        gap: 1.25rem; /* Garante que o gap volte ao normal no scroll */
+
+        /* Esconde a barra de scroll visualmente */
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
         &::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            display: none; 
         }
     }
 
-    @media (max-width: 1400px) {
-        justify-content: center;
+    @media (min-width: 768px) {
+            gap:5rem;
+    }
+
+    @media (min-width: 1400px) {
         gap: 10rem;
     }
 
-    @media (max-width: 568px) {
-        gap: 0.5rem;
+    @media (min-width: 1600px) {
+        justify-content: center;
+        gap: 20rem;
     }
+
 `;
 
 const TabLink = styled(NavLink)`
@@ -46,7 +52,7 @@ const TabLink = styled(NavLink)`
     text-decoration: none;
     transition: all 0.2s ease-in-out;
     white-space: nowrap;
-    border-radius: 10px 10px 0 0;
+    border-radius: 0.6rem 0.6rem 0 0;
     border-bottom: 3px solid transparent;
 
     &:hover {
@@ -66,6 +72,7 @@ const TabLink = styled(NavLink)`
         padding: 0.75rem 1.125rem;
         font-size: 1.065rem;
     }
+
     @media (max-width: 768px) {
         padding: 0.625rem 0.95rem;
         font-size: 1rem;

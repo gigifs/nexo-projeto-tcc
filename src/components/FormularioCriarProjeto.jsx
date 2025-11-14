@@ -17,47 +17,51 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 
 const FormContainer = styled.form`
-    padding: 20px 40px 30px 40px;
+    padding: 1.25rem 2.5rem 1.875rem 2.5rem;
     background-color: #f5fafc;
 `;
 
 const Titulo = styled.h2`
-    font-size: 28px;
+    font-size: 1.75rem;
     font-weight: 700;
     text-align: left;
     color: #030214;
-    margin-top: 10px;
-    margin-bottom: 30px;
+    margin-top: 0.6rem;
+    margin-bottom: 1.875rem;
 `;
 
 const CamposEmLinha = styled.div`
     display: flex;
-    gap: 20px;
+    gap: 1.25rem;
     align-items: flex-start;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 `;
 
 const InputGroup = styled.div`
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;
     position: relative;
     width: 100%;
 `;
 
 const Label = styled.label`
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 1rem;
     color: #000000cc;
 `;
 
 const Input = styled.input`
     width: 100%;
     background-color: #f5fafc;
-    padding: 12px 15px;
-    font-size: 16px;
+    padding: 0.75rem 0.94rem;
+    font-size: 1rem;
     color: #000000cc;
     border: 1px solid #ced4da;
-    border-radius: 10px;
+    border-radius: 0.6rem;
     outline: none;
     transition:
         border-color 0.2s,
@@ -73,15 +77,15 @@ const Input = styled.input`
 const Textarea = styled.textarea`
     width: 100%;
     background-color: #f5fafc;
-    padding: 12px 15px;
-    font-size: 16px;
+    padding: 0.75rem 0.94rem;
+    font-size: 1rem;
     font-family: inherit;
     color: #333333;
     border: 1px solid #00000060;
-    border-radius: 10px;
+    border-radius: 0.6rem;
     outline: none;
     resize: vertical;
-    min-height: 80px;
+    min-height: 5rem;
     transition:
         border-color 0.2s,
         box-shadow 0.2s;
@@ -96,12 +100,12 @@ const Textarea = styled.textarea`
 const Select = styled.select`
     width: 100%;
     background-color: #f5fafc;
-    padding: 12px 15px;
-    font-size: 16px;
+    padding: 0.75rem 0.94rem;
+    font-size: 1rem;
     font-family: inherit;
     color: #333333;
     border: 1px solid #00000060;
-    border-radius: 10px;
+    border-radius: 0.6rem;
     outline: none;
     box-sizing: border-box;
 
@@ -119,45 +123,50 @@ const Select = styled.select`
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
-    min-height: 70px; /* Altura mínima para acomodar 2 linhas de tags */
-    max-height: 70px; /* Altura máxima */
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    min-height: 4.375rem; /* Altura mínima para acomodar 2 linhas de tags */
+    max-height: 4.375rem; /* Altura máxima */
     overflow-y: auto; /* Adiciona rolagem se passar da altura máxima */
-    padding: 5px;
-    border-radius: 10px;
+    padding: 0.3rem;
+    border-radius: 0.6rem;
+
+    @media (max-width: 768px) {
+        min-height: 2rem;
+        max-height: 4.375rem;
+    }
 `;
 
 const Tag = styled.div`
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#d1e7ff' : '#ff8eda66'};
     color: ${(props) => (props.$tipo === 'habilidade' ? '#0d6efd' : '#FE3F85')};
-    padding: 5px 12px;
-    border-radius: 16px;
-    font-size: 14px;
+    padding: 0.3rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
     height: fit-content; /*Garante que a tag não estique verticalmente*/
 `;
 
 const FooterBotoes = styled.div`
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
+    gap: 0.94rem;
+    margin-top: 1.25rem;
     border-top: 1px solid #e0e0e0;
-    padding-top: 20px;
+    padding-top: 1.25rem;
 `;
 
 const MensagemErro = styled.p`
     color: #d32f2f;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 400;
     text-align: center;
-    margin-top: -10px;
-    margin-bottom: 15px;
+    margin-top: -0.6rem;
+    margin-bottom: 0.94rem;
 `;
 
 const AutoCompleteWrapper = styled.div`
@@ -174,8 +183,8 @@ const SugestoesContainer = styled.ul`
     z-index: 2001; /* Garante que fique sobre outros elementos do modal */
     background-color: #ffffff;
     border: 1px solid #eee;
-    border-radius: 8px;
-    max-height: 150px;
+    border-radius: 0.5rem;
+    max-height: 9.375rem;
     overflow-y: auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 0;
@@ -183,7 +192,7 @@ const SugestoesContainer = styled.ul`
 `;
 
 const SugestaoItem = styled.li`
-    padding: 10px 15px;
+    padding: 0.6rem 0.94rem;
     cursor: pointer;
     &:hover {
         background-color: #f5f5f5;

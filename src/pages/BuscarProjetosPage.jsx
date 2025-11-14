@@ -11,6 +11,9 @@ import { FiPlus } from 'react-icons/fi';
 const PageContainer = styled.div`
     width: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
 `;
 
 function BuscarProjetosPage() {
@@ -21,15 +24,9 @@ function BuscarProjetosPage() {
         <PageContainer>
             <DashboardHeader
                 titulo="Buscar Projetos"
+                botaoTexto="+ Criar Projeto"
+                onClick={() => setIsCriarProjetoModalOpen(true)}
                 semFundo
-                acoes={
-                    <Botao
-                        variant="Principal"
-                        onClick={() => setIsCriarProjetoModalOpen(true)}
-                    >
-                        <FiPlus size={20} /> Criar Projeto
-                    </Botao>
-                }
             >
                 Explore e encontre o projeto perfeito para você!
             </DashboardHeader>

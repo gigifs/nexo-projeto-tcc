@@ -3,41 +3,42 @@ import { FaUserPlus, FaSearch, FaUsers } from 'react-icons/fa';
 import { BolinhasContainer, Bolinha } from './Bolinhas.jsx';
 
 const SectionContainer = styled.section`
-    padding-top: 20px;
-    padding-bottom: 40px;
+    padding-top: 1.25rem;
+    padding-bottom: 2.5rem;
     text-align: center;
     background-color: #e6ebf0;
-    scroll-margin-top: 80px;
+    scroll-margin-top: 5rem;
 `;
 
 const Titulo = styled.h2`
-    font-size: 56px;
+    font-size: 3.5rem;
     font-weight: 500;
     color: #000000;
-    margin: 0 0 30px 0;
+    margin: 1rem 0 1.875rem 0;
 
     @media (max-width: 768px) {
-        font-size: 40px;
+        font-size: 2.5rem;
     }
 `;
 
 const SubTitulo = styled.p`
-    font-size: 28px;
+    font-size: 1.75rem;
     color: #000000;
     max-width: 1620px;
-    margin: 0 auto 48px auto; /* Centraliza o parágrafo e adiciona margem embaixo */
+    margin: 0 auto 3rem auto; /* Centraliza o parágrafo e adiciona margem embaixo */
     line-height: 1.2;
-    padding: 0 10px 0 10px; /* Para não ficar colado nos cantos das telas */
+    padding: 0 0.65rem 0 0.65rem; /* Para não ficar colado nos cantos das telas */
 
     @media (max-width: 768px) {
-        font-size: 26px;
+        font-size: 1.625rem;
     }
 `;
 
 const CardsContainer = styled.div`
     display: flex;
     justify-content: center;
-    gap: 60px; /* Espaço entre os cards */
+    gap: 3.75rem; /* Espaço entre os cards */
+    margin: 0 0.6rem 0 0.6rem;
 
     @media (max-width: 768px) {
         flex-direction: column;
@@ -47,9 +48,9 @@ const CardsContainer = styled.div`
 
 const Card = styled.div`
     background-color: #f5fafc;
-    border-radius: 30px;
-    padding: 20px;
-    max-width: 450px;
+    border-radius: 1.875rem;
+    padding: 1.25rem;
+    max-width: 28.125rem;
     text-align: left;
     transition: transform 0.3s;
 
@@ -66,18 +67,18 @@ const Card = styled.div`
 
 const IconContainer = styled.div`
     color: ${(props) => props.color || '#000000'};
-    margin-bottom: 12px;
+    margin-bottom: 0.75rem;
 `;
 
 const CardTitulo = styled.h3`
-    font-size: 30px;
+    font-size: 1.875rem;
     font-weight: 700;
     color: #000000;
-    margin: 0 0 12px 0;
+    margin: 0 0 0.75rem 0;
 `;
 
 const CardTexto = styled.p`
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 400;
     color: #000000;
     line-height: 1;

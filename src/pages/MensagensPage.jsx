@@ -37,18 +37,25 @@ const ChatLayout = styled.div`
     border-radius: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+
+    @media (max-width: 1024px) {
+        margin-top: 1.25rem;
+        position: relative;
+        height: auto;
+        height: 600px;
+    }
 `;
 
 const Placeholder = styled.div`
     display: flex;
-    flex-direction: column; /* Para empilhar ícone e texto */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     flex-grow: 1;
     height: 100%;
-    color: #888; /* Cor cinza mais escura para o texto principal */
-    font-size: 24px; /* Tamanho maior para "Selecione uma conversa..." */
-    font-weight: 500; /* Peso médio */
+    color: #888;
+    font-size: 24px;
+    font-weight: 500;
     padding: 20px;
     text-align: center;
     border-radius: 0 20px 20px 0;
@@ -56,27 +63,28 @@ const Placeholder = styled.div`
 
     svg {
         /* Estilo para o ícone */
-        font-size: 60px; /* Tamanho maior para o ícone */
-        color: #b0b0b0; /* Cor cinza mais clara para o ícone */
-        margin-bottom: 20px; /* Espaço entre ícone e texto */
+        font-size: 60px;
+        color: #b0b0b0;
+        margin-bottom: 20px;
     }
 
     p {
         /* Estilo para o subtítulo */
-        font-size: 18px; /* Tamanho menor para o subtítulo */
-        font-weight: 300; /* Peso leve */
-        color: #a0a0a0; /* Cor cinza mais clara */
-        margin-top: 5px; /* Pequeno espaço acima do subtítulo */
+        font-size: 18px;
+        font-weight: 300;
+        color: #a0a0a0;
+        margin-top: 5px;
+    }
+
+    @media (max-width: 1024px) {
+        display: none;
     }
 `;
 
-const getInitials = (name = '', sobrenome = '') => {
-    if (!name) return '?';
-    const parts = name.split(' ');
-    if (parts.length > 1 && parts[1]) {
-        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
+const getInitials = (nome, sobrenome) => {
+    if (!nome) return '?';
+    if (!sobrenome) return nome.substring(0, 2).toUpperCase();
+    return `${nome[0]}${sobrenome[0]}`.toUpperCase();
 };
 
 const formatarTimestamp = (timestamp) => {
@@ -212,24 +220,52 @@ function MensagensPage() {
         }
     }, [conversaAtivaId, currentUser]);
 
-    // Efeito para status de outro usuário em chat privado
+    // ✅ EFEITO CORRIGIDO: Ouve o status e DADOS do outro usuário
     useEffect(() => {
         if (!conversaAtiva || conversaAtiva.isGrupo) {
             setStatusOutroUsuario(null);
             return;
         }
+
         const outroUsuario = conversaAtiva.participantesInfo.find(
             (p) => p.uid !== currentUser.uid
         );
+
         if (!outroUsuario) return;
+
         const userDocRef = doc(db, 'users', outroUsuario.uid);
+
         const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
-                setStatusOutroUsuario(docSnap.data().status);
+                const userData = docSnap.data();
+                setStatusOutroUsuario(userData.status);
+
+                setConversas((prevConversas) =>
+                    prevConversas.map((c) => {
+                        if (c.id === conversaAtivaId) {
+                            const novosParticipantesInfo =
+                                c.participantesInfo.map((p) => {
+                                    if (p.uid === outroUsuario.uid) {
+                                        return {
+                                            ...p,
+                                            avatarColor: userData.avatarColor,
+                                        };
+                                    }
+                                    return p;
+                                });
+                            return {
+                                ...c,
+                                participantesInfo: novosParticipantesInfo,
+                            };
+                        }
+                        return c;
+                    })
+                );
             }
         });
+
         return () => unsubscribe();
-    }, [conversaAtiva, currentUser]);
+    }, [conversaAtivaId, currentUser, conversaAtiva]); // Adicionado conversaAtiva como dependência
 
     // Funções passadas como props
     const getNomeConversa = useCallback(
@@ -247,6 +283,7 @@ function MensagensPage() {
 
     const getAvatarColorConversa = useCallback(
         (conversa) => {
+            if (!conversa) return '#0a528a';
             if (conversa.isGrupo) return '#0a528a'; // Cor padrão para grupos
             const outroUsuario = conversa.participantesInfo?.find(
                 (p) => p.uid !== currentUser.uid
@@ -425,6 +462,7 @@ function MensagensPage() {
                     setAbaAtiva={setAbaAtiva}
                     getNomeConversa={getNomeConversa}
                     getAvatarColorConversa={getAvatarColorConversa}
+                    $isChatActive={!!conversaAtivaId}
                 />
 
                 {conversaAtiva ? (
@@ -441,6 +479,8 @@ function MensagensPage() {
                         primeiraMensagemVisivel={primeiraMensagemVisivel}
                         getInitials={getInitials}
                         getAvatarColorConversa={getAvatarColorConversa}
+                        $isChatActive={!!conversaAtivaId}
+                        onCloseChat={() => setConversaAtivaId(null)}
                     />
                 ) : (
                     <Placeholder>

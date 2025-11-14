@@ -5,32 +5,36 @@ import { useAuth } from '../contexts/AuthContext';
 
 const MenuContainer = styled.div`
     position: absolute;
-    top: 60px; /* Distância do topo do header */
+    top: 3.75rem; /* Distância do topo do header */
     right: 0;
     background-color: #f5fafc;
-    border-radius: 20px;
+    border-radius: 1.25rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-    width: 280px;
+    width: 17.5rem;
     z-index: 100;
     overflow: hidden;
-    padding: 20px;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 0.94rem;
+
+    @media (max-width: 768px) {
+        width: 14rem;
+    }
 `;
 
 const MenuItem = styled.div`
     position: relative;
     z-index: 1;
-    font-size: 20px;
+    font-size: 1.25rem;
     font-weight: 400;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 0.94rem;
     color: #000000ff;
     text-decoration: none;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     transition:
         background-color 0.2s,
         color 0.2s;
@@ -47,7 +51,7 @@ const MenuItem = styled.div`
         bottom: -6px;
 
         background-color: #238cd766;
-        border-radius: 20px;
+        border-radius: 1.25rem;
 
         /* Padrão para esconder segundo o gemini */
         opacity: 0;
@@ -62,6 +66,16 @@ const MenuItem = styled.div`
         &::before {
             opacity: 1;
             transform: scale(1);
+        }
+    }
+
+    @media (max-width: 768px) {
+        font-size: 1.3rem;
+        gap: 0.6rem;
+
+        svg {
+            width: 1.4rem;
+            height: 1.4rem;
         }
     }
 `;

@@ -6,7 +6,7 @@ import ConfigPerfil from '../components/ConfigPerfil';
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 1.25rem;
     width: 100%;
 `;
 

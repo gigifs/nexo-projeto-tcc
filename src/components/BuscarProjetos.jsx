@@ -7,9 +7,8 @@ import ModalFiltroBuscarProjeto from './ModalFiltroProjetos';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import ProjectCard from './ProjectCard'; // 1. Importa o card reutilizável
+import ProjectCard from './ProjectCard'; 
 
-// --- ESTILOS ---
 
 const Container = styled.div`
     width: 100%;
@@ -20,13 +19,13 @@ const TopActions = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 25px;
+    gap: 1.25rem;
+    margin-bottom: 1.56rem;
 `;
 
 const SearchAndFilter = styled.div`
     display: flex;
-    gap: 20px;
+    gap: 1.25rem;
     flex-grow: 1;
 `;
 
@@ -37,10 +36,10 @@ const SearchInputGroup = styled.div`
 
 const SearchInput = styled.input`
     width: 100%;
-    padding: 12px 15px 12px 45px;
+    padding: 0.75rem 0.95rem 0.75rem 2.8rem;
     border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 0.8rem;
+    font-size: 1rem;
     box-sizing: border-box;
     &:focus {
         outline: none;
@@ -51,29 +50,64 @@ const SearchInput = styled.input`
 
 const SearchIcon = styled(FiSearch)`
     position: absolute;
-    left: 15px;
+    left: 0.95rem;
     top: 50%;
     transform: translateY(-50%);
     color: #555;
 `;
 
 const FilterButton = styled(Botao)`
+    background-color: #F5FAFC;
+    color: #000000;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
+    border-radius: 0.8rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.11);
+
+    &:hover {
+        background-color: #F5FAFC;
+        color: #661745ff;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(92, 19, 73, 0.46);
+    }
+
+    /* O span para desktop (padrão) */
+    .desktop-text {
+        display: inline; /* Visível por padrão */
+    }
+
+    /* O span para mobile */
+    .mobile-text {
+        display: none; /* Escondido por padrão */
+    }
+
+    @media (max-width: 768px) {
+        .desktop-text {
+            display: none; /* Esconde o texto de desktop */
+        }
+        .mobile-text {
+            display: inline; /* Mostra o texto de mobile */
+        }
+    }
 `;
 
 const MainContent = styled.div`
     display: grid;
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 2.5rem;
     align-items: start;
 `;
 
 const ProjectsGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
+    gap: 1.875rem;
+
+    //* Quando a tela for menor que 768px, muda para 1 coluna de exibição para os cards */
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
 `;
 
 function BuscarProjetos() {
@@ -174,7 +208,11 @@ function BuscarProjetos() {
                         variant="Modal"
                         onClick={() => setIsFilterModalOpen(true)}
                     >
-                        <FiFilter size={20} /> Filtrar por Interesse
+                        <FiFilter size={20} />
+                        {/* Texto para desktop */}
+                        <span className="desktop-text">Filtrar por Interesse</span>
+                        {/* Texto para mobile */}
+                        <span className="mobile-text">Filtrar</span>
                     </FilterButton>
                 </SearchAndFilter>
             </TopActions>
@@ -184,7 +222,7 @@ function BuscarProjetos() {
                     {loading ? (
                         <p>A carregar projetos...</p>
                     ) : filteredProjects.length > 0 ? (
-                        // 2. Utiliza o componente ProjectCard aqui
+                        
                         filteredProjects.map((project) => (
                             <ProjectCard key={project.id} projeto={project} />
                         ))

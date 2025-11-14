@@ -6,9 +6,15 @@ import { FaGraduationCap } from 'react-icons/fa';
 
 const ModalWrapper = styled.div`
     display: flex;
-    gap: 25px;
-    padding: 20px 20px 20px 0;
+    gap: 1.55rem;
+    padding: 1.25rem 1.25rem 1.25rem 0;
     color: #000000;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center; /* Centraliza o avatar/links */
+        padding: 0.94rem 0.94rem 0.94rem 0.94rem;
+    }
 `;
 
 //Avatar e Links
@@ -16,18 +22,18 @@ const ColunaEsquerda = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 1.25rem;
     flex-shrink: 0;
-    padding: 15px 10px;
+    padding: 0.95rem 0.6rem;
 `;
 
 const Avatar = styled.div`
-    width: 90px;
-    height: 90px;
+    width: 5.625rem;
+    height: 5.625rem;
     border-radius: 50%;
     background-color: ${(props) => props.$bgColor || '#0a528a'};
     color: #ffffff;
-    font-size: 40px;
+    font-size: 2.5rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -38,8 +44,12 @@ const Avatar = styled.div`
 const LinksSociais = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 0.95rem;
     align-items: flex-start;
+
+    @media (max-width: 768px) {
+        flex-direction: row; /* Coloca GitHub e LinkedIn lado a lado */
+    }
 `;
 
 const LinkExterno = styled.a.attrs({
@@ -48,8 +58,8 @@ const LinkExterno = styled.a.attrs({
 })`
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 18px;
+    gap: 0.5rem;
+    font-size: 1.125rem;
     font-weight: 500;
     color: #171515;
     text-decoration: none;
@@ -59,7 +69,7 @@ const LinkExterno = styled.a.attrs({
     }
 
     svg {
-        font-size: 24px;
+        font-size: 1.5rem;
     }
 `;
 
@@ -67,7 +77,7 @@ const LinkExterno = styled.a.attrs({
 const ColunaDireita = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 1.125rem;
     text-align: left;
     flex: 1;
 `;
@@ -77,30 +87,30 @@ const InfoPrincipal = styled.div`
 `;
 
 const Nome = styled.h2`
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 600;
-    margin: 0 0 5px 0;
+    margin: 0 0 0.32rem 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
 `;
 
 const Curso = styled.p`
-    font-size: 18px;
+    font-size: 1.125rem;
     margin: 0;
-    padding: 0 0 0 3px;
+    padding: 0 0 0 0.2rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.6rem;
     color: #1f1e1eff;
 `;
 
 const Secao = styled.div``;
 
 const SecaoTitulo = styled.h3`
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 600;
-    margin: 0 0 10px 0;
+    margin: 0 0 0.625rem 0;
 `;
 
 const Bio = styled.p`
@@ -122,13 +132,13 @@ const Bio = styled.p`
 const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.5rem;
 `;
 
 const Tag = styled.span`
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 14px;
+    padding: 0.375rem 0.875rem;
+    border-radius: 1.25rem;
+    font-size: 0.875rem;
     font-weight: 600;
     background-color: ${(props) =>
         props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
@@ -138,9 +148,9 @@ const Tag = styled.span`
 const FooterAcoes = styled.div`
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
-    padding-top: 15px;
+    gap: 0.95rem;
+    margin-top: 0.95rem;
+    padding-top: 0.95rem;
     border-top: 1px solid #eee;
 `;
 

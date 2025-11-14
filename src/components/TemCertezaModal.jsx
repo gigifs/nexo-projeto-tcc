@@ -2,27 +2,35 @@ import styled from "styled-components";
 import Botao from "./Botao";
 
 const Container = styled.div`
-    padding: 10px;
+    padding: 0.6rem;
     text-align: center;
 `;
 
 const Titulo = styled.h2`
-    font-size: 32px;
+    font-size: 2rem;
     font-weight: 700;
-    margin: 10px 0 15px 0;
+    margin: 0.6rem 0 0.94rem 0;
+
+    @media (max-width: 1400px) {
+        font-size: 1.7rem;
+    }
 `;
 
 const Mensagem = styled.p`
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1.4;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;
 `;
 
 const ButtonGroup = styled.div`
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 1.25rem;
+
+    @media (max-width: 1400px) {
+        gap: 1.5rem;
+    }
 `;
 
 function TemCertezaModal ({

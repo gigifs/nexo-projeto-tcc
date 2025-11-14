@@ -8,7 +8,7 @@ const HeaderEstilizado = styled.header`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 40px;
+    padding: 0.5rem 2.5rem;
     background-color: #f5fafc;
     box-shadow: 0 3px 6px rgba(124, 34, 86, 0.45);
     position: sticky;
@@ -16,13 +16,13 @@ const HeaderEstilizado = styled.header`
     z-index: 10;
 
     @media (max-width: 768px) {
-        padding: 8px 20px;
+        padding: 0.5rem 1.25rem;
     }
 `;
 
 const NavBotoes = styled.nav`
     display: flex;
-    gap: 14px; /* Cria um espaço entre os botões */
+    gap: 1rem; /* Cria um espaço entre os botões */
 
     @media (max-width: 768px) {
         display: none;
@@ -31,10 +31,15 @@ const NavBotoes = styled.nav`
 
 // Placeholder para o logo, só para ter algo no lugar
 const Logo = styled.img`
-    width: 170px;
+    width: 10.5rem;
     z-index: 11;
+
+    @media (max-width: 1024px) {
+        width: 8rem;
+    }
+
     @media (max-width: 768px) {
-        width: 140px;
+        width: 8.5rem;
     }
 `;
 
@@ -59,14 +64,24 @@ const NavLinks = styled.nav`
 const ListaLinks = styled.ul`
     list-style: none;
     padding: 0;
-    margin: 0 0 0 100px;
+    margin: 0 0 0 6.25rem;
     display: flex;
-    gap: 45px;
+    gap: 2.85rem;
+
+    @media (max-width: 1200px) {
+        gap: 1.4rem;
+        margin: 0 0 0 4rem;
+    }
+
+    @media (max-width: 1024px) {
+        gap: 2rem;
+        margin: 0 0 0 1rem;
+    }
 
     @media (max-width: 768px) {
         flex-direction: column;
         margin: 0;
-        gap: 40px;
+        gap: 2.5rem;
         text-align: center;
     }
 `;
@@ -75,7 +90,7 @@ const LinkEstilizado = styled.a`
     text-decoration: none;
     color: #0a528a;
     font-weight: 400;
-    font-size: 22px;
+    font-size: 1.4rem;
     cursor: pointer;
     transition: color 0.2s;
 
@@ -84,8 +99,16 @@ const LinkEstilizado = styled.a`
         font-weight: 500;
     }
 
+    @media (max-width: 1200px) {
+        font-size: 1.3rem;
+    }
+
+    @media (max-width: 1024px) {
+        font-size: 1.2rem
+    }
+
     @media (max-width: 768px) {
-        font-size: 28px;
+        font-size: 1.7rem;
     }
 `;
 

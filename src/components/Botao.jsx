@@ -55,6 +55,12 @@ const BotaoEstilizado = styled.button`
                     background-color: #9f0f11ff;
                     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                     }
+
+                    @media (max-width: 1400px) {
+                        font-size: 18px;
+                        font-weight: 800;
+                        padding: 8px 16px 8px 16px;
+                    }
                 `;
 
             case 'sim':
@@ -69,6 +75,12 @@ const BotaoEstilizado = styled.button`
                     &:hover {
                     background-color: #218838;
                     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+
+                    @media (max-width: 1400px) {
+                        font-size: 18px;
+                        font-weight: 800;
+                        padding: 8px 16px 8px 16px;
                     }
                 `;
 
@@ -142,6 +154,11 @@ const BotaoEstilizado = styled.button`
                         background-color: #661745ff;
                         color: #f5fafc;
                     }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 16px;
+                    }
                 `;
 
             case 'Modal':
@@ -156,6 +173,11 @@ const BotaoEstilizado = styled.button`
                     &:hover {
                         background-color: #661745ff;
                     }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 16px;
+                    }
                 `;
 
             case 'header':
@@ -167,6 +189,11 @@ const BotaoEstilizado = styled.button`
 
                     &:hover {
                         background-color: #661745ff;
+                    }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 14px;
                     }
                 `;
 
@@ -237,6 +264,16 @@ const BotaoEstilizado = styled.button`
                         background-color: #7c2256; /* Fundo padrão */
                         color: #f5fafc; /* Texto branco */
                     }
+
+                    @media (max-width: 1024px) {
+                        padding: 4px 8px;
+                        font-size: 18px;
+                    }
+
+                    @media (max-width: 1200px) {
+                        padding: 4px 8px;
+                        font-size: 19px;
+                    }
                 `;
             case 'Verificacao':
                 return css`
@@ -257,6 +294,16 @@ const BotaoEstilizado = styled.button`
                         background-color: #f5fafc; /* Fundo padrão */
                         color: #7c2256; /* Texto branco */
                         border-color: #7c2256;
+                    }
+
+                    @media (max-width: 1024px) {
+                        padding: 4px 8px;
+                        font-size: 18px;
+                    }
+
+                    @media (max-width: 1200px) {
+                        padding: 4px 8px;
+                        font-size: 19px;
                     }
                 `;
         }

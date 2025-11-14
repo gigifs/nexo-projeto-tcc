@@ -172,6 +172,21 @@ const CamposLinha = styled.div`
     display: flex;
     gap: 1.25rem;
     align-items: flex-start;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
+`;
+
+const AcoesContainer = styled.div`
+    display: flex;
+    gap: 0.6rem; /* Controla o espaço entre os botões */
+    flex-shrink: 0; /* Impede que este container seja "espremido" pelo título */
+
+    @media (max-width: 768px) {
+        justify-content: flex-end;
+        width: 100%; /* Garante que o container ocupe a largura */
+    }
 `;
 
 function GerenciarProjetoPage() {
@@ -179,7 +194,7 @@ function GerenciarProjetoPage() {
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
     const { addToast } = useToast();
-
+    
     const [projeto, setProjeto] = useState(null);
     const [candidaturas, setCandidaturas] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -267,9 +282,8 @@ function GerenciarProjetoPage() {
         };
 
         buscarDados();
-    }, [id, userData]); // <-- ADICIONA O userData AQUI
+    }, [id, userData]);
 
-    // ... (resto do componente, sem alterações)
     const handleSalvar = async (evento) => {
         evento.preventDefault();
         setIsSaving(true);
@@ -283,11 +297,11 @@ function GerenciarProjetoPage() {
                 habilidades: habilidadesEditaveis,
                 interesses: interessesEditaveis,
             });
-            alert('Projeto atualizado com sucesso!');
+            addToast('Projeto atualizado com sucesso!', 'success');
             navigate('/dashboard/meus-projetos');
         } catch (err) {
             console.error('Erro ao atualizar o projeto!');
-            alert('ERRO, ALTERAÇÕES NÃO FORAM SALVAS!!!');
+            addToast('ERRO, ALTERAÇÕES NÃO FORAM SALVAS!!!', 'error');
         } finally {
             setIsSaving(false);
         }
@@ -624,14 +638,13 @@ function GerenciarProjetoPage() {
                     titulo="Gerenciador de Projeto"
                     semFundo={false}
                     acoes={
-                        <div>
+                        <AcoesContainer> 
                             <Botao
                                 type="button"
                                 variant="Cancelar"
                                 onClick={() =>
                                     navigate('/dashboard/meus-projetos')
                                 }
-                                style={{ marginRight: '10px' }}
                             >
                                 Cancelar
                             </Botao>
@@ -642,7 +655,7 @@ function GerenciarProjetoPage() {
                             >
                                 {isSaving ? 'A guardar...' : 'Salvar'}
                             </Botao>
-                        </div>
+                        </AcoesContainer>
                     }
                 >
                     Edite informações, gerencie a equipe e avalie as

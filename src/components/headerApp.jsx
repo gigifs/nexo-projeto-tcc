@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import logoNexo from '../assets/logo.svg';
-// Importar FiMenu e FiX
-import { FiBell, FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
+import { FiBell, FiChevronDown, FiMenu, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import MenuSuspenso from './MenuSuspenso.jsx';
 import Notificacoes from './Notificacoes.jsx';
@@ -39,10 +38,16 @@ const MenuToggleButton = styled.button`
     display: none; /* Escondido em telas grandes */
     background: none;
     border: none;
+    border-radius: 1rem;
     cursor: pointer;
-    padding: 5px;
-    margin-right: 15px; /* Espaço entre o ícone e o logo (se visível) ou user area */
-    color: #7c2256; /* Cor roxa */
+    padding: 0.3rem;
+    margin-right: 0.95rem; /* Espaço entre o ícone e o logo (se visível) ou user area */
+    color: #7c2256;
+
+    &:hover {
+    color: #a21065ff;
+    background-color: #c56ca02f;
+  }
 
     @media (max-width: 1024px) {
         display: block; /* Mostra em telas menores */
@@ -57,7 +62,7 @@ const LeftSection = styled.div`
 `;
 
 const Logo = styled.img`
-    width: 10.5rem; /*10.625rem é o tamanho certo, 170px*/
+    width: 10.5rem;
     z-index: 11;
 
     @media (max-width: 1024px) {
@@ -125,7 +130,7 @@ const Nome = styled.span`
     color: #000000ff;
     align-self: center;
     /* Esconder o nome em telas muito pequenas, se necessário */
-    @media (max-width: 576px) {
+    @media (max-width: 568px) {
         display: none;
     }
 `;
@@ -219,7 +224,7 @@ function HeaderApp({ isMenuOpen, onToggleMenu }) {
                 {/* Botão do Menu Hambúrguer */}
                 <MenuToggleButton onClick={onToggleMenu}>
                     {/* Muda o ícone baseado no estado isMenuOpen */}
-                    {isMenuOpen ? <FiX size={30} /> : <FiMenu size={30} />}
+                    {isMenuOpen ? <FiChevronsRight size={30}/> : <FiMenu size={30} />}
                 </MenuToggleButton>
                 <Logo src={logoNexo} alt="Logo da empresa Nexo" />
             </LeftSection>

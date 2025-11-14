@@ -7,7 +7,7 @@ import { FiFacebook } from 'react-icons/fi';
 const FooterContainer = styled.footer`
     background-color: #383838;
     color: #f8f9fa;
-    padding: 40px 100px 10px 100px;
+    padding: 2.5rem 6.25rem 0.625rem 6.25rem;
     font-family: 'Roboto', 'Poppins';
 `;
 
@@ -15,31 +15,31 @@ const FooterConteudo = styled.div`
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 40px;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
 `;
 
 const FooterColuna = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    min-width: 200px;
+    gap: 0.95rem;
+    min-width: 2.5rem;
 `;
 
 const Logo = styled.img`
-    width: 100px;
+    width: 6.25rem;
 `;
 
 const Descricao = styled.p`
-    font-size: 13px;
+    font-size: 0.815rem;
     line-height: 1.6;
     color: #ffffff;
-    max-width: 200px;
+    max-width: 12.5rem;
     margin: 0;
 `;
 
 const TituloColuna = styled.h4`
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 500;
     margin: 0 0 5px 0;
     color: #ffffff;
@@ -48,7 +48,7 @@ const TituloColuna = styled.h4`
 const FooterLink = styled.a`
     color: #adb5bd;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 1rem;
     transition: color 0.2s;
 
     &:hover {
@@ -59,10 +59,10 @@ const FooterLink = styled.a`
 const RedesSocias = styled.a`
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.65rem;
     color: #adb5bd;
     text-decorations: none;
-    font-size: 16px;
+    font-size: 1rem;
     transition: color 0.2s;
 
     &:hover {
@@ -77,7 +77,7 @@ const Divisoria = styled.hr`
 
 const TextoCopyright = styled.p`
     text-align: center;
-    font-size: 14px;
+    font-size: 0.875rem;
     color: #ffffff;
     margin: 0;
 `;

@@ -27,26 +27,26 @@ const ConteudoInicio = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 60px 40px;
+    padding: 3.75rem 2.5rem;
     min-height: 80vh;
-    max-width: 1700px;
+    max-width: 106.25rem; 
     margin: 0 auto;
     box-sizing: border-box;
-    gap: 40px;
+    gap: 2.5rem;
     position: relative; /* Garante que o conteúdo fique sobre a imagem de fundo */
     z-index: 1;
 
     @media (max-width: 768px) {
         flex-direction: column;
         text-align: center;
-        padding: 60px 20px;
+        padding: 3.75rem 1.25rem;
         min-height: 60vh;
     }
 `;
 
 const ConteudoEsquerdo = styled.div`
     flex: 1;
-    max-width: 700px;
+    max-width: 43.75rem;
     display: flex;
     flex-direction: column;
 
@@ -57,51 +57,59 @@ const ConteudoEsquerdo = styled.div`
 `;
 
 const Titulo = styled.h1`
-    font-size: 64px;
+    font-size: 4rem;
     font-weight: 800;
     color: #030214;
     margin-bottom: 2px;
     line-height: 1.2;
 
+    @media (max-width: 1024px) {
+        font-size: 3.5rem;
+    }
+
     @media (max-width: 768px) {
-        font-size: 48px;
+        font-size: 3rem;
     }
 `;
 
 const Subtitulo = styled.p`
-    font-size: 52px;
+    font-size: 3.25rem;
     font-weight: 500;
     color: #030214;
     margin-bottom: 60px;
-    line-height: 1; /*checar*/
+    line-height: 1;
+
+    @media (max-width: 1024px) {
+        font-size: 2.8rem;
+    }
 
     @media (max-width: 768px) {
-        font-size: 36px;
-        margin-bottom: 40px;
+        font-size: 2.25rem;
+        margin-bottom: 2.5rem;
     }
 `;
 
 const FormCadastro = styled.form`
     display: flex;
-    gap: 10px;
+    gap: 0.65rem;
     align-items: center;
     width: 100%;
-    max-width: 700px; /* Garante que não fique maior que o conteúdo esquerdo */
+    max-width: 43.75rem; /* Garante que não fique maior que o conteúdo esquerdo */
 
     @media (max-width: 768px) {
         flex-direction: column;
         width: 100%;
-        gap: 30px;
+        gap: 1.8rem;
     }
 `;
 
 const InputEmail = styled.input`
-    padding: 0 15px;
-    font-size: 24px;
+    padding: 0 1rem;
+    font-size: 1.5rem;
     border: 1px solid #0a528acc;
     border-radius: 50px;
     width: 100%;
-    height: 60px;
+    height: 3.75rem;
     outline: none;
     box-sizing: border-box; /* Garante que o padding não aumente o tamanho total */
 
@@ -115,13 +123,13 @@ const InputEmail = styled.input`
     }
 
     @media (max-width: 768px) {
-        font-size: 20px;
-        height: 45px;
+        font-size: 1.25rem;
+        height: 2.8rem;
     }
 `;
 
 const LogoInicio = styled.img`
-    max-width: 500px;
+    max-width: 31.25rem;
     height: auto;
     user-select: none;
 

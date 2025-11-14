@@ -19,8 +19,7 @@ const MenuContainer = styled.div`
     gap: 0.94rem;
 
     @media (max-width: 768px) {
-        width: 12.5rem;
-        gap: 0.7rem;
+        width: 14rem;
     }
 `;
 
@@ -71,13 +70,12 @@ const MenuItem = styled.div`
     }
 
     @media (max-width: 768px) {
-        font-size: 1.125rem;
+        font-size: 1.3rem;
         gap: 0.6rem;
 
         svg {
-            width: 1.25rem;
-            height: 1.25rem;
-            stroke-width: 2px; /* "afina" o ícone */
+            width: 1.4rem;
+            height: 1.4rem;
         }
     }
 `;

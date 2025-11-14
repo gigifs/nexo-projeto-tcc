@@ -9,7 +9,7 @@ import EditarInteressesModal from './EditarInteressesModal';
 import { FiEdit, FiGithub, FiLinkedin, FiEdit3  } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
 
-// Container principal (Layout original)
+// Container principal
 const FormContainer = styled.div`
     display: flex;
     background-color: #f5fafc;
@@ -538,7 +538,7 @@ function ConfigPerfil() {
                         value={tempAvatarColor}
                         onChange={(e) => setTempAvatarColor(e.target.value)}
                     />
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1.25rem' }}>
                         <Botao variant="Cancelar" onClick={handleCancelColor}>
                             Cancelar
                         </Botao>

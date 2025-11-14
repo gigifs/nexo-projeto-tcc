@@ -55,6 +55,12 @@ const BotaoEstilizado = styled.button`
                     background-color: #9f0f11ff;
                     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                     }
+
+                    @media (max-width: 1400px) {
+                        font-size: 18px;
+                        font-weight: 800;
+                        padding: 8px 16px 8px 16px;
+                    }
                 `;
 
             case 'sim':
@@ -69,6 +75,12 @@ const BotaoEstilizado = styled.button`
                     &:hover {
                     background-color: #218838;
                     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+
+                    @media (max-width: 1400px) {
+                        font-size: 18px;
+                        font-weight: 800;
+                        padding: 8px 16px 8px 16px;
                     }
                 `;
 

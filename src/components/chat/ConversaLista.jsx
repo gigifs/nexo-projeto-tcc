@@ -1,17 +1,29 @@
-import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { FiSearch } from 'react-icons/fi';
 
 const ColunaEsquerda = styled.div`
     width: 450px;
+    flex-shrink: 0;
     border-radius: 20px;
     padding: 30px 50px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+
+    @media (max-width: 1024px) {
+        width: 100%;
+        height: 100%;
+        border-right: none;
+        padding: 1.25rem;
+        /* Controla a visibilidade: esconde se um chat estiver ativo */
+        display: ${({ $isChatActive }) => ($isChatActive ? 'none' : 'flex')};
+    }
+
+    @media (max-width: 768px) {
+        padding: 1rem;
+        gap: 15px;
+    }
 `;
 
 const BuscaContainer = styled.div`
@@ -23,7 +35,6 @@ const BuscaIcone = styled(FiSearch)`
     position: absolute;
     left: 15px;
     top: 50%;
-
     transform: translateY(-55%);
     color: #999;
     stroke-width: 3px;
@@ -48,6 +59,11 @@ const ContainerAbas = styled.div`
     display: flex;
     justify-content: center;
     gap: 30px;
+
+    @media (max-width: 768px) {
+        gap: 15px;
+        padding: 0 5px;
+    }
 `;
 
 const Aba = styled.button`
@@ -98,6 +114,7 @@ const ListaScroll = styled.div`
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding-right: 5px;
 `;
 
 const ItemConversa = styled.div`
@@ -110,6 +127,10 @@ const ItemConversa = styled.div`
     background-color: #e6ebf0;
     border: 2px solid ${({ $ativo }) => ($ativo ? '#00000066' : 'transparent')};
     transition: all 0.2s ease-in-out;
+
+    @media (max-width: 768px) {
+        padding: 10px 15px;
+    }
 `;
 
 const Avatar = styled.div`
@@ -153,10 +174,10 @@ const UltimaMensagemContainer = styled.div`
 
 const RemetenteMensagem = styled.span`
     font-size: 14px;
-    color: #333; /* Cor um pouco mais escura para destaque */
+    color: #333;
     font-weight: 500;
-    margin-right: 4px; /* Espaço entre o nome e a mensagem */
-    flex-shrink: 0; /* Impede que o nome do remetente seja espremido */
+    margin-right: 4px;
+    flex-shrink: 0;
 `;
 
 const TextoUltimaMensagem = styled.span`
@@ -199,6 +220,7 @@ function ConversaLista({
     setAbaAtiva,
     getNomeConversa,
     getAvatarColorConversa,
+    $isChatActive,
 }) {
     const { currentUser } = useAuth();
 
@@ -214,7 +236,7 @@ function ConversaLista({
         );
 
     return (
-        <ColunaEsquerda>
+        <ColunaEsquerda $isChatActive={$isChatActive}>
             <BuscaContainer>
                 <BuscaIcone size={22} />
                 <BuscaInput

@@ -13,6 +13,19 @@ const JanelaChatContainer = styled.div`
     flex-direction: column;
     min-width: 0;
     overflow: hidden;
+
+    @media (max-width: 1024px) {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        /* Animação de slide baseada na prop $ativo */
+        transform: translateX(${({ $ativo }) => ($ativo ? '0' : '100%')});
+        transition: transform 0.3s ease-in-out;
+        z-index: 10;
+        border-radius: 20px; /* Borda completa em mobile */
+    }
 `;
 
 const MensagensArea = styled.div`
@@ -32,19 +45,6 @@ const Placeholder = styled.div`
     font-size: 18px;
 `;
 
-const CarregandoMaisBotao = styled.button`
-    background: #e6ebf0;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 15px;
-    margin: 10px auto;
-    cursor: pointer;
-    font-weight: 500;
-    &:hover {
-        background: #d1d9e1;
-    }
-`;
-
 function JanelaChat({
     conversa,
     mensagens,
@@ -58,6 +58,8 @@ function JanelaChat({
     primeiraMensagemVisivel,
     getInitials,
     getAvatarColorConversa,
+    $isChatActive,
+    onCloseChat,
 }) {
     const fimMensagensRef = useRef(null);
 
@@ -77,13 +79,14 @@ function JanelaChat({
     }
 
     return (
-        <JanelaChatContainer>
+        <JanelaChatContainer $ativo={$isChatActive}>
             <ChatHeader
                 conversa={conversa}
                 getSubtituloConversa={getSubtituloConversa}
                 handleHeaderClick={handleHeaderClick}
                 getInitials={getInitials}
                 getAvatarColorConversa={getAvatarColorConversa}
+                onCloseChat={onCloseChat}
             />
             <MensagensArea
                 ref={mensagensAreaRef}

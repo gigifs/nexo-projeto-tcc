@@ -9,49 +9,65 @@ import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 const ModalContent = styled.div`
     display: flex;
     flex-direction: column;
-    margin: 0 10px 0 10px;
+    margin: 0 0.625rem 0 0.625rem;
 `;
 
 const Titulo = styled.h2`
-    font-size: 32px;
+    font-size: 2rem;
     font-weight: 600;
     color: #000000;
-    margin: 10px 0 15px 0;
+    margin: 0.625rem 0 0.94rem 0;
+
+    @media (max-width: 1400px) {
+        font-size: 1.8rem;
+    }
+
+    @media (max-width: 768px) {
+        font-size: 1.6rem;
+    }
 `;
 
 const Subtitulo = styled.p`
-    font-size: 20px;
+    font-size: 1.25rem;
     font-weight: 400;
     color: #000000cc;
     line-height: 1.2;
-    margin: 0 0 15px 0;
+    margin: 0 0 0.94rem 0;
+
+    @media (max-width: 1400px) {
+        font-size: 1.2rem;
+    }
 `;
 
 const Section = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.625rem;
     width: 100%;
 `;
 
 const SectionTitulo = styled.h3`
-    font-size: 20px;
+    font-size: 1.25rem;
     font-weight: 500;
     color: #000000cc;
     margin: 0;
     text-align: left;
+
+    @media (max-width: 1400px) {
+        font-size: 1.1rem;
+    }
 `;
 
 const Input = styled.input`
     width: 100%;
     box-sizing: border-box;
     background-color: #F5FAFC;
-    padding: 12px 15px;
-    font-size: 16px;
+    padding: 0.75rem 0.94rem;
+    font-size: 1rem;
     font-weight: 400;
     color: #333333;
     border: 1px solid #00000060;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     outline: none;
     margin: 0;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -69,17 +85,17 @@ const Input = styled.input`
 const TagsSelecionadasContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    min-height: 15px; /* Garante um espaço mesmo quando vazio */
+    gap: 0.315rem;
+    min-height: 0.94rem; /* Garante um espaço mesmo quando vazio */
 `;
 
 const Tag = styled.span`
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    padding: 8px 8px;
-    border-radius: 20px;
-    font-size: 16px;
+    gap: 0.2rem;
+    padding: 0.5rem 0.5rem;
+    border-radius: 1.25rem;
+    font-size: 1rem;
     font-weight: 600;
     margin: 0;
 
@@ -103,6 +119,10 @@ const Tag = styled.span`
             opacity: 1;
         }
     }
+
+    @media (max-width: 1400px) {
+        font-size: 0.85rem;
+    }
 `;
 
 const AutoCompleteWrapper = styled.div`
@@ -119,14 +139,14 @@ const SugestoesContainer = styled.div`
     z-index: 10;
     background-color: #ffffff;
     border: 1px solid #eee;
-    border-radius: 8px;
-    max-height: 150px;
+    border-radius: 0.5rem;
+    max-height: 9.375rem;
     overflow-y: auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 `;
 
 const SugestaoItem = styled.div`
-    padding: 10px 15px;
+    padding: 0.625rem 0.94rem;
     cursor: pointer;
     &:hover {
         background-color: #f5f5f5;
@@ -136,8 +156,8 @@ const SugestaoItem = styled.div`
 const ButtonContainer = styled.div`
     display: flex;
     justify-content: center;
-    margin-top: 15px;
-    margin-bottom: 10px;
+    margin-top: 0.94rem;
+    margin-bottom: 0.625rem;
 `;
 
 function EditarInteressesModal({ onSuccess }) {
@@ -272,7 +292,7 @@ function EditarInteressesModal({ onSuccess }) {
             </Section>
 
             {/* SEÇÃO DE INTERESSES */}
-            <Section style={{ marginTop: '15px' }}>
+            <Section style={{ marginTop: '0.94rem' }}>
                 <SectionTitulo>Interesses</SectionTitulo>
                 <AutoCompleteWrapper>
                     <Input

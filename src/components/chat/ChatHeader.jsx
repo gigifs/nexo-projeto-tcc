@@ -16,6 +16,12 @@ const ChatHeaderContainer = styled.div`
         padding: 10px 15px;
         gap: 10px;
     }
+
+    @media (max-width: 480px) {
+        padding: 10px 15px;
+        gap: 10px;
+        border-radius: 0;
+    }
 `;
 
 const BackButton = styled.button`
@@ -60,6 +66,12 @@ const Avatar = styled.div`
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+
+    @media (max-width: 480px) {
+        width: 40px; /* Avatar um pouco menor */
+        height: 40px;
+        font-size: 16px;
+    }
 `;
 
 const InfoConversa = styled.div`

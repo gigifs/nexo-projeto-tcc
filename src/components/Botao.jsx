@@ -27,6 +27,10 @@ const BotaoEstilizado = styled.button`
                     &:hover {
                         background-color: #661745ff;
                     }
+
+                    @media (max-width: 390px) {
+                        padding: 10px 25px;
+                    }
                 `;
             case 'CancelarPerfil':
                 return css`
@@ -40,6 +44,10 @@ const BotaoEstilizado = styled.button`
 
                     &:hover {
                         background-color: #7c22564d;
+                    }
+
+                    @media (max-width: 390px) {
+                        padding: 10px 25px;
                     }
                 `;
             case 'nao':

@@ -44,6 +44,11 @@ const ChatLayout = styled.div`
         height: auto;
         height: 600px;
     }
+
+    @media (max-width: 480px) {
+        height: calc(100vh - 140px); /* Ocupa a tela disponível - o header */
+        margin-top: 10px;
+    }
 `;
 
 const Placeholder = styled.div`

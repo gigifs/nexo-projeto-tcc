@@ -13,6 +13,12 @@ const InputArea = styled.form`
         border-radius: 0 0 20px 20px;
         padding: 15px;
     }
+
+    @media (max-width: 480px) {
+        padding: 10px;
+        border-radius: 0; /* Remove borda arredondada no mobile */
+        align-items: center; /* Centraliza verticalmente */
+    }
 `;
 
 const InputMensagem = styled.input`
@@ -23,6 +29,11 @@ const InputMensagem = styled.input`
     outline: none;
     font-size: 16px;
     margin-right: 10px;
+
+    @media (max-width: 480px) {
+        padding: 10px 15px;
+        font-size: 14px; /* Previne zoom automático no IOS */
+    }
 `;
 
 function MensagemInput({ onEnviarMensagem, onTyping }) {

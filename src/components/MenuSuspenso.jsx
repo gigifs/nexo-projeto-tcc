@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import { FiUser, FiMessageSquare, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiUser, FiMessageSquare, FiSettings, FiLogOut, FiFileText } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 
 const MenuContainer = styled.div`
@@ -102,6 +102,9 @@ function DropdownMenu() {
         <MenuContainer>
             <MenuItem onClick={() => navigate('/dashboard/perfil')}>
                 <FiUser size={34} strokeWidth={2.2} /> Perfil
+            </MenuItem>
+            <MenuItem onClick={() => navigate('/dashboard/minhas-candidaturas')}>
+                <FiFileText size={34} strokeWidth={2.2} /> Candidaturas
             </MenuItem>
             <MenuItem onClick={() => navigate('/dashboard/mensagens')}>
                 <FiMessageSquare size={34} strokeWidth={2.2} /> Mensagens

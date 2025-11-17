@@ -350,9 +350,49 @@ function ConfigPerfil() {
         setIsColorModalOpen(false);
     };
 
+    // Função para validar se a URL HTTP
+    const isValidURL = (string) => {
+        if (!string) return true; // Vazio (opcional)
+        try {
+            const url = new URL(string);
+            return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch (_) {
+            return false;
+        }
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
         if (!currentUser) return;
+
+        // --- INÍCIO DA VALIDAÇÃO DE LINKS ---
+        const { github, linkedin } = formData;
+
+        // Valida GitHub: A URL deve conter "github.com"
+        if (
+            github &&
+            (!isValidURL(github) || !github.toLowerCase().includes('github.com'))
+        ) {
+            addToast(
+                'Por favor, insira um link válido do GitHub (ex: https://github.com/seu-usuario).',
+                'error'
+            );
+            return; // Para a execução
+        }
+
+        // Valida LinkedIn: deve ser URL válida e conter "linkedin.com/in/"
+        if (
+            linkedin &&
+            (!isValidURL(linkedin) ||
+                !linkedin.toLowerCase().includes('linkedin.com/in/'))
+        ) {
+            addToast(
+                'Por favor, insira um link válido do LinkedIn (ex: https://linkedin.com/in/seu-usuario).',
+                'error'
+            );
+            return;
+        }
+
         setLoading(true);
         try {
             const userDocRef = doc(db, 'users', currentUser.uid);
@@ -450,7 +490,7 @@ function ConfigPerfil() {
                                 name="github"
                                 value={formData.github}
                                 onChange={handleChange}
-                                placeholder="Ex: http://github.com/seu-git"
+                                placeholder="https://github.com/seu-usuario"
                             />
                         </InputGroup>
                         <InputGroup>
@@ -465,7 +505,7 @@ function ConfigPerfil() {
                                 name="linkedin"
                                 value={formData.linkedin}
                                 onChange={handleChange}
-                                placeholder="Ex: http://linkedin.com/in/seu-linkedin"
+                                placeholder="https://linkedin.com/in/seu-usuario"
                             />
                         </InputGroup>
                     </ColunaInputs>
@@ -480,6 +520,7 @@ function ConfigPerfil() {
                                 onChange={handleChange}
                             />
                         </InputGroup>
+                        
                         <InputGroup>
                             <Label>Meus Interesses</Label>
                             <Section>

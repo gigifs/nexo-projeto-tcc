@@ -97,6 +97,11 @@ const BotaoEstilizado = styled.button`
                         background-color: #f6171a88;
                         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                     }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 16px;
+                    }
                 `;
 
             case 'hab-int':
@@ -111,6 +116,11 @@ const BotaoEstilizado = styled.button`
                     &:hover {
                         background-color: #661745ff;
                         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+
+                    @media (max-width: 768px) {
+                        font-size: 16px;
+                        padding: 8px 16px;
                     }
                 `;
             case 'cancelar-excluir':

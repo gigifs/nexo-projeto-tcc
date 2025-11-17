@@ -451,7 +451,7 @@ function GerenciarProjetoPage() {
             }
 
             // Lógica de aceitação (movida para fora do 'else' para executar sempre)
-            await deleteDoc(candidaturaRef);
+            await updateDoc(candidaturaRef, { status: 'aceito' });
 
             setCandidaturas((prev) =>
                 prev.filter((c) => c.id !== candidatoParaAceitar.id)
@@ -497,7 +497,7 @@ function GerenciarProjetoPage() {
                 candidatoParaRejeitar.id
             );
 
-            await deleteDoc(candidaturaRef);
+            await updateDoc(candidaturaRef, { status: 'rejeitado' });
 
             setCandidaturas(
                 candidaturas.filter((c) => c.id !== candidatoParaRejeitar.id)

@@ -14,6 +14,7 @@ import ConfiguracoesSegurancaPage from './pages/ConfiguracoesSegurancaPage.jsx';
 import PerfilPage from './pages/PerfilPage.jsx';
 import EsqueciSenhaPage from './pages/EsqueciSenhaPage.jsx';
 import GerenciarProjetoPage from './pages/GerenciarProjetoPage.jsx';
+import MinhasCandidaturasPage from './pages/MinhasCandidaturasPage.jsx';
 
 function App() {
     return (
@@ -64,6 +65,10 @@ function App() {
                         element={<ConfiguracoesSegurancaPage />}
                     />
                     <Route path="perfil" element={<PerfilPage />} />
+                    <Route
+                        path="minhas-candidaturas"
+                        element={<MinhasCandidaturasPage />}
+                    />
                 </Route>
             </Routes>
             <ToastContainer />

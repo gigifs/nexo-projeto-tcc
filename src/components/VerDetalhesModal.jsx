@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import Botao from './Botao';
-import { useState, useEffect } from 'react'; // Adicionado useEffect
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FiUser, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import { db } from '../firebase';
@@ -267,9 +267,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const { currentUser, userData } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [integranteAberto, setIntegranteAberto] = useState(null); // NOVO: controla o menu de cada integrante
+    const [integranteAberto, setIntegranteAberto] = useState(null); // controla o menu de cada integrante
     const [todosOsIntegrantes, setTodosOsIntegrantes] = useState([]);
-    // 2. Novos estados para controlar o modal de perfil do integrante
+    // Estados para controlar o modal de perfil do integrante
     const [isPerfilModalOpen, setPerfilModalOpen] = useState(false);
     const [integranteSelecionado, setIntegranteSelecionado] = useState(null);
     const [loadingIntegrante, setLoadingIntegrante] = useState(false);
@@ -295,7 +295,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     } = projeto;
 
     const statusStyle = getStatusStyle(projeto.status);
-    //Verifica se o usuário atual é o dono do projeto.
+    // Verifica se o usuário atual é o dono do projeto.
     const isOwner = currentUser?.uid === donoId;
     const isParticipant = participantIds.includes(currentUser?.uid);
 
@@ -309,13 +309,13 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 ...new Map(participantes.map((p) => [p.uid, p])).values(),
             ];
 
-            // Junta o dono com os participantes para buscar todos os dados de uma vez
+            // Junta o dono com os participantes pra buscar todos os dados de uma vez
             const allMemberInfo = [
                 { uid: projeto.donoId, nome: projeto.donoNome, sobrenome: projeto.donoSobrenome },
                 ...uniqueParticipantes,
             ];
 
-            // Busca os dados completos (incluindo a cor) de cada usuário
+            // Busca os dados completos de cada usuário
             const promises = allMemberInfo.map(async (member) => {
                 // Previne buscas por undefined uids
                 if (!member.uid) return member;
@@ -347,11 +347,10 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         fetchIntegrantesData();
     }, [projeto]); // Roda sempre que o projeto mudar
 
-    /**
-     * Função executada quando o usuário clica em "Candidatar-se".
+    /* Função executada quando o usuário clica em Candidatar-se.
      * Verifica se o usuário pode se candidatar e cria um documento na subcoleção
-     * 'candidaturas' do projeto no Firestore.
-     */
+     *'candidaturas' do projeto no Firestore.*/
+
     const handleCandidatura = async () => {
         setLoading(true);
 
@@ -377,6 +376,15 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 currentUser.uid // O ID da candidatura é o UID do candidato
             );
 
+            //  Referência para candidatura no perfil do usuário (minhas candidaturas)
+            const minhaCandidaturaRef = doc(
+                db,
+                'users',
+                currentUser.uid,
+                'minhasCandidaturas',
+                projetoId // Salva usando o ID do projeto
+            );
+
             // Verifica se já existe uma candidatura
             const candidaturaSnap = await getDoc(candidaturaRef);
             if (candidaturaSnap.exists()) {
@@ -394,6 +402,14 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 status: 'pendente', // Status inicial
                 dataCandidatura: serverTimestamp(), // Data/hora do servidor
                 lida: false // Marca como não lida inicialmente
+            });
+
+            // Salva um espelho da candidatura no perfil do usuário (minhas candidaturas)
+            await setDoc(minhaCandidaturaRef, {
+                projetoId: projetoId,
+                nomeProjeto: projeto.nome,
+                status: 'pendente',
+                dataCandidatura: serverTimestamp(),
             });
 
             // Feedback de sucesso
@@ -419,10 +435,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         setConfirmOpen(true);
     };
 
-    /**
-     * Função executada após confirmação para remover o usuário atual do projeto.
-     * Atualiza os arrays 'participantIds' e 'participantes' no documento do projeto.
-     */
+    /* Função executada após confirmação para remover o usuário atual do projeto.
+     * Atualiza os arrays 'participantIds' e 'participantes' no documento do projeto.*/
+
     const confirmarSaidaDoProjeto = async () => {
         setLoading(true);
 
@@ -435,7 +450,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         try {
             const projetoRef = doc(db, 'projetos', projetoId);
 
-            // --- Lógica para buscar e atualizar o projeto
+            // Lógica para buscar e atualizar o projeto
             const projetoSnap = await getDoc(projetoRef);
             if (!projetoSnap.exists()) throw new Error('Projeto não encontrado.');
             const projetoData = projetoSnap.data();
@@ -451,6 +466,16 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 participantIds: novosParticipantIds,
                 participantes: novosParticipantes,
             });
+
+            // Apaga o registo da lista Minhas Candidaturas do usuário
+            // Isso vai fazer o card sumir da tela Minhas Candidaturas imediatamente
+            const minhaCandidaturaRef = doc(db, 'users', currentUser.uid, 'minhasCandidaturas', projetoId);
+            await deleteDoc(minhaCandidaturaRef);
+
+            // Apaga o documento da candidatura dentro do projeto
+            // Isso permite que o usuário se candidate novamente no futuro se quiser!!
+            const candidaturaRef = doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid);
+            await deleteDoc(candidaturaRef);
 
             addToast('Você saiu do projeto com sucesso.', 'success');
             setConfirmOpen(false); // Fecha o modal de confirmação

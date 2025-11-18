@@ -15,6 +15,7 @@ import { db } from '../firebase';
 //Hook de Autenticação
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { gerarCorAleatoria } from '../utils/geradorCores';
 
 const FormContainer = styled.form`
     padding: 1.25rem 2.5rem 1.875rem 2.5rem;
@@ -318,6 +319,7 @@ function FormularioCriarProjeto({ onClose }) {
 
         try {
             const projetosCollectionRef = collection(db, 'projetos');
+            const corAleatoriaProjeto = gerarCorAleatoria();
             const novoProjetoRef = await addDoc(projetosCollectionRef, {
                 nome: nomeProjeto,
                 descricao: descricao,
@@ -327,7 +329,7 @@ function FormularioCriarProjeto({ onClose }) {
                 donoId: currentUser.uid,
                 donoNome: userData.nome,
                 donoSobrenome: userData.sobrenome,
-                donoAvatarColor: userData.avatarColor || '#0a528a',
+                corProjeto: corAleatoriaProjeto,
                 criadoEm: serverTimestamp(),
                 status: 'Novo',
                 participantIds: [currentUser.uid],

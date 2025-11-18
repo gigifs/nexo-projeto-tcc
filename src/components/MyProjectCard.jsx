@@ -7,9 +7,15 @@ import VerDetalhesModal from './VerDetalhesModal';
 import { FiUsers } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'; // Adicionado doc e getDoc
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    doc,
+    getDoc,
+} from 'firebase/firestore'; // Adicionado doc e getDoc
 import { useToast } from '../contexts/ToastContext';
-
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -158,16 +164,23 @@ const DetalhesBotao = styled(Botao)`
 
 const GerenciarButton = styled(DetalhesBotao)`
     /* Esconde o texto mobile */
-    .mobile-text { display: none; }
-    .desktop-text { display: inline; }
+    .mobile-text {
+        display: none;
+    }
+    .desktop-text {
+        display: inline;
+    }
 
     @media (max-width: 480px) {
         /* Esconde o texto desktop e mostra o mobile */
-        .desktop-text { display: none; }
-        .mobile-text { display: inline; }
+        .desktop-text {
+            display: none;
+        }
+        .mobile-text {
+            display: inline;
+        }
     }
 `;
-
 
 const getInitials = (nome, sobrenome) => {
     if (!nome) return '?';
@@ -199,6 +212,7 @@ function MyProjectCard({ projeto, currentUserId }) {
         nome = 'Projeto sem nome',
         descricao = 'Sem descrição disponível.',
         donoId,
+        corProjeto,
         status = 'Indefinido',
         habilidades = [],
         interesses = [],
@@ -229,7 +243,10 @@ function MyProjectCard({ projeto, currentUserId }) {
                     }
                     return member; // Retorna o membro original se o documento não for encontrado
                 } catch (error) {
-                    console.error("Erro ao buscar dados do participante:", error);
+                    console.error(
+                        'Erro ao buscar dados do participante:',
+                        error
+                    );
                     return member; // Retorna o membro original em caso de erro
                 }
             });
@@ -240,7 +257,6 @@ function MyProjectCard({ projeto, currentUserId }) {
 
         fetchTeamData();
     }, [participantes]); // Roda sempre que a lista de participantes mudar
-
 
     const statusStyle = getStatusStyle(status);
     const isOwner = currentUserId === donoId;
@@ -265,7 +281,7 @@ function MyProjectCard({ projeto, currentUserId }) {
                     state: { activeChatId: conversaId },
                 });
             } else {
-                addToast('Chat para este projeto não encontrado!', 'error');;
+                addToast('Chat para este projeto não encontrado!', 'error');
             }
         } catch (error) {
             console.error('Erro ao buscar chat:', error);
@@ -335,8 +351,10 @@ function MyProjectCard({ projeto, currentUserId }) {
                         </DetalhesBotao>
 
                         {isOwner ? (
-                            <GerenciarButton onClick={handleGerenciarClick}> 
-                                <span className="desktop-text">Gerenciar Projeto</span>
+                            <GerenciarButton onClick={handleGerenciarClick}>
+                                <span className="desktop-text">
+                                    Gerenciar Projeto
+                                </span>
                                 <span className="mobile-text">Gerenciar</span>
                             </GerenciarButton>
                         ) : (

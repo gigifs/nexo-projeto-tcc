@@ -149,6 +149,62 @@ function MensagensPage() {
         return () => unsubscribe();
     }, [currentUser]);
 
+    useEffect(() => {
+        if (!currentUser || conversas.length === 0) return;
+
+        const sincronizarCores = async () => {
+            const conversasParaChecar = conversas.filter((c) => !c.isGrupo);
+
+            for (const conversa of conversasParaChecar) {
+                const outroUsuarioInfo = conversa.participantesInfo.find(
+                    (p) => p.uid !== currentUser.uid
+                );
+
+                if (outroUsuarioInfo) {
+                    try {
+                        const userRef = doc(db, 'users', outroUsuarioInfo.uid);
+                        const userSnap = await getDoc(userRef);
+
+                        if (userSnap.exists()) {
+                            const dadosReais = userSnap.data();
+                            // Define a cor real (ou azul se não tiver)
+                            const corReal = dadosReais.avatarColor || '#0a528a';
+
+                            if (outroUsuarioInfo.avatarColor !== corReal) {
+                                console.log(
+                                    `Cor desatualizada detectada para ${outroUsuarioInfo.nome}. Corrigindo...`
+                                );
+
+                                // Cria a nova lista de participantes com a cor corrigida
+                                const novaListaParticipantes =
+                                    conversa.participantesInfo.map((p) =>
+                                        p.uid === outroUsuarioInfo.uid
+                                            ? { ...p, avatarColor: corReal }
+                                            : p
+                                    );
+                                const conversaRef = doc(
+                                    db,
+                                    'conversas',
+                                    conversa.id
+                                );
+                                await updateDoc(conversaRef, {
+                                    participantesInfo: novaListaParticipantes,
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error(
+                            'Erro silencioso ao sincronizar cor:',
+                            error
+                        );
+                    }
+                }
+            }
+        };
+
+        sincronizarCores();
+    }, [conversas.length, currentUser]);
+
     // Efeito para buscar as MENSAGENS da conversa ativa (com paginação)
     useEffect(() => {
         const fetchInitialMessages = async () => {
@@ -292,19 +348,20 @@ function MensagensPage() {
             if (!conversa) return '#0a528a';
 
             if (conversa.isGrupo) {
-                return (
-                    conversa.avatarColor ||
-                    conversa.corProjeto ||
-                    gerarCorPorNome(conversa.nomeGrupo)
-                );
+                // Lógica corrigida: se existir cor no chat, usa ela. Se existir no projeto, usa ela.
+                if (conversa.avatarColor && conversa.avatarColor !== '#0a528a')
+                    return conversa.avatarColor;
+                if (conversa.corProjeto && conversa.corProjeto !== '#0a528a')
+                    return conversa.corProjeto;
+                // Caso contrário, azul padrão
+                return '#0a528a';
             }
+
+            // Conversa privada: Usa a cor do perfil do usuário, ou azul se não tiver.
             const outroUsuario = conversa.participantesInfo?.find(
                 (p) => p.uid !== currentUser.uid
             );
-
-            return (
-                outroUsuario?.avatarColor || gerarCorPorNome(outroUsuario?.nome)
-            );
+            return outroUsuario?.avatarColor || '#0a528a';
         },
         [currentUser]
     );

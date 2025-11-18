@@ -110,6 +110,7 @@ function JanelaChat({
                     <Mensagem
                         key={msg.id}
                         mensagem={msg}
+                        participantesInfo={conversa.participantesInfo}
                         getInitials={getInitials}
                     />
                 ))}

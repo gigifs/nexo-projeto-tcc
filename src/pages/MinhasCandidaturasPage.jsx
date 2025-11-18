@@ -7,18 +7,22 @@ import VerDetalhesModal from '../components/VerDetalhesModal';
 import DashboardHeader from '../components/DashboardHeader';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
-import { FiLoader, FiTrash2, FiFilePlus, FiFileMinus } from "react-icons/fi";
-import { HiArrowsUpDown, HiArrowLongUp, HiArrowLongDown } from "react-icons/hi2";
-import { LuFileX } from "react-icons/lu";
+import { FiLoader, FiTrash2, FiFilePlus, FiFileMinus } from 'react-icons/fi';
+import {
+    HiArrowsUpDown,
+    HiArrowLongUp,
+    HiArrowLongDown,
+} from 'react-icons/hi2';
+import { LuFileX } from 'react-icons/lu';
 import { useToast } from '../contexts/ToastContext';
-import { 
+import {
     collection,
     query,
     orderBy,
     onSnapshot,
     doc,
     getDoc,
-    deleteDoc 
+    deleteDoc,
 } from 'firebase/firestore';
 
 const PageContainer = styled.div`
@@ -57,28 +61,28 @@ const ListaCandidaturas = styled.div`
 `;
 
 const CardCandidatura = styled.div`
-  background-color: #f5fafc;
-  border-radius: 1.25rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
+    background-color: #f5fafc;
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
 `;
 
 const CardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  background-color: ${props => props.$bgColor || '#e0e0e0'};
-  color: ${props => props.$textColor || '#000'};
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    background-color: ${(props) => props.$bgColor || '#e0e0e0'};
+    color: ${(props) => props.$textColor || '#000'};
 `;
 
 const CardBody = styled.div`
-  padding: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
 `;
 
 const InfoWrapper = styled.div`
@@ -137,7 +141,7 @@ function MinhasCandidaturasPage() {
             // Se ordem for asc ou desc, aplica o orderBy
             candidaturasRef = query(
                 collection(db, 'users', currentUser.uid, 'minhasCandidaturas'),
-                orderBy("dataCandidatura", ordem)
+                orderBy('dataCandidatura', ordem)
             );
         } else {
             // Se ordem for null, busca sem o orderBy
@@ -147,30 +151,32 @@ function MinhasCandidaturasPage() {
         }
 
         const unsubscribe = onSnapshot(candidaturasRef, async (snapshot) => {
-            const baseList = snapshot.docs.map(doc => ({
+            const baseList = snapshot.docs.map((doc) => ({
                 projetoId: doc.id,
-                dataCandidatura: doc.data().dataCandidatura
+                dataCandidatura: doc.data().dataCandidatura,
             }));
 
             const finalList = await Promise.all(
                 baseList.map(async (item) => {
-
                     const projetoId = item.projetoId;
 
                     // Tenta pegar o cache
-                    if (projetosCache.current[projetoId] && statusCache.current[projetoId]) {
+                    if (
+                        projetosCache.current[projetoId] &&
+                        statusCache.current[projetoId]
+                    ) {
                         return {
                             ...item,
                             ...projetosCache.current[projetoId],
-                            status: statusCache.current[projetoId]
+                            status: statusCache.current[projetoId],
                         };
                     }
 
                     // Busca os dados do projeto
-                    const projetoRef = doc(db, "projetos", projetoId);
+                    const projetoRef = doc(db, 'projetos', projetoId);
                     const projetoSnap = await getDoc(projetoRef);
 
-                    let nomeProjeto = "Projeto removido";
+                    let nomeProjeto = 'Projeto removido';
                     let projetoExiste = false;
 
                     if (projetoSnap.exists()) {
@@ -179,17 +185,23 @@ function MinhasCandidaturasPage() {
                         projetosCache.current[projetoId] = { nomeProjeto };
                     } else {
                         projetosCache.current[projetoId] = { nomeProjeto };
-                        statusCache.current[projetoId] = "removido";
+                        statusCache.current[projetoId] = 'removido';
                     }
 
                     // Busca o status da candidatura
-                    let status = "n/a";
+                    let status = 'n/a';
                     if (projetoExiste) {
-                        const candidaturaRef = doc(db, "projetos", projetoId, "candidaturas", currentUser.uid);
+                        const candidaturaRef = doc(
+                            db,
+                            'projetos',
+                            projetoId,
+                            'candidaturas',
+                            currentUser.uid
+                        );
                         const statusSnap = await getDoc(candidaturaRef);
 
                         if (statusSnap.exists()) {
-                            status = statusSnap.data().status || "pendente";
+                            status = statusSnap.data().status || 'pendente';
                         }
 
                         statusCache.current[projetoId] = status;
@@ -198,7 +210,7 @@ function MinhasCandidaturasPage() {
                     return {
                         ...item,
                         nomeProjeto,
-                        status
+                        status,
                     };
                 })
             );
@@ -209,7 +221,6 @@ function MinhasCandidaturasPage() {
         return () => unsubscribe();
     }, [currentUser, ordem]);
 
-
     const executarExclusao = async (projetoId) => {
         // Limpa cache
         delete projetosCache.current[projetoId];
@@ -217,14 +228,24 @@ function MinhasCandidaturasPage() {
 
         try {
             // Remove da lista pessoal (Isso atualiza a tela automaticamente ->onSnapshot)
-            await deleteDoc(doc(db, 'users', currentUser.uid, 'minhasCandidaturas', projetoId));
-            
+            await deleteDoc(
+                doc(
+                    db,
+                    'users',
+                    currentUser.uid,
+                    'minhasCandidaturas',
+                    projetoId
+                )
+            );
+
             // Tenta remover do projeto (se ainda existir)
-            await deleteDoc(doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid));
-            
+            await deleteDoc(
+                doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid)
+            );
+
             return true;
         } catch (error) {
-            console.error("Erro ao excluir:", error);
+            console.error('Erro ao excluir:', error);
             addToast('Erro ao processar a exclusão.', 'error');
             return false;
         }
@@ -240,13 +261,13 @@ function MinhasCandidaturasPage() {
     const handleConfirmarRetirada = async () => {
         if (!projetoParaRetirar) return;
         setIsDeleting(true);
-        
+
         const sucesso = await executarExclusao(projetoParaRetirar);
-        
+
         if (sucesso) {
             addToast('Candidatura retirada com sucesso.', 'success');
         }
-        
+
         setIsDeleting(false);
         setConfirmOpen(false);
         setProjetoParaRetirar(null);
@@ -272,47 +293,55 @@ function MinhasCandidaturasPage() {
 
             if (projetoSnap.exists()) {
                 // Guarda os dados completos do projeto pra passar ao modal
-                setProjetoSelecionado({ id: projetoSnap.id, ...projetoSnap.data() });
+                setProjetoSelecionado({
+                    id: projetoSnap.id,
+                    ...projetoSnap.data(),
+                });
             } else {
-                alert("Erro: Projeto não encontrado.");
+                addToast('Projeto não encontrado.', 'error');
             }
         } catch (error) {
-            console.error("Erro ao abrir projeto:", error);
+            console.error('Erro ao abrir projeto:', error);
         }
     };
 
     const getStatusInfo = (status) => {
         switch (status) {
-            case 'pendente': return { 
-                texto: 'Pendente',
-                icone: <FiLoader size={20} />,
-                $bgColor: '#FFE0B2',
-                $textColor: '#E65100' 
-            };
-            case 'aceito': return { 
-                texto: 'Candidatura Aceita',
-                icone: <FiFilePlus size={20} />,
-                $bgColor: '#C8E6C9', 
-                $textColor: '#2E7D32' 
-            };
-            case 'rejeitado': return { 
-                texto: 'Candidatura Rejeitada',
-                icone: <LuFileX size={20} />,
-                $bgColor: '#ffcdd2',
-                $textColor: '#f44336' 
-            };
-            case 'removido': return { 
-                texto: 'Projeto Excluído',
-                icone: <FiFileMinus size={20} />,
-                $bgColor: '#e0e0e0', 
-                $textColor: '#616161' 
-            };
-            default: return { 
-                texto: status, 
-                icone: null,
-                $bgColor: '#e0e0e0', 
-                $textColor: '#000' 
-            };
+            case 'pendente':
+                return {
+                    texto: 'Pendente',
+                    icone: <FiLoader size={20} />,
+                    $bgColor: '#FFE0B2',
+                    $textColor: '#E65100',
+                };
+            case 'aceito':
+                return {
+                    texto: 'Candidatura Aceita',
+                    icone: <FiFilePlus size={20} />,
+                    $bgColor: '#C8E6C9',
+                    $textColor: '#2E7D32',
+                };
+            case 'rejeitado':
+                return {
+                    texto: 'Candidatura Rejeitada',
+                    icone: <LuFileX size={20} />,
+                    $bgColor: '#ffcdd2',
+                    $textColor: '#f44336',
+                };
+            case 'removido':
+                return {
+                    texto: 'Projeto Excluído',
+                    icone: <FiFileMinus size={20} />,
+                    $bgColor: '#e0e0e0',
+                    $textColor: '#616161',
+                };
+            default:
+                return {
+                    texto: status,
+                    icone: null,
+                    $bgColor: '#e0e0e0',
+                    $textColor: '#000',
+                };
         }
     };
 
@@ -326,116 +355,134 @@ function MinhasCandidaturasPage() {
         }
     };
 
-
     return (
         <PageContainer>
-        <DashboardHeader titulo="Minhas Candidaturas">
-            Acompanhe o status das suas candidaturas.
-        </DashboardHeader>
-        
-        <OrdenarWrapper>
-            <BotaoOrdenar onClick={handleToggleOrdem}>
-                Data de candidatura
-                {!ordem && <HiArrowsUpDown size={16} />}
-                {ordem === 'desc' && <HiArrowLongDown size={16} />}
-                {ordem === 'asc' && <HiArrowLongUp size={16} />}
-            </BotaoOrdenar>
-        </OrdenarWrapper>
+            <DashboardHeader titulo="Minhas Candidaturas">
+                Acompanhe o status das suas candidaturas.
+            </DashboardHeader>
 
-        <ListaCandidaturas>
+            <OrdenarWrapper>
+                <BotaoOrdenar onClick={handleToggleOrdem}>
+                    Data de candidatura
+                    {!ordem && <HiArrowsUpDown size={16} />}
+                    {ordem === 'desc' && <HiArrowLongDown size={16} />}
+                    {ordem === 'asc' && <HiArrowLongUp size={16} />}
+                </BotaoOrdenar>
+            </OrdenarWrapper>
 
-            {candidaturas.length === 0 && (
-            <p>Você ainda não se candidatou a nenhum projeto.</p>
-            )}
+            <ListaCandidaturas>
+                {candidaturas.length === 0 && (
+                    <p>Você ainda não se candidatou a nenhum projeto.</p>
+                )}
 
-            {candidaturas.map((cand) => {
-            const isLoading = !cand.nomeProjeto;
-            const isRemovido = cand.nomeProjeto === "Projeto removido";
-            
-            // Define o status pra função getStatusInfo
-            const statusReal = isRemovido ? 'removido' : cand.status;
-            const statusInfo = getStatusInfo(statusReal);
+                {candidaturas.map((cand) => {
+                    const isLoading = !cand.nomeProjeto;
+                    const isRemovido = cand.nomeProjeto === 'Projeto removido';
 
-            // Card Loading
-            if (isLoading) {
-                return (
-                <CardCandidatura key={cand.projetoId}>
-                    <CardBody>
-                    <LoadingMini>Carregando...</LoadingMini>
-                    </CardBody>
-                </CardCandidatura>
-                );
-            }
+                    // Define o status pra função getStatusInfo
+                    const statusReal = isRemovido ? 'removido' : cand.status;
+                    const statusInfo = getStatusInfo(statusReal);
 
-            return (
-                <CardCandidatura key={cand.projetoId}>
-            
-                <CardHeader $bgColor={statusInfo.$bgColor} $textColor={statusInfo.$textColor}>
-                    {statusInfo.icone && <span>{statusInfo.icone}</span>}
-                    {statusInfo.texto}
-                </CardHeader>
+                    // Card Loading
+                    if (isLoading) {
+                        return (
+                            <CardCandidatura key={cand.projetoId}>
+                                <CardBody>
+                                    <LoadingMini>Carregando...</LoadingMini>
+                                </CardBody>
+                            </CardCandidatura>
+                        );
+                    }
 
-                <CardBody>
-                    <InfoWrapper>
-                        <TituloProjeto>
-                            {cand.nomeProjeto}
-                        </TituloProjeto>
+                    return (
+                        <CardCandidatura key={cand.projetoId}>
+                            <CardHeader
+                                $bgColor={statusInfo.$bgColor}
+                                $textColor={statusInfo.$textColor}
+                            >
+                                {statusInfo.icone && (
+                                    <span>{statusInfo.icone}</span>
+                                )}
+                                {statusInfo.texto}
+                            </CardHeader>
 
-                        {cand.dataCandidatura && (
-                            <DataCandidaturaTexto>
-                                Você se candidatou em:{' '}
-                                {cand.dataCandidatura
-                                    .toDate()
-                                    .toLocaleDateString('pt-BR')}
-                            </DataCandidaturaTexto>
-                        )}
-                    </InfoWrapper>
+                            <CardBody>
+                                <InfoWrapper>
+                                    <TituloProjeto>
+                                        {cand.nomeProjeto}
+                                    </TituloProjeto>
 
-                    <AcoesWrapper>
-                    {statusReal === 'pendente' && (
-                        <Botao
-                            variant="excluir"
-                            onClick={() => handleAbrirModalRetirar(cand.projetoId)}
-                        >
-                            Retirar
-                        </Botao>
-                    )}
+                                    {cand.dataCandidatura && (
+                                        <DataCandidaturaTexto>
+                                            Você se candidatou em:{' '}
+                                            {cand.dataCandidatura
+                                                .toDate()
+                                                .toLocaleDateString('pt-BR')}
+                                        </DataCandidaturaTexto>
+                                    )}
+                                </InfoWrapper>
 
-                    {statusReal === 'aceito' && (
-                        <Botao
-                            variant="hab-int"
-                            onClick={() => handleVerProjeto(cand.projetoId)}
-                        >
-                            Ver Projeto
-                        </Botao>
-                    )}
+                                <AcoesWrapper>
+                                    {statusReal === 'pendente' && (
+                                        <Botao
+                                            variant="excluir"
+                                            onClick={() =>
+                                                handleAbrirModalRetirar(
+                                                    cand.projetoId
+                                                )
+                                            }
+                                        >
+                                            Retirar
+                                        </Botao>
+                                    )}
 
-                    {(statusReal === 'rejeitado' || statusReal === 'removido') && (
-                        <FiTrash2 size={25} 
-                        onClick={() => handleLimparImediatamente(cand.projetoId)} 
-                        style={{ cursor: 'pointer', color: '#f44336' }}
-                        />
-                    )}
+                                    {statusReal === 'aceito' && (
+                                        <Botao
+                                            variant="hab-int"
+                                            onClick={() =>
+                                                handleVerProjeto(cand.projetoId)
+                                            }
+                                        >
+                                            Ver Projeto
+                                        </Botao>
+                                    )}
 
-                    </AcoesWrapper>
-                </CardBody>
-                
-                </CardCandidatura>
-            );
-            })}
-        </ListaCandidaturas>
-            <Modal isOpen={isConfirmOpen} onClose={handleFecharModal} size="excluir-projeto">
+                                    {(statusReal === 'rejeitado' ||
+                                        statusReal === 'removido') && (
+                                        <FiTrash2
+                                            size={25}
+                                            onClick={() =>
+                                                handleLimparImediatamente(
+                                                    cand.projetoId
+                                                )
+                                            }
+                                            style={{
+                                                cursor: 'pointer',
+                                                color: '#f44336',
+                                            }}
+                                        />
+                                    )}
+                                </AcoesWrapper>
+                            </CardBody>
+                        </CardCandidatura>
+                    );
+                })}
+            </ListaCandidaturas>
+            <Modal
+                isOpen={isConfirmOpen}
+                onClose={handleFecharModal}
+                size="excluir-projeto"
+            >
                 <TemCertezaModal
                     titulo="Retirar Candidatura?"
                     mensagem="Você tem certeza que deseja retirar sua candidatura deste projeto?"
                     onConfirm={handleConfirmarRetirada}
                     onClose={handleFecharModal}
                     loading={isDeleting}
-                    
                 />
             </Modal>
-            <Modal 
-                isOpen={!!projetoSelecionado} 
+            <Modal
+                isOpen={!!projetoSelecionado}
                 onClose={() => setProjetoSelecionado(null)}
                 size="large"
             >

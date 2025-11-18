@@ -318,8 +318,8 @@ function FormularioCriarProjeto({ onClose }) {
         }
 
         try {
+            const corDoProjeto = gerarCorAleatoria();
             const projetosCollectionRef = collection(db, 'projetos');
-            const corAleatoriaProjeto = gerarCorAleatoria();
             const novoProjetoRef = await addDoc(projetosCollectionRef, {
                 nome: nomeProjeto,
                 descricao: descricao,
@@ -329,7 +329,7 @@ function FormularioCriarProjeto({ onClose }) {
                 donoId: currentUser.uid,
                 donoNome: userData.nome,
                 donoSobrenome: userData.sobrenome,
-                corProjeto: corAleatoriaProjeto,
+                corProjeto: corDoProjeto,
                 criadoEm: serverTimestamp(),
                 status: 'Novo',
                 participantIds: [currentUser.uid],
@@ -348,6 +348,7 @@ function FormularioCriarProjeto({ onClose }) {
                 isGrupo: true,
                 nomeGrupo: nomeProjeto,
                 projetoId: novoProjetoRef.id,
+                avatarColor: corDoProjeto,
                 participantes: [currentUser.uid],
                 participantesInfo: [
                     {

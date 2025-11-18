@@ -73,14 +73,21 @@ const formatarTimestamp = (timestamp) => {
     });
 };
 
-function Mensagem({ mensagem }) {
+function Mensagem({ mensagem, participantesInfo }) {
     const { currentUser } = useAuth();
     const isSender = mensagem.senderId === currentUser.uid;
+
+    const remetenteAtual = participantesInfo?.find(
+        (p) => p.uid === mensagem.senderId
+    );
+
+    const corExibicao =
+        remetenteAtual?.avatarColor || mensagem.senderAvatarColor || '#0a528a';
 
     return (
         <MensagemLinha $isSender={isSender}>
             {!isSender && (
-                <Avatar $bgColor={mensagem.senderAvatarColor}>
+                <Avatar $bgColor={corExibicao}>
                     {getInitials(mensagem.senderNome, mensagem.senderSobrenome)}
                 </Avatar>
             )}

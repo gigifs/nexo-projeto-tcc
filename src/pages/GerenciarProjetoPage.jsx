@@ -194,7 +194,7 @@ function GerenciarProjetoPage() {
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
     const { addToast } = useToast();
-    
+
     const [projeto, setProjeto] = useState(null);
     const [candidaturas, setCandidaturas] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -216,6 +216,11 @@ function GerenciarProjetoPage() {
     const [sugestoesI, setSugestoesI] = useState([]);
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const [membroParaRemover, setMembroParaRemover] = useState(null);
+    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] =
+        useState(false);
+    const [isRemovingMember, setIsRemovingMember] = useState(false);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -475,12 +480,13 @@ function GerenciarProjetoPage() {
             }));
 
             setCandidatoSelecionado(null);
-            alert(
-                `${candidatoParaAceitar.nome} foi adicionado(a) ao projeto e ao chat!`
+            addToast(
+                `${candidatoParaAceitar.nome} foi adicionado(a) ao projeto e ao chat!`,
+                'success'
             );
         } catch (err) {
             console.error('Erro ao aceitar candidato:', err);
-            alert('Ocorreu um erro ao aceitar a candidatura.');
+            addToast('Ocorreu um erro ao aceitar a candidatura.', 'error');
         } finally {
             setIsActionLoading(false);
         }
@@ -503,24 +509,24 @@ function GerenciarProjetoPage() {
                 candidaturas.filter((c) => c.id !== candidatoParaRejeitar.id)
             );
             setCandidatoSelecionado(null);
-            alert('Candidatura rejeitada com sucesso.');
+            addToast('Candidatura rejeitada com sucesso.', 'success');
         } catch (err) {
             console.error('Erro ao rejeitar candidato:', err);
-            alert('Ocorreu um erro ao rejeitar a candidatura.');
+            addToast('Ocorreu um erro ao rejeitar a candidatura.', 'error');
         } finally {
             setIsActionLoading(false);
         }
     };
 
-    const handleRemoverMembro = async (membroParaRemover) => {
-        if (
-            !window.confirm(
-                `Tem a certeza de que deseja remover ${membroParaRemover.nome} do projeto?`
-            )
-        ) {
-            return;
-        }
+    const handleClickRemoverMembro = (membro) => {
+        setMembroParaRemover(membro);
+        setIsRemoverMembroModalOpen(true);
+    };
 
+    const confirmarRemoverMembro = async () => {
+        if (!membroParaRemover) return;
+
+        setIsRemovingMember(true);
         try {
             const projetoRef = doc(db, 'projetos', id);
 
@@ -562,9 +568,14 @@ function GerenciarProjetoPage() {
                 `${membroParaRemover.nome} foi removido(a) do projeto.`,
                 'success'
             );
+            // Fecha o modal e limpa o estado
+            setIsRemoverMembroModalOpen(false);
+            setMembroParaRemover(null);
         } catch (err) {
             console.error('Erro ao remover membro:', err);
             addToast('Ocorreu um erro ao remover o membro.', 'error');
+        } finally {
+            setIsRemovingMember(false);
         }
     };
 
@@ -638,7 +649,7 @@ function GerenciarProjetoPage() {
                     titulo="Gerenciador de Projeto"
                     semFundo={false}
                     acoes={
-                        <AcoesContainer> 
+                        <AcoesContainer>
                             <Botao
                                 type="button"
                                 variant="Cancelar"
@@ -833,7 +844,7 @@ function GerenciarProjetoPage() {
                             <MembrosProjeto
                                 projeto={projeto}
                                 currentUserId={currentUser.uid}
-                                onRemoverMembro={handleRemoverMembro}
+                                onRemoverMembro={handleClickRemoverMembro}
                             />
                             <SecaoExcluir>
                                 <Botao
@@ -863,6 +874,22 @@ function GerenciarProjetoPage() {
                     loading={isDeleting}
                     textoConfirmar="Sim"
                     textoCancelar="Não"
+                />
+            </Modal>
+
+            <Modal
+                isOpen={isRemoverMembroModalOpen}
+                onClose={() => setIsRemoverMembroModalOpen(false)}
+                size="excluir-projeto"
+            >
+                <TemCertezaModal
+                    titulo="Remover Membro?"
+                    mensagem={`Tem a certeza de que deseja remover ${membroParaRemover?.nome} do projeto?`}
+                    onConfirm={confirmarRemoverMembro}
+                    onClose={() => setIsRemoverMembroModalOpen(false)}
+                    loading={isRemovingMember}
+                    textoConfirmar="Remover"
+                    textoCancelar="Cancelar"
                 />
             </Modal>
 

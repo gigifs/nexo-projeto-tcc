@@ -6,7 +6,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import Botao from './Botao';
 import Modal from './Modal';
 import EditarInteressesModal from './EditarInteressesModal';
-import { FiEdit, FiGithub, FiLinkedin, FiEdit3  } from 'react-icons/fi';
+import { FiEdit, FiGithub, FiLinkedin, FiEdit3 } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
 
 // Container principal
@@ -45,7 +45,7 @@ const Avatar = styled.div`
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background-color: 0.3s ease;
+    transition: background-color 0.3s ease;
 `;
 
 const BotaoTrocarCor = styled.button`
@@ -66,16 +66,20 @@ const BotaoTrocarCor = styled.button`
     }
 `;
 
-// Container para o restante do formulário (a parte branca da direita)
+// Container para o restante do formulário (parte branca da direita)
 const FormContent = styled.form`
     flex-grow: 1;
     padding: 1.875rem 2.5rem;
     display: grid;
     grid-template-columns: 2fr 1.5fr;
     gap: 2.188rem;
+    /* Garante que o formulário nunca exceda a largura do pai */
+    width: 100%; 
+    max-width: 100%;
+    box-sizing: border-box;
 
     @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+        grid-template-columns: 1fr;
         gap: 1.875rem;
         padding: 1.25rem;
     }
@@ -121,6 +125,16 @@ const InputGroup = styled.div`
     gap: 0.5rem;
     width: 100%;
     position: relative;
+
+    @media (max-width: 390px) {
+        width: 90%;
+        min-width: 0; 
+    }
+
+    @media (max-width: 350px) {
+        width: 80%;
+        min-width: 0; 
+    }
 `;
 const Label = styled.label`
     font-size: 1.125rem;
@@ -336,9 +350,49 @@ function ConfigPerfil() {
         setIsColorModalOpen(false);
     };
 
+    // Função para validar se a URL HTTP
+    const isValidURL = (string) => {
+        if (!string) return true; // Vazio (opcional)
+        try {
+            const url = new URL(string);
+            return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch (_) {
+            return false;
+        }
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
         if (!currentUser) return;
+
+        // --- INÍCIO DA VALIDAÇÃO DE LINKS ---
+        const { github, linkedin } = formData;
+
+        // Valida GitHub: A URL deve conter "github.com"
+        if (
+            github &&
+            (!isValidURL(github) || !github.toLowerCase().includes('github.com'))
+        ) {
+            addToast(
+                'Por favor, insira um link válido do GitHub (ex: https://github.com/seu-usuario).',
+                'error'
+            );
+            return; // Para a execução
+        }
+
+        // Valida LinkedIn: deve ser URL válida e conter "linkedin.com/in/"
+        if (
+            linkedin &&
+            (!isValidURL(linkedin) ||
+                !linkedin.toLowerCase().includes('linkedin.com/in/'))
+        ) {
+            addToast(
+                'Por favor, insira um link válido do LinkedIn (ex: https://linkedin.com/in/seu-usuario).',
+                'error'
+            );
+            return;
+        }
+
         setLoading(true);
         try {
             const userDocRef = doc(db, 'users', currentUser.uid);
@@ -436,7 +490,7 @@ function ConfigPerfil() {
                                 name="github"
                                 value={formData.github}
                                 onChange={handleChange}
-                                placeholder="Ex: http://github.com/seu-git"
+                                placeholder="https://github.com/seu-usuario"
                             />
                         </InputGroup>
                         <InputGroup>
@@ -451,7 +505,7 @@ function ConfigPerfil() {
                                 name="linkedin"
                                 value={formData.linkedin}
                                 onChange={handleChange}
-                                placeholder="Ex: http://linkedin.com/in/seu-linkedin"
+                                placeholder="https://linkedin.com/in/seu-usuario"
                             />
                         </InputGroup>
                     </ColunaInputs>
@@ -466,6 +520,7 @@ function ConfigPerfil() {
                                 onChange={handleChange}
                             />
                         </InputGroup>
+                        
                         <InputGroup>
                             <Label>Meus Interesses</Label>
                             <Section>

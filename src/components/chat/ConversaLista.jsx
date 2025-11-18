@@ -24,6 +24,11 @@ const ColunaEsquerda = styled.div`
         padding: 1rem;
         gap: 15px;
     }
+
+    @media (max-width: 480px) {
+        padding: 15px 10px;
+        gap: 15px;
+    }
 `;
 
 const BuscaContainer = styled.div`
@@ -62,6 +67,11 @@ const ContainerAbas = styled.div`
 
     @media (max-width: 768px) {
         gap: 15px;
+        padding: 0 5px;
+    }
+
+    @media (max-width: 480px) {
+        gap: 5px;
         padding: 0 5px;
     }
 `;
@@ -106,6 +116,14 @@ const Aba = styled.button`
             transform: scaleX(1); /* A linha expande para 100% da sua largura */
         }
     }
+
+    @media (max-width: 480px) {
+        padding: 10px 20px;
+        font-size: 14px;
+        flex: 1; /* Faz as abas ocuparem o espaço disponível igualmente */
+        display: flex;
+        justify-content: center;
+    }
 `;
 
 const ListaScroll = styled.div`
@@ -130,6 +148,11 @@ const ItemConversa = styled.div`
 
     @media (max-width: 768px) {
         padding: 10px 15px;
+    }
+
+    @media (max-width: 480px) {
+        padding: 10px;
+        gap: 10px;
     }
 `;
 

@@ -37,6 +37,11 @@ const ContainerNomes = styled.div`
     display: flex;
     gap: 20px;
     align-items: baseline;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 10px;
+    }
 `;
 
 const InputGroup = styled.div`

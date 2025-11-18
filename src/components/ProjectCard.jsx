@@ -7,7 +7,6 @@ import VerDetalhesModal from './VerDetalhesModal';
 import { doc, getDoc } from 'firebase/firestore'; // Importações do Firestore
 import { db } from '../firebase'; // Importação da instância do DB
 
-
 const CardWrapper = styled.div`
     background-color: #f5fafc;
     border-radius: 20px;
@@ -55,8 +54,8 @@ const StatusTag = styled.span`
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
-    background-color: ${props => props.$color || '#e0e0e0'};
-    color: ${props => props.$textColor || '#000'};
+    background-color: ${(props) => props.$color || '#e0e0e0'};
+    color: ${(props) => props.$textColor || '#000'};
 `;
 
 const DescricaoProjeto = styled.p`
@@ -76,8 +75,8 @@ const TagsContainer = styled.div`
     display: flex;
     flex-wrap: wrap; /* Permite que as tags quebrem a linha */
     gap: 6px;
-    height: 30px;      /* Altura fixa para apenas UMA linha de tags */
-    overflow: hidden;  /* Esconde qualquer tag que passe para a segunda linha */
+    height: 30px; /* Altura fixa para apenas UMA linha de tags */
+    overflow: hidden; /* Esconde qualquer tag que passe para a segunda linha */
 `;
 
 //Tags com cores condicionais de acordo com o tipo
@@ -87,8 +86,9 @@ const Tag = styled.span`
     font-size: 14px;
     font-weight: 500;
     /*Define a cor com base na propriedade '$tipo'*/
-    background-color: ${props => (props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced')};
-    color: ${props => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
+    background-color: ${(props) =>
+        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
 `;
 
 const CardFooter = styled.div`
@@ -174,6 +174,7 @@ function ProjectCard({ projeto }) {
         status,
         habilidades,
         interesses,
+        corProjeto,
     } = projeto;
 
     // EFEITO PARA BUSCAR OS DADOS ATUALIZADOS DO DONO
@@ -194,7 +195,10 @@ function ProjectCard({ projeto }) {
                     });
                 }
             } catch (error) {
-                console.error("Erro ao buscar dados do dono do projeto:", error);
+                console.error(
+                    'Erro ao buscar dados do dono do projeto:',
+                    error
+                );
             }
         };
 
@@ -202,13 +206,19 @@ function ProjectCard({ projeto }) {
     }, [donoId]);
 
     const statusStyle = getStatusStyle(status);
-    const nomeCompletoDono = `${donoInfo.nome || ''} ${donoInfo.sobrenome || ""}`.trim();
+    const nomeCompletoDono =
+        `${donoInfo.nome || ''} ${donoInfo.sobrenome || ''}`.trim();
     const avatarInicial = getInitials(donoInfo.nome, donoInfo.sobrenome);
 
+    const corExibicao = corProjeto || donoInfo.avatarColor || '#0a528a';
 
     const tagsParaExibir = [
-        ...(habilidades || []).slice(0, 3).map(h => ({ nome: h, tipo: 'habilidade' })),
-        ...(interesses || []).slice(0, 3).map(i => ({ nome: i, tipo: 'interesse' }))
+        ...(habilidades || [])
+            .slice(0, 3)
+            .map((h) => ({ nome: h, tipo: 'habilidade' })),
+        ...(interesses || [])
+            .slice(0, 3)
+            .map((i) => ({ nome: i, tipo: 'interesse' })),
     ];
 
     return (
@@ -243,21 +253,20 @@ function ProjectCard({ projeto }) {
                             <span>{curso || 'Curso não informado'}</span>
                         </FooterText>
                         <FooterText>
-                            <Avatar $bgColor={donoInfo.avatarColor}>{avatarInicial}</Avatar>
+                            <Avatar $bgColor={corExibicao}>
+                                {avatarInicial}
+                            </Avatar>
                             <span>{nomeCompletoDono || 'Nome do Dono'}</span>
                         </FooterText>
                     </OwnerDetails>
-                    
+
                     <DetalhesBotao onClick={() => setModalAberto(true)}>
                         Ver Detalhes
                     </DetalhesBotao>
                 </CardFooter>
             </CardWrapper>
 
-            <Modal
-                isOpen={modalAberto}
-                onClose={() => setModalAberto(false)}
-            >
+            <Modal isOpen={modalAberto} onClose={() => setModalAberto(false)}>
                 <VerDetalhesModal projeto={projeto} projetoId={projeto.id} />
             </Modal>
         </>

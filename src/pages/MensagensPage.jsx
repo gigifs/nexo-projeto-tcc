@@ -27,6 +27,7 @@ import JanelaChat from '../components/chat/JanelaChat';
 import Modal from '../components/Modal';
 import VerDetalhesModal from '../components/VerDetalhesModal';
 import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
+import { gerarCorPorNome } from '../utils/geradorCores';
 import { FiMessageSquare } from 'react-icons/fi';
 
 const ChatLayout = styled.div`
@@ -289,11 +290,21 @@ function MensagensPage() {
     const getAvatarColorConversa = useCallback(
         (conversa) => {
             if (!conversa) return '#0a528a';
-            if (conversa.isGrupo) return '#0a528a'; // Cor padrão para grupos
+
+            if (conversa.isGrupo) {
+                return (
+                    conversa.avatarColor ||
+                    conversa.corProjeto ||
+                    gerarCorPorNome(conversa.nomeGrupo)
+                );
+            }
             const outroUsuario = conversa.participantesInfo?.find(
                 (p) => p.uid !== currentUser.uid
             );
-            return outroUsuario?.avatarColor || '#0a528a';
+
+            return (
+                outroUsuario?.avatarColor || gerarCorPorNome(outroUsuario?.nome)
+            );
         },
         [currentUser]
     );

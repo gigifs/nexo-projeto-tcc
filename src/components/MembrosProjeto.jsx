@@ -74,11 +74,10 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
     const { userData } = useAuth();
     const [membrosComCor, setMembrosComCor] = useState([]);
 
-    // SEU CÓDIGO DE VOLTA: Este useEffect busca a cor atualizada dos participantes.
     useEffect(() => {
         const fetchMemberData = async () => {
             if (!projeto || !projeto.participantes) return;
-            
+
             const promises = projeto.participantes.map(async (member) => {
                 const userDocRef = doc(db, 'users', member.uid);
                 const userDocSnap = await getDoc(userDocRef);
@@ -99,10 +98,10 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
         fetchMemberData();
     }, [projeto]);
 
-    // LÓGICA DA COR DO DONO: Garante que a sua cor como dono está sempre atualizada.
-    const corDoDono = currentUserId === projeto.donoId 
-        ? userData.avatarColor 
-        : projeto.donoAvatarColor;
+    const corDoDono =
+        currentUserId === projeto.donoId
+            ? userData.avatarColor
+            : projeto.donoAvatarColor;
 
     return (
         <>
@@ -137,6 +136,7 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
                                     </span>
                                     {currentUserId === projeto.donoId && (
                                         <BotaoRemover
+                                            type="button"
                                             onClick={() => onRemoverMembro(p)}
                                             title="Remover Membro"
                                         >

@@ -109,8 +109,8 @@ function Footer() {
 
                 <FooterColuna>
                     <TituloColuna>Suporte/Contato</TituloColuna>
-                    <FooterLink href="mailto:nexo.org@hotmail.com">
-                        Email: nexo.org@hotmail.com
+                    <FooterLink href="mailto:nexo.app.oficial@gmail.com">
+                        Email: nexo.app.oficial@gmail.com
                     </FooterLink>
                 </FooterColuna>
 

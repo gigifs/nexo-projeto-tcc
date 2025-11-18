@@ -12,6 +12,7 @@ import {
     setDoc,
     getDoc,
     updateDoc,
+    deleteDoc,
     serverTimestamp,
     collection,
     query,
@@ -53,7 +54,7 @@ const TituloProjeto = styled.h2`
     }
 
     @media (max-width: 1024px) {
-        font-size: 1.5rem
+        font-size: 1.5rem;
     }
 
     @media (max-width: 768px) {
@@ -277,9 +278,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const { addToast } = useToast(); // Hook para exibir toasts
 
     useEffect(() => {
-            const handleClickOutside = () => setIntegranteAberto(null);
-            document.addEventListener('click', handleClickOutside);
-            return () => document.removeEventListener('click', handleClickOutside);
+        const handleClickOutside = () => setIntegranteAberto(null);
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
     const {
@@ -311,7 +312,11 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
 
             // Junta o dono com os participantes pra buscar todos os dados de uma vez
             const allMemberInfo = [
-                { uid: projeto.donoId, nome: projeto.donoNome, sobrenome: projeto.donoSobrenome },
+                {
+                    uid: projeto.donoId,
+                    nome: projeto.donoNome,
+                    sobrenome: projeto.donoSobrenome,
+                },
                 ...uniqueParticipantes,
             ];
 
@@ -319,7 +324,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
             const promises = allMemberInfo.map(async (member) => {
                 // Previne buscas por undefined uids
                 if (!member.uid) return member;
-                
+
                 const userDocRef = doc(db, 'users', member.uid);
                 const userDocSnap = await getDoc(userDocRef);
                 if (userDocSnap.exists()) {
@@ -337,7 +342,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
             // Remove duplicatas (caso o dono esteja na lista de participantes) e membros inválidos
             const finalIntegrantes = [
                 ...new Map(
-                    integrantesCompletos.filter(item => item.uid).map((item) => [item.uid, item])
+                    integrantesCompletos
+                        .filter((item) => item.uid)
+                        .map((item) => [item.uid, item])
                 ).values(),
             ];
 
@@ -361,7 +368,10 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
             return;
         }
         if (currentUser.uid === projeto.donoId) {
-            addToast('Você não pode se candidatar ao seu próprio projeto.', 'error');
+            addToast(
+                'Você não pode se candidatar ao seu próprio projeto.',
+                'error'
+            );
             setLoading(false);
             return;
         }
@@ -401,7 +411,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 avatarColor: userData.avatarColor || '#0a528a',
                 status: 'pendente', // Status inicial
                 dataCandidatura: serverTimestamp(), // Data/hora do servidor
-                lida: false // Marca como não lida inicialmente
+                lida: false, // Marca como não lida inicialmente
             });
 
             // Salva um espelho da candidatura no perfil do usuário (minhas candidaturas)
@@ -414,17 +424,22 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
 
             // Feedback de sucesso
             addToast('Candidatura enviada com sucesso!', 'success');
-             // Fecha o modal após sucesso
-             if (onClose) onClose();
-
+            // Fecha o modal após sucesso
+            if (onClose) onClose();
         } catch (error) {
             console.error('Erro ao enviar candidatura:', error);
             // Verifica se o erro é de permissão (indicativo de que a regra de escrita na subcoleção pode estar errada)
-             if (error.code === 'permission-denied') {
-                 addToast('Erro de permissão ao enviar candidatura. Verifique as regras do Firestore.', 'error');
-             } else {
-                 addToast('Ocorreu um erro ao enviar sua candidatura. Tente novamente.', 'error');
-             }
+            if (error.code === 'permission-denied') {
+                addToast(
+                    'Erro de permissão ao enviar candidatura. Verifique as regras do Firestore.',
+                    'error'
+                );
+            } else {
+                addToast(
+                    'Ocorreu um erro ao enviar sua candidatura. Tente novamente.',
+                    'error'
+                );
+            }
         } finally {
             setLoading(false); // Garante que o loading termine
         }
@@ -442,7 +457,10 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         setLoading(true);
 
         if (!currentUser) {
-            addToast('Você precisa estar logado para sair do projeto.', 'error');
+            addToast(
+                'Você precisa estar logado para sair do projeto.',
+                'error'
+            );
             setLoading(false);
             return;
         }
@@ -452,14 +470,15 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
 
             // Lógica para buscar e atualizar o projeto
             const projetoSnap = await getDoc(projetoRef);
-            if (!projetoSnap.exists()) throw new Error('Projeto não encontrado.');
+            if (!projetoSnap.exists())
+                throw new Error('Projeto não encontrado.');
             const projetoData = projetoSnap.data();
 
-            const novosParticipantIds = (projetoData.participantIds || []).filter(
-                id => id !== currentUser.uid
-            );
+            const novosParticipantIds = (
+                projetoData.participantIds || []
+            ).filter((id) => id !== currentUser.uid);
             const novosParticipantes = (projetoData.participantes || []).filter(
-                p => p.uid !== currentUser.uid
+                (p) => p.uid !== currentUser.uid
             );
 
             await updateDoc(projetoRef, {
@@ -467,14 +486,76 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 participantes: novosParticipantes,
             });
 
+            const chatRef = doc(db, 'conversas', projetoId);
+            const chatSnap = await getDoc(chatRef);
+
+            if (chatSnap.exists()) {
+                const chatData = chatSnap.data();
+
+                // Filtra os arrays de participantes do chat
+                const novosParticipantesChat = (
+                    chatData.participantes || []
+                ).filter((uid) => uid !== currentUser.uid);
+                const novosParticipantesInfoChat = (
+                    chatData.participantesInfo || []
+                ).filter((p) => p.uid !== currentUser.uid);
+
+                await updateDoc(chatRef, {
+                    participantes: novosParticipantesChat,
+                    participantesInfo: novosParticipantesInfoChat,
+                });
+                console.log('Usuário removido do chat com sucesso.');
+            } else {
+                console.warn(
+                    'Chat não encontrado pelo ID direto. Tentando busca legada...'
+                );
+                // Fallback: Tenta buscar por query se o ID direto falhar (para projetos muito antigos)
+                const conversasRef = collection(db, 'conversas');
+                const q = query(
+                    conversasRef,
+                    where('projetoId', '==', projetoId)
+                );
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const chatDoc = querySnapshot.docs[0];
+                    const chatRefLegado = doc(db, 'conversas', chatDoc.id);
+                    const chatDataLegado = chatDoc.data();
+
+                    const novosParticipantesChat = (
+                        chatDataLegado.participantes || []
+                    ).filter((uid) => uid !== currentUser.uid);
+                    const novosParticipantesInfoChat = (
+                        chatDataLegado.participantesInfo || []
+                    ).filter((p) => p.uid !== currentUser.uid);
+
+                    await updateDoc(chatRefLegado, {
+                        participantes: novosParticipantesChat,
+                        participantesInfo: novosParticipantesInfoChat,
+                    });
+                }
+            }
+
             // Apaga o registo da lista Minhas Candidaturas do usuário
             // Isso vai fazer o card sumir da tela Minhas Candidaturas imediatamente
-            const minhaCandidaturaRef = doc(db, 'users', currentUser.uid, 'minhasCandidaturas', projetoId);
+            const minhaCandidaturaRef = doc(
+                db,
+                'users',
+                currentUser.uid,
+                'minhasCandidaturas',
+                projetoId
+            );
             await deleteDoc(minhaCandidaturaRef);
 
             // Apaga o documento da candidatura dentro do projeto
             // Isso permite que o usuário se candidate novamente no futuro se quiser!!
-            const candidaturaRef = doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid);
+            const candidaturaRef = doc(
+                db,
+                'projetos',
+                projetoId,
+                'candidaturas',
+                currentUser.uid
+            );
             await deleteDoc(candidaturaRef);
 
             addToast('Você saiu do projeto com sucesso.', 'success');
@@ -498,12 +579,12 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         const pairKey = [currentUser.uid, destinatario.uid].sort().join('_');
 
         const q = query(
-        conversasRef,
-        where('isGrupo', '==', false),
-        where('pairKey', '==', pairKey),
-        // Garante que a consulta só considere documentos onde o utilizador atual é participante
-        where('participantes', 'array-contains', currentUser.uid)
-    );
+            conversasRef,
+            where('isGrupo', '==', false),
+            where('pairKey', '==', pairKey),
+            // Garante que a consulta só considere documentos onde o utilizador atual é participante
+            where('participantes', 'array-contains', currentUser.uid)
+        );
 
         try {
             const querySnapshot = await getDocs(q);
@@ -531,7 +612,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                         [destinatario.uid]: 0,
                     },
                     ultimaMensagem: null,
-                    criadoEm: serverTimestamp(), 
+                    criadoEm: serverTimestamp(),
                 });
                 conversaId = novaConversa.id;
             } else {
@@ -643,9 +724,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                                         //A função de clique só é ativada se for um participante
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (isParticipant) toggleMenuIntegrante(p.uid);
+                                            if (isParticipant)
+                                                toggleMenuIntegrante(p.uid);
                                         }}
-
                                     >
                                         <Avatar $bgColor={p.avatarColor}>
                                             {getInitials(p.nome, p.sobrenome)}
@@ -663,9 +744,11 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                                         )}
 
                                         {/*O menu suspenso só é renderizado se for participante */}
-                                        {integranteAberto === p.uid && isParticipant && (
+                                        {integranteAberto === p.uid &&
+                                            isParticipant && (
                                                 <DropdownMenu>
-                                                    <DropdownItem role="button"
+                                                    <DropdownItem
+                                                        role="button"
                                                         onClick={() =>
                                                             handleVerPerfilIntegrante(
                                                                 p
@@ -676,7 +759,8 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                                                     </DropdownItem>
                                                     {p.uid !==
                                                         currentUser.uid && (
-                                                        <DropdownItem role="button"
+                                                        <DropdownItem
+                                                            role="button"
                                                             onClick={() =>
                                                                 handleSendMessage(
                                                                     p
@@ -710,8 +794,8 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                         >
                             {loading ? 'Saindo...' : 'Sair do Projeto'}
                         </Botao>
-                    )} 
-                    
+                    )}
+
                     {!isParticipant && !isOwner && (
                         <Botao
                             variant="hab-int"
@@ -721,7 +805,6 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                             {loading ? 'Enviando...' : 'Candidatar-se'}
                         </Botao>
                     )}
-
                 </Footer>
             </ModalWrapper>
 

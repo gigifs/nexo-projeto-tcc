@@ -1,22 +1,27 @@
+// Lista de cores
+const CORES_PROJETO = [
+    '#0A528A', // Azul Institucional 
+    '#7C2256', // Vinho/Roxo Institucional
+    '#2C8AED', // Azul Vibrante 
+    '#6B74DB', // Roxo Azulado 
+    '#D757B4', // Rosa Orquídea 
+    '#0097A7', // Ciano Escuro
+    '#00796B', // Verde Azulado
+    '#43A047', // Verde Natureza
+    '#FB8C00', // Laranja Suave
+    '#E64A19', // Laranja Queimado
+    '#5D4037', // Marrom Café
+    '#455A64', // Azul Acinzentado
+    '#512DA8', // Roxo Profundo
+    '#C2185B', // Rosa Escuro
+    '#0288D1', // Azul Oceano
+];
+
 export const gerarCorAleatoria = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+    const indice = Math.floor(Math.random() * CORES_PROJETO.length);
+    return CORES_PROJETO[indice];
 };
 
 export const gerarCorPorNome = (str) => {
-    if (!str) return '#0a528a';
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    let color = '#';
-    for (let i = 0; i < 3; i++) {
-        const value = (hash >> (i * 8)) & 0xFF;
-        color += ('00' + value.toString(16)).slice(-2);
-    }
-    return color;
+    return '#0a528a'; // Padrão para quem não tem cor definida
 };

@@ -15,6 +15,7 @@ import PerfilPage from './pages/PerfilPage.jsx';
 import EsqueciSenhaPage from './pages/EsqueciSenhaPage.jsx';
 import GerenciarProjetoPage from './pages/GerenciarProjetoPage.jsx';
 import MinhasCandidaturasPage from './pages/MinhasCandidaturasPage.jsx';
+import OnboardingPage from './pages/OnBoardingPage.jsx';
 
 function App() {
     return (
@@ -32,6 +33,15 @@ function App() {
                     element={<VerificacaoConcluidaPage />}
                 />
                 <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />
+
+                <Route
+                    path="/onboarding"
+                    element={
+                        <ProtetorRota>
+                            <OnboardingPage />
+                        </ProtetorRota>
+                    }
+                />
 
                 <Route
                     path="/dashboard"

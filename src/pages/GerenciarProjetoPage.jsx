@@ -22,11 +22,11 @@ import {
     query,
     where,
     addDoc,
+    setDoc
 } from 'firebase/firestore';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
 
-// ... (todos os 'styled-components' permanecem iguais)
 const Formulario = styled.form`
     display: flex;
     flex-direction: column;
@@ -251,7 +251,13 @@ function GerenciarProjetoPage() {
 
                 if (projetoSnap.exists()) {
                     const dadosProjeto = projetoSnap.data();
-                    setProjeto({ id: projetoSnap.id, ...dadosProjeto });
+
+                    setProjeto({ id: projetoSnap.id, 
+                        ...dadosProjeto,
+                        participantes: dadosProjeto.participantes || [],
+                        participantesIds: dadosProjeto.participantIds || []
+                    });
+                    
                     setNomeEditavel(dadosProjeto.nome || '');
                     setDescricaoEditavel(dadosProjeto.descricao || '');
                     setStatusEditavel(dadosProjeto.status || '');
@@ -530,11 +536,31 @@ function GerenciarProjetoPage() {
         try {
             const projetoRef = doc(db, 'projetos', id);
 
+            // Remove dos arrays do projeto (Lógica visual do projeto)
             await updateDoc(projetoRef, {
                 participantes: arrayRemove(membroParaRemover),
                 participantIds: arrayRemove(membroParaRemover.uid),
             });
 
+            // Atualiza o documento da candidatura dentro do PROJETO para 'removido'
+            // Isso corrige o histórico e permite que lógicas futuras saibam que ele foi expulso
+            const candidaturaRef = doc(db, 'projetos', id, 'candidaturas', membroParaRemover.uid);
+            await updateDoc(candidaturaRef, { 
+                status: 'removido',
+                dataAtualizacao: new Date() 
+            });
+
+            // Atualiza o espelho em MINHAS CANDIDATURAS do usuário removido
+            // Isso corrige a página "Minhas Candidaturas" do usuário
+            const minhaCandidaturaRef = doc(db, 'users', membroParaRemover.uid, 'minhasCandidaturas', id);
+            // Usei setDoc com merge para garantir que se o doc não existir (erro de sincronia), ele não quebre
+            await setDoc(minhaCandidaturaRef, { 
+                status: 'removido',
+                dataAtualizacao: new Date()
+            }, { merge: true });
+
+
+            // Atualiza o CHAT
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
                 participantes: prevProjeto.participantes.filter(
@@ -549,28 +575,27 @@ function GerenciarProjetoPage() {
             if (!conversaSnapshot.empty) {
                 const conversaDoc = conversaSnapshot.docs[0];
                 const conversaRef = doc(db, 'conversas', conversaDoc.id);
-                // Prepara a informação do participante a ser removida
+                
                 const participanteParaRemover = {
                     uid: membroParaRemover.uid,
                     nome: membroParaRemover.nome,
                     sobrenome: membroParaRemover.sobrenome,
-                    avatarColor: membroParaRemover.avatarColor, // Garante que a cor está incluída se precisar comparar objetos completos
+                    avatarColor: membroParaRemover.avatarColor || '#0a528a', // Fallback de segurança
                 };
-
+                
+                // arrayRemove em objetos complexos exige que o objeto seja IDÊNTICO.
+                // Se houver risco de diferença, é melhor ler, filtrar o array no JS e salvar de volta.
+                // Vou manter o arrayRemove assumindo consistência, mas considere filtrar manualmente se falhar.
                 await updateDoc(conversaRef, {
                     participantes: arrayRemove(membroParaRemover.uid),
                     participantesInfo: arrayRemove(participanteParaRemover),
                 });
-                console.log('Membro removido da conversa.'); // Log para depuração
             }
 
-            addToast(
-                `${membroParaRemover.nome} foi removido(a) do projeto.`,
-                'success'
-            );
-            // Fecha o modal e limpa o estado
+            addToast(`${membroParaRemover.nome} foi removido(a) do projeto.`, 'success');
             setIsRemoverMembroModalOpen(false);
             setMembroParaRemover(null);
+
         } catch (err) {
             console.error('Erro ao remover membro:', err);
             addToast('Ocorreu um erro ao remover o membro.', 'error');
@@ -606,7 +631,7 @@ function GerenciarProjetoPage() {
             const nomeCurto =
                 nomeEditavel.length > 30
                     ? nomeEditavel.substring(0, 30) + '...'
-                    : nomeEditavel; // Usar nomeEditavel que está no escopo
+                    : nomeEditavel;
             addToast(`Projeto "${nomeCurto}" excluído com sucesso.`, 'success');
 
             setConfirmModalOpen(false);

@@ -395,12 +395,20 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 projetoId // Salva usando o ID do projeto
             );
 
-            // Verifica se já existe uma candidatura
             const candidaturaSnap = await getDoc(candidaturaRef);
+            
             if (candidaturaSnap.exists()) {
-                addToast('Você já se candidatou a este projeto.', 'info');
-                setLoading(false);
-                return;
+                const dados = candidaturaSnap.data();
+                // Se já estiver pendente ou aceito, bloqueia.
+                // Se estiver 'rejeitado' ou 'removido', permite tentar de novo.
+                if (dados.status === 'pendente' || dados.status === 'aceito') {
+                    const msg = dados.status === 'aceito' 
+                        ? 'Você já faz parte deste projeto.' 
+                        : 'Sua candidatura já está em análise.';
+                    addToast(msg, 'info');
+                    setLoading(false);
+                    return;
+                }
             }
 
             // Cria o documento da candidatura

@@ -78,21 +78,37 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
         const fetchMemberData = async () => {
             if (!projeto || !projeto.participantes) return;
 
-            const promises = projeto.participantes.map(async (member) => {
-                const userDocRef = doc(db, 'users', member.uid);
-                const userDocSnap = await getDoc(userDocRef);
+            // PROTEÇÃO CONTRA DUPLICATAS
+            // Criamos um Map onde a chave é o UID
+            // Se houver duplicata, o Map sobrescreve e mantém apenas um.
+            const participantesUnicos = [
+                ...new Map(projeto.participantes.map((p) => [p.uid, p])).values(),
+            ];
 
-                if (userDocSnap.exists()) {
-                    return {
-                        ...member,
-                        avatarColor: userDocSnap.data().avatarColor,
-                    };
+            const promises = participantesUnicos.map(async (member) => {
+                // Se o membro não tiver UID (dado corrompido), ignoramos
+                if (!member.uid) return null;
+
+                try {
+                    const userDocRef = doc(db, 'users', member.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    if (userDocSnap.exists()) {
+                        return {
+                            ...member,
+                            avatarColor: userDocSnap.data().avatarColor,
+                        };
+                    }
+                    return member;
+                } catch (error) {
+                    console.error("Erro ao buscar membro:", error);
+                    return member;
                 }
-                return member;
             });
 
-            const membrosCompletos = await Promise.all(promises);
-            setMembrosComCor(membrosCompletos);
+            const resultados = await Promise.all(promises);
+            // Filtramos possíveis nulos
+            setMembrosComCor(resultados.filter(Boolean));
         };
 
         fetchMemberData();
@@ -100,7 +116,7 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
 
     const corDoDono =
         currentUserId === projeto.donoId
-            ? userData.avatarColor
+            ? userData?.avatarColor // Adicionado chaining
             : projeto.donoAvatarColor;
 
     return (
@@ -122,7 +138,7 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
                         </span>
                     </MembroInfo>
                 </MembroItem>
-                {membrosComCor && // Usamos o estado 'membrosComCor' que o seu useEffect preenche
+                {membrosComCor && // Usamos o estado 'membrosComCor' que o useEffect preenche
                     membrosComCor
                         .filter((p) => p.uid !== projeto.donoId)
                         .map((p) => (

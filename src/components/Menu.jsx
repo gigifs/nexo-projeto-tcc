@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'; // Adicionado useState e useEffect
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import {
@@ -8,6 +9,10 @@ import {
     FiSettings,
 } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
+
+// Importações do Firebase necessárias para verificar mensagens
+import { db } from '../firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 const MenuEstilizado = styled.aside`
     background-color: #f5fafc;
@@ -31,11 +36,10 @@ const PerfilEstilizado = styled.div`
     transition: background-color 0.2s ease-in-out;
 
     &:hover {
-        background-color: #238cd74d; /* Cor de fundo azul clara do hover */
+        background-color: #238cd74d;
     }
 `;
 
-// ALTERADO: Avatar agora aceita a propriedade $bgColor
 const Avatar = styled.div`
     width: 3.75rem;
     height: 3.75rem;
@@ -69,7 +73,7 @@ const Curso = styled.span`
 
     @media (max-width: 1300px) {
         font-size: 1.1rem;
-   }
+    }
 `;
 
 const MenuLista = styled.ul`
@@ -96,7 +100,8 @@ const MenuItem = styled.li`
     color: ${({ $ativo }) => ($ativo ? '#000' : '#000')};
     font-weight: ${({ $ativo }) => ($ativo ? '500' : '300')};
 
-    svg {
+    /* O svg agora pode estar dentro de um container, então ajustamos o seletor para pegar qualquer svg dentro do item */
+    & svg {
         color: ${({ $ativo }) => ($ativo ? '#0A528A' : '#000')};
         stroke-width: ${({ $ativo }) => ($ativo ? '2.5px' : '2px')};
     }
@@ -106,7 +111,7 @@ const MenuItem = styled.li`
         color: #000;
         font-weight: 500;
 
-        svg {
+        & svg {
             color: #0a528a;
             stroke-width: 3px;
         }
@@ -114,8 +119,28 @@ const MenuItem = styled.li`
 
     @media (max-width: 1024px) {
         font-size: 1.2rem;
-        
-  }
+    }
+`;
+
+// NOVO: Container para agrupar o ícone e a bolinha
+const IconeContainer = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+// NOVO: A bolinha verde de notificação
+const BolinhaNotificacao = styled.div`
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background-color: #19e337; /* Verde vibrante igual ao usado na lista de conversas */
+    border-radius: 50%;
+    border: 2px solid #f5fafc; /* Borda da mesma cor do fundo do menu para dar destaque */
+    z-index: 10;
 `;
 
 const getInitials = (nome, sobrenome) => {
@@ -124,9 +149,39 @@ const getInitials = (nome, sobrenome) => {
 };
 
 function Menu() {
-    const { userData } = useAuth();
+    // Adicionamos currentUser para pegar o UID
+    const { userData, currentUser } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [temNotificacao, setTemNotificacao] = useState(false);
+
+    // NOVO: Efeito para monitorar mensagens não lidas globalmente
+    useEffect(() => {
+        if (!currentUser) return;
+
+        // Busca conversas onde o usuário é participante
+        const q = query(
+            collection(db, 'conversas'),
+            where('participantes', 'array-contains', currentUser.uid)
+        );
+
+        // Escuta em tempo real
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            let totalNaoLidas = 0;
+            
+            snapshot.docs.forEach((doc) => {
+                const data = doc.data();
+                // Soma as mensagens não lidas especificas para este usuário
+                const naoLidasDaConversa = data.unreadCounts?.[currentUser.uid] || 0;
+                totalNaoLidas += naoLidasDaConversa;
+            });
+
+            // Se houver mais de 0 mensagens não lidas, ativa a bolinha
+            setTemNotificacao(totalNaoLidas > 0);
+        });
+
+        return () => unsubscribe();
+    }, [currentUser]);
 
     return (
         <MenuEstilizado>
@@ -166,12 +221,18 @@ function Menu() {
                 >
                     <FiBriefcase size={32} /> Meus Projetos
                 </MenuItem>
+
                 <MenuItem
                     $ativo={location.pathname === '/dashboard/mensagens'}
                     onClick={() => navigate('/dashboard/mensagens')}
                 >
-                    <FiMessageSquare size={32} /> Mensagens
+                    <IconeContainer>
+                        <FiMessageSquare size={32} />
+                        {temNotificacao && <BolinhaNotificacao />}
+                    </IconeContainer>
+                    Mensagens
                 </MenuItem>
+
                 <MenuItem
                     $ativo={location.pathname.startsWith('/dashboard/configuracoes')}
                     onClick={() => navigate('/dashboard/configuracoes')}

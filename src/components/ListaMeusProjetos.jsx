@@ -41,67 +41,38 @@ function ListaMeusProjetos() {
 
         const projetosRef = collection(db, 'projetos');
 
-        // Query para projetos onde o usuário é o dono
-        const qOwned = query(
-            projetosRef,
-            where('donoId', '==', currentUser.uid)
-        );
-
-        // Query para projetos onde o usuário é participante
-        const qMember = query(
+        // Como o dono também está em 'participantIds'
+        // pego tuo em uma única query
+        const qTodos = query(
             projetosRef,
             where('participantIds', 'array-contains', currentUser.uid)
         );
 
-        // Função para combinar e remover duplicatas
-        const combineProjects = (owned, member) => {
-            const allProjects = new Map();
-            owned.forEach(p => allProjects.set(p.id, p));
-            member.forEach(p => allProjects.set(p.id, p));
-            return Array.from(allProjects.values());
-        };
+        const unsubscribe = onSnapshot(qTodos, (snapshot) => {
+            const listaProjetos = snapshot.docs.map(doc => ({ 
+                id: doc.id, 
+                ...doc.data() 
+            }));
 
-        // Ouvinte para projetos do qual é dono
-        const unsubscribeOwned = onSnapshot(qOwned, (snapshot) => {
-            const ownedProjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            // Atualiza o estado principal
-            setProjetos(currentProjects => {
-                const memberProjects = currentProjects.filter(p => p.donoId !== currentUser.uid);
-                return combineProjects(ownedProjects, memberProjects);
-            });
-            
-            setLoading(false);
-        }, (err) => {
-            console.error("Erro ao buscar projetos (dono):", err);
-            addToast('Não foi possível carregar seus projetos.', 'error');
-            setError('Erro ao carregar seus projetos.');
-            setLoading(false);
-        });
-
-        // Ouvinte para projetos do qual é membro
-        const unsubscribeMember = onSnapshot(qMember, (snapshot) => {
-            const memberProjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            setProjetos(currentProjects => {
-                const ownedProjects = currentProjects.filter(p => p.donoId === currentUser.uid);
-                return combineProjects(ownedProjects, memberProjects);
+            // Ordenação do mais recente para o mais antigo
+            const projetosOrdenados = listaProjetos.sort((a, b) => {
+                const timeA = a.criadoEm?.toDate()?.getTime() || 0;
+                const timeB = b.criadoEm?.toDate()?.getTime() || 0;
+                return timeB - timeA;
             });
 
+            setProjetos(projetosOrdenados);
             setLoading(false);
         }, (err) => {
-            console.error("Erro ao buscar projetos (membro):", err);
-            addToast('Não foi possível carregar os projetos em que você participa.', 'error');
+            console.error("Erro ao buscar projetos:", err);
             setError('Não foi possível carregar seus projetos.');
+            addToast('Erro de conexão ao buscar projetos.', 'error');
             setLoading(false);
         });
 
-        // Retorna a função de limpeza para ambos os ouvintes
-        return () => {
-            unsubscribeOwned();
-            unsubscribeMember();
-        };
+        return () => unsubscribe();
     }, [currentUser]);
+
 
     if (loading) return <MensagemFeedback>Carregando seus projetos...</MensagemFeedback>;
     
@@ -113,26 +84,13 @@ function ListaMeusProjetos() {
 
     return (
         <ListWrapper>
-            {projetos
-                .slice()
-                .sort((a, b) => {
-                    // Acessamos o timestamp 'criadoEm'. Usamos optional chaining (?.)
-                    // e .toDate() para converter para um objeto Date do JavaScript.
-                    // Usamos .getTime() para obter os milissegundos desde a época Unix,
-                    // que é um número fácil de comparar.
-                    // Se 'criadoEm' não existir ou for inválido, usamos 0 como padrão.
-                    const timeA = a.criadoEm?.toDate()?.getTime() || 0;
-                    const timeB = b.criadoEm?.toDate()?.getTime() || 0;
-                    return timeB - timeA;
-                })
-                
-                .map((projeto) => (
-                    <MyProjectCard
-                        key={projeto.id}
-                        projeto={projeto}
-                        currentUserId={currentUser.uid}
-                    />
-                ))}
+            {projetos.map((projeto) => (
+                <MyProjectCard
+                    key={projeto.id}
+                    projeto={projeto}
+                    currentUserId={currentUser.uid}
+                />
+            ))}
         </ListWrapper>
     );
 }

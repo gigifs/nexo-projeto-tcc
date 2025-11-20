@@ -10,6 +10,8 @@ import {
     browserLocalPersistence,
 } from 'firebase/auth';
 import { auth } from '../firebase.js';
+import { doc, getDoc } from 'firebase/firestore'; 
+import { db } from '../firebase';
 
 const FormularioContainer = styled.form`
     display: flex;
@@ -183,8 +185,15 @@ function FormularioLogin({ onSwitchToSignup, onSuccess }) {
                     lembrar ? 'local' : 'session'
                 );
 
-                navigate('/dashboard');
-                //redirecionando para a pagina principal
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists() && userSnap.data().onboardingCompleted) {
+                    navigate('/dashboard');
+                } else {
+                    navigate('/onboarding');
+                }
+
             } else {
                 // Se o e-mail não for verificado, desconectamos o utilizador
                 // antes de mostrar a mensagem de erro.

@@ -193,33 +193,42 @@ function GerenciarProjetoPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
-    const { addToast } = useToast();
-
+    const { addToast } = useToast(); //hook para os toasts
+    // Carregamento dos projetos e candidaturas é executado sempre
+    // que o id da URL muda
     const [projeto, setProjeto] = useState(null);
     const [candidaturas, setCandidaturas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    //--------Estados dos dados do Projeto (formulário)
+    // armazenam os valores dos inputs, 
+    // mas são separados do objeto projeto original pra permitir edição sem salvar na hora
     const [nomeEditavel, setNomeEditavel] = useState('');
     const [descricaoEditavel, setDescricaoEditavel] = useState('');
     const [statusEditavel, setStatusEditavel] = useState('');
     const [areaEditavel, setAreaEditavel] = useState('');
+    // Bloqueia o botão salvar durante a escrita no banco
     const [isSaving, setIsSaving] = useState(false);
     const [candidatoSelecionado, setCandidatoSelecionado] = useState(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
+    //-------TAGS - CARREGAMENTO E AUTOCOMPLETE
+    // arrays para as tags
     const [habilidadesEditaveis, setHabilidadesEditaveis] = useState([]);
     const [interessesEditaveis, setInteressesEditaveis] = useState([]);
+    // Busca a coleção tags no firebase ao iniciar
     const [buscaHabilidade, setBuscaHabilidade] = useState('');
     const [buscaInteresse, setBuscaInteresse] = useState('');
+    // Separa em todasAsHabilidades e todosOsInteresses
+    // para alimentar as sugestões dos inputs
     const [todasAsHabilidades, setTodasAsHabilidades] = useState([]);
     const [todosOsInteresses, setTodosOsInteresses] = useState([]);
     const [sugestoesH, setSugestoesH] = useState([]);
     const [sugestoesI, setSugestoesI] = useState([]);
+    // Controlam a visibilidade dos modais de confirmação
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-
     const [membroParaRemover, setMembroParaRemover] = useState(null);
-    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] =
-        useState(false);
+    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] = useState(false);
     const [isRemovingMember, setIsRemovingMember] = useState(false);
 
     useEffect(() => {
@@ -255,7 +264,7 @@ function GerenciarProjetoPage() {
                     setProjeto({ id: projetoSnap.id, 
                         ...dadosProjeto,
                         participantes: dadosProjeto.participantes || [],
-                        participantesIds: dadosProjeto.participantIds || []
+                        participantIds: dadosProjeto.participantIds || []
                     });
                     
                     setNomeEditavel(dadosProjeto.nome || '');
@@ -270,13 +279,17 @@ function GerenciarProjetoPage() {
                     return;
                 }
 
+                // Adicionamos a query para filtrar apenas status 'pendente'
                 const candidaturasRef = collection(
                     db,
                     'projetos',
                     id,
                     'candidaturas'
                 );
-                const candidaturasSnap = await getDocs(candidaturasRef);
+                const qCandidaturas = query(candidaturasRef, where('status', '==', 'pendente'));
+                const candidaturasSnap = await getDocs(qCandidaturas);
+                // ---------------------
+
                 const listaCandidaturas = candidaturasSnap.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
@@ -297,9 +310,18 @@ function GerenciarProjetoPage() {
 
     const handleSalvar = async (evento) => {
         evento.preventDefault();
-        setIsSaving(true);
+        // validações antes de salvar
+        if (!nomeEditavel.trim()) {
+            return addToast('O nome do projeto é obrigatório.', 'error');
+        }
+        if (!descricaoEditavel.trim()) {
+            return addToast('A descrição é obrigatória.', 'error');
+        }
+
+        setIsSaving(true); // bloqueia botão de salvar
         try {
             const projetoRef = doc(db, 'projetos', id);
+            // atualiza apenas os campos editáveis no documento do projeto
             await updateDoc(projetoRef, {
                 nome: nomeEditavel,
                 descricao: descricaoEditavel,
@@ -309,12 +331,13 @@ function GerenciarProjetoPage() {
                 interesses: interessesEditaveis,
             });
             addToast('Projeto atualizado com sucesso!', 'success');
-            navigate('/dashboard/meus-projetos');
+            navigate('/dashboard/meus-projetos'); // redireciona depois do sucesso
         } catch (err) {
+            // tratamento de erro
             console.error('Erro ao atualizar o projeto!');
             addToast('ERRO, ALTERAÇÕES NÃO FORAM SALVAS!!!', 'error');
         } finally {
-            setIsSaving(false);
+            setIsSaving(false); // libera UI/botão salvar
         }
     };
 
@@ -401,10 +424,14 @@ function GerenciarProjetoPage() {
             // Busca os dados mais recentes do candidato para pegar a cor do avatar
             const userRef = doc(db, 'users', candidatoParaAceitar.userId);
             const userSnap = await getDoc(userRef);
-            const corAvatarCandidato = userSnap.exists()
-                ? userSnap.data().avatarColor
-                : '#0a528a';
-
+            const dadosUser = userSnap.exists() ? userSnap.data() : {};
+            // O operador || garante que se for undefined, nulo ou vazio, ele usa a cor padrão
+            const corAvatarCandidato = dadosUser.avatarColor || '#0a528a';
+            
+            // autualiza o projeto:
+            // adiciona o usuário aos arrays de participantes
+            // participantes: dados visuais (nome e foto) para exibição rápida
+            // participantIds: UIDs para regras de segurança e filtros
             await updateDoc(projetoRef, {
                 participantes: arrayUnion({
                     uid: candidatoParaAceitar.userId,
@@ -415,7 +442,9 @@ function GerenciarProjetoPage() {
                 participantIds: arrayUnion(candidatoParaAceitar.userId),
             });
 
+            // SINCRONIZAÇÃO DO CHAT
             const conversasRef = collection(db, 'conversas');
+            // verifica se ja existe um chat pra esse projeto
             const q = query(conversasRef, where('projetoId', '==', id));
             const conversaSnapshot = await getDocs(q);
 
@@ -438,6 +467,7 @@ function GerenciarProjetoPage() {
                             sobrenome: candidatoParaAceitar.sobrenome,
                         },
                     ],
+                    // Inicializa o contador de mensagens não lidas para 0
                     unreadCounts: {
                         [currentUser.uid]: 0,
                         [candidatoParaAceitar.userId]: 0,
@@ -461,13 +491,20 @@ function GerenciarProjetoPage() {
                 }
             }
 
-            // Lógica de aceitação (movida para fora do 'else' para executar sempre)
+            // ATUALIZAÇÃO DA CANDIDATURA: muda o status para aceito
             await updateDoc(candidaturaRef, { status: 'aceito' });
+
+            await updateDoc(
+                doc(db, "users", candidatoParaAceitar.userId, "minhasCandidaturas", id),
+                { status: "aceito" }
+            );
 
             setCandidaturas((prev) =>
                 prev.filter((c) => c.id !== candidatoParaAceitar.id)
             );
             // Atualiza o estado local do projeto para refletir o novo membro
+            // remove o candidato da lista local candidaturas e adiciona ao estado projeto.participantes
+            // para que a tela atualize sem precisar recarregar do banco
             setProjeto((prevProjeto) => ({
                 ...prevProjeto,
                 participantes: [
@@ -511,6 +548,11 @@ function GerenciarProjetoPage() {
 
             await updateDoc(candidaturaRef, { status: 'rejeitado' });
 
+            await updateDoc(
+                doc(db, "users", candidatoParaRejeitar.userId, "minhasCandidaturas", id),
+                { status: "rejeitado" }
+            );
+
             setCandidaturas(
                 candidaturas.filter((c) => c.id !== candidatoParaRejeitar.id)
             );
@@ -536,38 +578,42 @@ function GerenciarProjetoPage() {
         try {
             const projetoRef = doc(db, 'projetos', id);
 
-            // Remove dos arrays do projeto (Lógica visual do projeto)
-            await updateDoc(projetoRef, {
-                participantes: arrayRemove(membroParaRemover),
-                participantIds: arrayRemove(membroParaRemover.uid),
-            });
+            // Buscamos o projeto atual para filtrar manualmente
+            const projetoSnap = await getDoc(projetoRef);
+            
+            if (projetoSnap.exists()) {
+                const data = projetoSnap.data();
+                
+                // Filtramos a lista visual ignorando diferenças de dados (cor/nome), olhando só o UID
+                const novosParticipantes = (data.participantes || []).filter(
+                    (p) => p.uid !== membroParaRemover.uid
+                );
 
-            // Atualiza o documento da candidatura dentro do PROJETO para 'removido'
-            // Isso corrige o histórico e permite que lógicas futuras saibam que ele foi expulso
-            const candidaturaRef = doc(db, 'projetos', id, 'candidaturas', membroParaRemover.uid);
-            await updateDoc(candidaturaRef, { 
-                status: 'removido',
-                dataAtualizacao: new Date() 
-            });
+                // Atualizamos o projeto com a lista limpa
+                await updateDoc(projetoRef, {
+                    participantes: novosParticipantes, // Substitui a lista inteira pela filtrada
+                    participantIds: arrayRemove(membroParaRemover.uid), // Remove a permissão lógica
+                });
+            }
 
-            // Atualiza o espelho em MINHAS CANDIDATURAS do usuário removido
-            // Isso corrige a página "Minhas Candidaturas" do usuário
-            const minhaCandidaturaRef = doc(db, 'users', membroParaRemover.uid, 'minhasCandidaturas', id);
-            // Usei setDoc com merge para garantir que se o doc não existir (erro de sincronia), ele não quebre
-            await setDoc(minhaCandidaturaRef, { 
-                status: 'removido',
-                dataAtualizacao: new Date()
-            }, { merge: true });
+            // Busca a candidatura de forma segura (por query), independente do ID do documento
+            const candidaturasRef = collection(db, 'projetos', id, 'candidaturas');
+            const qCandidatura = query(candidaturasRef, where('userId', '==', membroParaRemover.uid));
+            const querySnapshotCand = await getDocs(qCandidatura);
 
+            if (!querySnapshotCand.empty) {
+                // Se encontrou a candidatura, marca como removido
+                const docRef = querySnapshotCand.docs[0].ref;
+                await updateDoc(docRef, { 
+                    status: 'removido',
+                    dataAtualizacao: new Date() 
+                });
+            } else {
+                // Se não existe candidatura (ex: membro adicionado manualmente no banco)
+                console.log("Nenhuma candidatura encontrada para marcar como removida.");
+            }
 
             // Atualiza o CHAT
-            setProjeto((prevProjeto) => ({
-                ...prevProjeto,
-                participantes: prevProjeto.participantes.filter(
-                    (p) => p.uid !== membroParaRemover.uid
-                ),
-            }));
-
             const conversasRef = collection(db, 'conversas');
             const qConversa = query(conversasRef, where('projetoId', '==', id));
             const conversaSnapshot = await getDocs(qConversa);
@@ -575,20 +621,15 @@ function GerenciarProjetoPage() {
             if (!conversaSnapshot.empty) {
                 const conversaDoc = conversaSnapshot.docs[0];
                 const conversaRef = doc(db, 'conversas', conversaDoc.id);
-                
-                const participanteParaRemover = {
-                    uid: membroParaRemover.uid,
-                    nome: membroParaRemover.nome,
-                    sobrenome: membroParaRemover.sobrenome,
-                    avatarColor: membroParaRemover.avatarColor || '#0a528a', // Fallback de segurança
-                };
-                
-                // arrayRemove em objetos complexos exige que o objeto seja IDÊNTICO.
-                // Se houver risco de diferença, é melhor ler, filtrar o array no JS e salvar de volta.
-                // Vou manter o arrayRemove assumindo consistência, mas considere filtrar manualmente se falhar.
+                const chatData = conversaDoc.data();
+
+                const novaListaParticipantesInfo = (chatData.participantesInfo || []).filter(
+                    (p) => p.uid !== membroParaRemover.uid
+                );
+
                 await updateDoc(conversaRef, {
                     participantes: arrayRemove(membroParaRemover.uid),
-                    participantesInfo: arrayRemove(participanteParaRemover),
+                    participantesInfo: novaListaParticipantesInfo,
                 });
             }
 
@@ -598,7 +639,11 @@ function GerenciarProjetoPage() {
 
         } catch (err) {
             console.error('Erro ao remover membro:', err);
-            addToast('Ocorreu um erro ao remover o membro.', 'error');
+            if (err.code === 'permission-denied') {
+                addToast('Erro de permissão. Verifique as regras do Firestore.', 'error');
+            } else {
+                addToast('Ocorreu um erro ao remover o membro.', 'error');
+            }
         } finally {
             setIsRemovingMember(false);
         }

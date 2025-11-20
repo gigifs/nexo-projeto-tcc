@@ -8,6 +8,7 @@ import React, {
 import { onAuthStateChanged, signOut } from 'firebase/auth'; // função de autenticação em tempo real
 import { auth, db } from '../firebase'; // aqui sao as instancias de autenticação e banco de dados
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'; // ferramentas que leem dados para o firebase
+import PageLoader from '../pages/PageLoader';
 
 // a criação do contexto, como um armazém de dados ainda vazio
 const AuthContext = createContext();
@@ -112,7 +113,8 @@ export function AuthProvider({ children }) {
     // finalmente ele passa o objeto para o nosso contexto
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {/* Se estiver carregando, mostra o Loader. Se não, mostra o app */}
+            {loading ? <PageLoader /> : children}
         </AuthContext.Provider>
     );
 }

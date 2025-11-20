@@ -7,13 +7,9 @@ import VerDetalhesModal from '../components/VerDetalhesModal';
 import DashboardHeader from '../components/DashboardHeader';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
-import { FiLoader, FiTrash2, FiFilePlus, FiFileMinus } from 'react-icons/fi';
-import {
-    HiArrowsUpDown,
-    HiArrowLongUp,
-    HiArrowLongDown,
-} from 'react-icons/hi2';
+import { FiLoader, FiTrash2, FiFilePlus, FiFileMinus, FiUserX } from 'react-icons/fi';
 import { LuFileX } from 'react-icons/lu';
+import { HiArrowsUpDown, HiArrowLongUp, HiArrowLongDown } from 'react-icons/hi2';
 import { useToast } from '../contexts/ToastContext';
 import {
     collection,
@@ -138,29 +134,31 @@ function MinhasCandidaturasPage() {
         let candidaturasRef;
 
         if (ordem) {
-            // Se ordem for asc ou desc, aplica o orderBy
             candidaturasRef = query(
                 collection(db, 'users', currentUser.uid, 'minhasCandidaturas'),
                 orderBy('dataCandidatura', ordem)
             );
         } else {
-            // Se ordem for null, busca sem o orderBy
             candidaturasRef = query(
                 collection(db, 'users', currentUser.uid, 'minhasCandidaturas')
             );
         }
 
         const unsubscribe = onSnapshot(candidaturasRef, async (snapshot) => {
+            // Mapeamos inicialmente com os dados que já temos salvos no perfil do usuário
+            // Isso serve de "fallback" caso o projeto original não exista mais
             const baseList = snapshot.docs.map((doc) => ({
                 projetoId: doc.id,
                 dataCandidatura: doc.data().dataCandidatura,
+                nomeSalvo: doc.data().nomeProjeto, // Nome salvo no momento da candidatura
+                statusSalvo: doc.data().status // Status salvo no perfil
             }));
 
             const finalList = await Promise.all(
                 baseList.map(async (item) => {
                     const projetoId = item.projetoId;
 
-                    // Tenta pegar o cache
+                    // Tenta pegar do cache para economizar leituras
                     if (
                         projetosCache.current[projetoId] &&
                         statusCache.current[projetoId]
@@ -172,40 +170,47 @@ function MinhasCandidaturasPage() {
                         };
                     }
 
-                    // Busca os dados do projeto
-                    const projetoRef = doc(db, 'projetos', projetoId);
-                    const projetoSnap = await getDoc(projetoRef);
+                    // Valores padrão iniciais (usando o salvo no perfil se disponível)
+                    let nomeProjeto = item.nomeSalvo || 'Projeto Indisponível';
+                    let status = item.statusSalvo || 'pendente';
 
-                    let nomeProjeto = 'Projeto removido';
-                    let projetoExiste = false;
+                    try {
+                        // Verifica se o projeto ainda existe
+                        const projetoRef = doc(db, 'projetos', projetoId);
+                        const projetoSnap = await getDoc(projetoRef);
 
-                    if (projetoSnap.exists()) {
-                        nomeProjeto = projetoSnap.data().nome;
-                        projetoExiste = true;
-                        projetosCache.current[projetoId] = { nomeProjeto };
-                    } else {
-                        projetosCache.current[projetoId] = { nomeProjeto };
-                        statusCache.current[projetoId] = 'removido';
-                    }
+                        if (projetoSnap.exists()) {
+                            nomeProjeto = projetoSnap.data().nome; // Atualiza com nome real
 
-                    // Busca o status da candidatura
-                    let status = 'n/a';
-                    if (projetoExiste) {
-                        const candidaturaRef = doc(
-                            db,
-                            'projetos',
-                            projetoId,
-                            'candidaturas',
-                            currentUser.uid
-                        );
-                        const statusSnap = await getDoc(candidaturaRef);
+                            // Se o projeto existe, verifica o status oficial da candidatura
+                            const candidaturaRef = doc(
+                                db,
+                                'projetos',
+                                projetoId,
+                                'candidaturas',
+                                currentUser.uid
+                            );
+                            const statusSnap = await getDoc(candidaturaRef);
 
-                        if (statusSnap.exists()) {
-                            status = statusSnap.data().status || 'pendente';
+                            if (statusSnap.exists()) {
+                                status = statusSnap.data().status || 'pendente';
+                            } else {
+                                // Projeto existe, mas não há documento de candidatura
+                                // Isso acontece quando o dono remove o membro
+                                status = 'removido'; 
+                            }
+                        } else {
+                            // Projeto não encontrado no banco de dados
+                            status = 'excluido';
                         }
-
-                        statusCache.current[projetoId] = status;
+                    } catch (error) {
+                        console.error("Erro ao buscar status do projeto:", error);
+                        // Em caso de erro de permissão ou rede, mantemos os dados salvos
                     }
+
+                    // Atualiza o cache
+                    projetosCache.current[projetoId] = { nomeProjeto };
+                    statusCache.current[projetoId] = status;
 
                     return {
                         ...item,
@@ -227,7 +232,8 @@ function MinhasCandidaturasPage() {
         delete statusCache.current[projetoId];
 
         try {
-            // Remove da lista pessoal (Isso atualiza a tela automaticamente ->onSnapshot)
+            // Remove da lista pessoal (no perfil do usuário)
+            // Isso vai disparar o onSnapshot e atualizar a tela
             await deleteDoc(
                 doc(
                     db,
@@ -238,10 +244,15 @@ function MinhasCandidaturasPage() {
                 )
             );
 
-            // Tenta remover do projeto (se ainda existir)
-            await deleteDoc(
-                doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid)
-            );
+            // Tenta remover do projeto (se ainda existir e tiver permissão)
+            try {
+                await deleteDoc(
+                    doc(db, 'projetos', projetoId, 'candidaturas', currentUser.uid)
+                );
+            } catch (e) {
+                // Se falhar (ex: projeto excluído), não faz mal pq removemos da lista pessoal
+                console.log("Candidatura no projeto já não existe ou sem permissão.");
+            }
 
             return true;
         } catch (error) {
@@ -251,13 +262,13 @@ function MinhasCandidaturasPage() {
         }
     };
 
-    // Pra status Pendente --> Abre Modal
+    // Handler para abrir modal
+    // caso o usuário queira retirar candidatura quando os status é pendente
     const handleAbrirModalRetirar = (projetoId) => {
         setProjetoParaRetirar(projetoId);
         setConfirmOpen(true);
     };
 
-    // Confirmação do Modal (Pendente)
     const handleConfirmarRetirada = async () => {
         if (!projetoParaRetirar) return;
         setIsDeleting(true);
@@ -273,7 +284,7 @@ function MinhasCandidaturasPage() {
         setProjetoParaRetirar(null);
     };
 
-    // Para status Rejeitado ou Removido --> exclui direto
+    // Handler para limpeza imediata (Rejeitado, Removido ou Excluído)
     const handleLimparImediatamente = async (projetoId) => {
         const sucesso = await executarExclusao(projetoId);
         if (sucesso) {
@@ -292,28 +303,31 @@ function MinhasCandidaturasPage() {
             const projetoSnap = await getDoc(projetoRef);
 
             if (projetoSnap.exists()) {
-                // Guarda os dados completos do projeto pra passar ao modal
                 setProjetoSelecionado({
                     id: projetoSnap.id,
                     ...projetoSnap.data(),
                 });
             } else {
-                addToast('Projeto não encontrado.', 'error');
+                addToast('Projeto não encontrado ou sem permissão.', 'error');
             }
         } catch (error) {
             console.error('Erro ao abrir projeto:', error);
+            addToast('Erro ao abrir detalhes do projeto.', 'error');
         }
     };
 
+    // Estilo dos cards de candidaturas
     const getStatusInfo = (status) => {
         switch (status) {
+            // me candidatei, tô esperando
             case 'pendente':
                 return {
                     texto: 'Pendente',
                     icone: <FiLoader size={20} />,
-                    $bgColor: '#FFE0B2',
-                    $textColor: '#E65100',
+                    $bgColor: '#b5cfefff',
+                    $textColor: '#424b9bff',
                 };
+            // fui aceito
             case 'aceito':
                 return {
                     texto: 'Candidatura Aceita',
@@ -321,19 +335,29 @@ function MinhasCandidaturasPage() {
                     $bgColor: '#C8E6C9',
                     $textColor: '#2E7D32',
                 };
+            // fui rejeitado
             case 'rejeitado':
                 return {
                     texto: 'Candidatura Rejeitada',
                     icone: <LuFileX size={20} />,
                     $bgColor: '#ffcdd2',
-                    $textColor: '#f44336',
+                    $textColor: '#ca392fff',
                 };
+            // me tiraram do projeto
             case 'removido':
+                return {
+                    texto: 'Removido do Projeto',
+                    icone: <FiUserX size={20} />,
+                    $bgColor: '#d9c4f0ff',
+                    $textColor: '#5f237bff',
+                };
+            // excluíram o projeto que me canididatei
+            case 'excluido':
                 return {
                     texto: 'Projeto Excluído',
                     icone: <FiFileMinus size={20} />,
-                    $bgColor: '#e0e0e0',
-                    $textColor: '#616161',
+                    $bgColor: '#bdbdbd',
+                    $textColor: '#424242',
                 };
             default:
                 return {
@@ -376,12 +400,10 @@ function MinhasCandidaturasPage() {
                 )}
 
                 {candidaturas.map((cand) => {
-                    const isLoading = !cand.nomeProjeto;
-                    const isRemovido = cand.nomeProjeto === 'Projeto removido';
-
-                    // Define o status pra função getStatusInfo
-                    const statusReal = isRemovido ? 'removido' : cand.status;
-                    const statusInfo = getStatusInfo(statusReal);
+                    const isLoading = !cand.nomeProjeto && cand.status !== 'excluido';
+                    
+                    // Pega as informações visuais de acordo com o status
+                    const statusInfo = getStatusInfo(cand.status);
 
                     // Card Loading
                     if (isLoading) {
@@ -423,7 +445,8 @@ function MinhasCandidaturasPage() {
                                 </InfoWrapper>
 
                                 <AcoesWrapper>
-                                    {statusReal === 'pendente' && (
+                                    {/* Botão retirar candidatura para status: pendente */}
+                                    {cand.status === 'pendente' && (
                                         <Botao
                                             variant="excluir"
                                             onClick={() =>
@@ -436,7 +459,8 @@ function MinhasCandidaturasPage() {
                                         </Botao>
                                     )}
 
-                                    {statusReal === 'aceito' && (
+                                    {/* Botão ver projeto para status: aceito (se não excluído) */}
+                                    {cand.status === 'aceito' && (
                                         <Botao
                                             variant="hab-int"
                                             onClick={() =>
@@ -447,8 +471,10 @@ function MinhasCandidaturasPage() {
                                         </Botao>
                                     )}
 
-                                    {(statusReal === 'rejeitado' ||
-                                        statusReal === 'removido') && (
+                                    {/* Ícone Lixeira para limpar da lista (status: Rejeitado, Removido ou Excluído) */}
+                                    {(cand.status === 'rejeitado' ||
+                                        cand.status === 'removido' ||
+                                        cand.status === 'excluido') && (
                                         <FiTrash2
                                             size={25}
                                             onClick={() =>
@@ -460,6 +486,7 @@ function MinhasCandidaturasPage() {
                                                 cursor: 'pointer',
                                                 color: '#f44336',
                                             }}
+                                            title="Remover da lista"
                                         />
                                     )}
                                 </AcoesWrapper>
@@ -468,6 +495,7 @@ function MinhasCandidaturasPage() {
                     );
                 })}
             </ListaCandidaturas>
+
             <Modal
                 isOpen={isConfirmOpen}
                 onClose={handleFecharModal}
@@ -481,6 +509,7 @@ function MinhasCandidaturasPage() {
                     loading={isDeleting}
                 />
             </Modal>
+
             <Modal
                 isOpen={!!projetoSelecionado}
                 onClose={() => setProjetoSelecionado(null)}

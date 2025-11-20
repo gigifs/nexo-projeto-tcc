@@ -116,7 +116,7 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
 
     const corDoDono =
         currentUserId === projeto.donoId
-            ? userData?.avatarColor // Adicionado chaining
+            ? userData?.avatarColor
             : projeto.donoAvatarColor;
 
     return (
@@ -138,7 +138,7 @@ function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
                         </span>
                     </MembroInfo>
                 </MembroItem>
-                {membrosComCor && // Usamos o estado 'membrosComCor' que o useEffect preenche
+                {membrosComCor &&
                     membrosComCor
                         .filter((p) => p.uid !== projeto.donoId)
                         .map((p) => (

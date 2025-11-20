@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, updateDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
 import Botao from '../components/Botao';
 import { FiCheck, FiGithub, FiLinkedin, FiArrowRight, FiArrowLeft, FiPlus, FiX } from 'react-icons/fi';
 import logoQuadrada from '../assets/logoQuadrada.svg';
@@ -15,38 +15,38 @@ const PageContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.25rem; /* 20px */
+    padding: 1.25rem;
 `;
 
 const WizardBox = styled.div`
     background-color: #f5fafc;
-    border-radius: 1.25rem; /* 20px */
+    border-radius: 1.25rem;
     box-shadow: 0 0.25rem 1.25rem rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 50rem; /* 800px */
-    padding: 2.5rem; /* 40px */
+    max-width: 50rem;
+    padding: 2.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     position: relative;
-    min-height: 31.25rem; /* 500px */
+    min-height: 31.25rem;
 
     @media (max-width: 768px) {
-        padding: 1.25rem; /* 20px */
+        padding: 1.25rem;
         min-height: auto;
     }
 `;
 
 const ProgressBar = styled.div`
     display: flex;
-    gap: 0.625rem; /* 10px */
-    margin-bottom: 1.875rem; /* 30px */
+    gap: 0.625rem;
+    margin-bottom: 1.875rem;
 `;
 
 const StepDot = styled.div`
-    width: 0.75rem; /* 12px */
-    height: 0.75rem; /* 12px */
+    width: 0.75rem;
+    height: 0.75rem;
     border-radius: 50%;
     background-color: ${props => props.$active ? '#7c2256' : '#ccc'};
     transition: background-color 0.3s ease;
@@ -59,7 +59,7 @@ const ContentArea = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.25rem; /* 20px */
+    gap: 1.25rem;
     animation: fadeIn 0.5s ease-in-out;
 
     @keyframes fadeIn {
@@ -82,22 +82,22 @@ const Titulo = styled.h2`
 const Subtitulo = styled.p`
     font-size: 1.25rem;
     color: #555;
-    max-width: 37.5rem; /* 600px */
+    max-width: 37.5rem;
     line-height: 1.5;
     margin: 0;
 `;
 
 const InputGroup = styled.div`
     width: 100%;
-    max-width: 31.25rem; /* 500px */
+    max-width: 31.25rem;
     text-align: left;
     position: relative;
-    margin-bottom: 0.94rem; /* 15px */
+    margin-bottom: 0.94rem;
 `;
 
 const Label = styled.label`
     display: block;
-    margin-bottom: 0.5rem; /* 8px */
+    margin-bottom: 0.5rem;
     font-weight: 600;
     color: #7c2256;
     font-size: 1.1rem;
@@ -105,8 +105,8 @@ const Label = styled.label`
 
 const Input = styled.input`
     width: 100%;
-    padding: 0.75rem 0.94rem; /* 12px 15px */
-    border-radius: 0.625rem; /* 10px */
+    padding: 0.75rem 0.94rem;
+    border-radius: 0.625rem;
     border: 1px solid #ccc;
     font-size: 1rem;
     background-color: #fff;
@@ -121,14 +121,14 @@ const Input = styled.input`
 
 const Textarea = styled.textarea`
     width: 100%;
-    padding: 0.75rem 0.94rem; /* 12px 15px */
-    border-radius: 0.625rem; /* 10px */
+    padding: 0.75rem 0.94rem;
+    border-radius: 0.625rem;
     border: 1px solid #ccc;
     font-size: 1rem;
     background-color: #fff;
     box-sizing: border-box;
     resize: vertical;
-    min-height: 6.25rem; /* 100px */
+    min-height: 6.25rem;
     font-family: inherit;
 
     &:focus {
@@ -140,16 +140,15 @@ const Textarea = styled.textarea`
 
 const Actions = styled.div`
     display: flex;
-    gap: 1.25rem; /* 20px */
-    margin-top: 1.875rem; /* 30px */
+    gap: 1.25rem;
+    margin-top: 1.875rem;
     width: 100%;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap; /* Permite que os botões quebrem linha se necessário */
+    flex-wrap: wrap; /* Botões podem quebrar linha se necessário */
 
-    /* Ajuste para celulares pequenos onde 3 botões podem vazar */
     @media (max-width: 480px) {
-        flex-direction: column-reverse; /* Empilha: Próximo em cima, Voltar embaixo */
+        flex-direction: column;
         gap: 0.625rem;
         
         button {
@@ -173,15 +172,15 @@ const Actions = styled.div`
 const TagsWrapper = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 0.625rem; /* 10px */
+    gap: 0.625rem;
     margin-top: 0.625rem;
     justify-content: center;
-    max-width: 37.5rem; /* 600px */
+    max-width: 37.5rem;
 `;
 
 const Tag = styled.span`
-    padding: 0.5rem 1rem; /* 8px 16px */
-    border-radius: 1.25rem; /* 20px */
+    padding: 0.5rem 1rem;
+    border-radius: 1.25rem;
     font-size: 0.95rem;
     font-weight: 600;
     display: flex;
@@ -212,14 +211,14 @@ const SugestoesList = styled.ul`
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 9.375rem; /* 150px */
+    max-height: 9.375rem;
     overflow-y: auto;
     z-index: 10;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 `;
 
 const SugestaoItem = styled.li`
-    padding: 0.625rem; /* 10px */
+    padding: 0.625rem;
     cursor: pointer;
     &:hover { background-color: #f0f0f0; }
 `;
@@ -231,13 +230,13 @@ const IconInputWrapper = styled.div`
     
     svg {
         position: absolute;
-        left: 0.75rem; /* 12px */
+        left: 0.75rem;
         color: #555;
         font-size: 1.2rem;
     }
 
     input {
-        padding-left: 2.5rem; /* 40px */
+        padding-left: 2.5rem;
     }
 `;
 
@@ -281,18 +280,17 @@ function OnboardingPage() {
     }, []);
 
     // Lógica dos steps/passos
-
     const handleNext = () => {
-        // Passo 2 (Curso/Bio) é opcional, sem validação
+        // Passo 2 (Curso/Bio) é opcional para o usuário então sem validação
         
         // Validação Passo 3 (Habilidades)
         if (step === 3 && habilidades.length === 0) {
-            alert("Adicione pelo menos uma habilidade.");
+            addToast('Adicione pelo menos uma habilidade.', 'error');
             return;
         }
         // Validação Passo 4 (Interesses)
         if (step === 4 && interesses.length === 0) {
-            addToast('Adicione pelo menos um interesse!', error);
+            addToast('Adicione pelo menos um interesse!', 'error');
             return;
         }
         setStep(prev => prev + 1);
@@ -317,20 +315,20 @@ function OnboardingPage() {
     // VALIDAÇÃO DOS LINKS
     // Valida GitHub
     if (github && (!isValidURL(github) || !github.toLowerCase().includes('github.com'))) {
-        addToast('Por favor, insira um link válido do GitHub.', info);
+        addToast('Por favor, insira um link válido do GitHub.', 'info');
         return;
     }
 
     // Valida LinkedIn
     if (linkedin && (!isValidURL(linkedin) || !linkedin.toLowerCase().includes('linkedin.com'))) {
-        addToast('Por favor, insira um link válido do LinkedIn.', info);
+        addToast('Por favor, insira um link válido do LinkedIn.', 'info');
         return;
     }
         setLoading(true);
         try {
             const userRef = doc(db, 'users', currentUser.uid);
             
-            await updateDoc(userRef, {
+            await setDoc(userRef, {
                 curso,
                 bio,
                 habilidades,
@@ -338,13 +336,13 @@ function OnboardingPage() {
                 github,
                 linkedin,
                 onboardingCompleted: true 
-            });
+            }, { merge: true });
 
             await refreshUserData(); // Atualiza contexto
             navigate('/dashboard'); // Redireciona para o Feed
         } catch (error) {
             console.error("Erro ao salvar perfil:", error);
-            addToast('Erro ao salvar seus dados. Tente novamente.', error);
+            addToast('Erro ao salvar seus dados. Tente novamente.', 'error');
         } finally {
             setLoading(false);
         }
@@ -364,10 +362,14 @@ function OnboardingPage() {
 
     const addTag = (tipo, nome) => {
         if (tipo === 'habilidade') {
-            setHabilidades([...habilidades, nome]);
+            if (!habilidades.includes(nome)) { // Previne duplicatas
+                setHabilidades([...habilidades, nome]);
+            }
             setBuscaHab('');
         } else {
-            setInteresses([...interesses, nome]);
+            if (!interesses.includes(nome)) { // Previne duplicatas
+                setInteresses([...interesses, nome]);
+            }
             setBuscaInt('');
         }
     };
@@ -459,7 +461,7 @@ function OnboardingPage() {
             </TagsWrapper>
             <Actions>
                 <Botao variant="Cancelar" onClick={handlePrev}><FiArrowLeft /> Voltar</Botao>
-                <Botao variant="Modal" onClick={handleNext} disabled={habilidades.length === 0}>Próximo</Botao>
+                <Botao variant="Modal" onClick={handleNext}>Próximo</Botao>
             </Actions>
         </ContentArea>
     );
@@ -491,7 +493,7 @@ function OnboardingPage() {
             </TagsWrapper>
             <Actions>
                 <Botao variant="Cancelar" onClick={handlePrev}><FiArrowLeft /> Voltar</Botao>
-                <Botao variant="Modal" onClick={handleNext} disabled={interesses.length === 0}>Próximo</Botao>
+                <Botao variant="Modal" onClick={handleNext}>Próximo</Botao>
             </Actions>
         </ContentArea>
     );

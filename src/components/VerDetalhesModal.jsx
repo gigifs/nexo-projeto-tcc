@@ -296,7 +296,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     } = projeto;
 
     const statusStyle = getStatusStyle(projeto.status);
-    // Verifica se o usuário atual é o dono do projeto.
+    // Verifica se o usuário atual é o dono do projeto
     const isOwner = currentUser?.uid === donoId;
     const isParticipant = participantIds.includes(currentUser?.uid);
 
@@ -354,9 +354,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         fetchIntegrantesData();
     }, [projeto]); // Roda sempre que o projeto mudar
 
-    /* Função executada quando o usuário clica em Candidatar-se.
+    /* Função executada quando o usuário clica em Candidatar-se
      * Verifica se o usuário pode se candidatar e cria um documento na subcoleção
-     *'candidaturas' do projeto no Firestore.*/
+     *'candidaturas' do projeto no Firestore*/
 
     const handleCandidatura = async () => {
         setLoading(true);
@@ -399,8 +399,8 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
             
             if (candidaturaSnap.exists()) {
                 const dados = candidaturaSnap.data();
-                // Se já estiver pendente ou aceito, bloqueia.
-                // Se estiver 'rejeitado' ou 'removido', permite tentar de novo.
+                // Se já estiver pendente ou aceito, bloqueia
+                // Se estiver rejeitado ou removido, permite tentar de novo
                 if (dados.status === 'pendente' || dados.status === 'aceito') {
                     const msg = dados.status === 'aceito' 
                         ? 'Você já faz parte deste projeto.' 

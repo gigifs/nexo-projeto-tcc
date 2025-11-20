@@ -22,7 +22,6 @@ import {
     query,
     where,
     addDoc,
-    setDoc
 } from 'firebase/firestore';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
@@ -201,7 +200,7 @@ function GerenciarProjetoPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     //--------Estados dos dados do Projeto (formulário)
-    // armazenam os valores dos inputs, 
+    // armazenam os valores dos inputs,
     // mas são separados do objeto projeto original pra permitir edição sem salvar na hora
     const [nomeEditavel, setNomeEditavel] = useState('');
     const [descricaoEditavel, setDescricaoEditavel] = useState('');
@@ -228,7 +227,8 @@ function GerenciarProjetoPage() {
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [membroParaRemover, setMembroParaRemover] = useState(null);
-    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] = useState(false);
+    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] =
+        useState(false);
     const [isRemovingMember, setIsRemovingMember] = useState(false);
 
     useEffect(() => {
@@ -261,12 +261,13 @@ function GerenciarProjetoPage() {
                 if (projetoSnap.exists()) {
                     const dadosProjeto = projetoSnap.data();
 
-                    setProjeto({ id: projetoSnap.id, 
+                    setProjeto({
+                        id: projetoSnap.id,
                         ...dadosProjeto,
                         participantes: dadosProjeto.participantes || [],
-                        participantIds: dadosProjeto.participantIds || []
+                        participantIds: dadosProjeto.participantIds || [],
                     });
-                    
+
                     setNomeEditavel(dadosProjeto.nome || '');
                     setDescricaoEditavel(dadosProjeto.descricao || '');
                     setStatusEditavel(dadosProjeto.status || '');
@@ -286,7 +287,10 @@ function GerenciarProjetoPage() {
                     id,
                     'candidaturas'
                 );
-                const qCandidaturas = query(candidaturasRef, where('status', '==', 'pendente'));
+                const qCandidaturas = query(
+                    candidaturasRef,
+                    where('status', '==', 'pendente')
+                );
                 const candidaturasSnap = await getDocs(qCandidaturas);
                 // ---------------------
 
@@ -427,7 +431,7 @@ function GerenciarProjetoPage() {
             const dadosUser = userSnap.exists() ? userSnap.data() : {};
             // O operador || garante que se for undefined, nulo ou vazio, ele usa a cor padrão
             const corAvatarCandidato = dadosUser.avatarColor || '#0a528a';
-            
+
             // autualiza o projeto:
             // adiciona o usuário aos arrays de participantes
             // participantes: dados visuais (nome e foto) para exibição rápida
@@ -495,8 +499,14 @@ function GerenciarProjetoPage() {
             await updateDoc(candidaturaRef, { status: 'aceito' });
 
             await updateDoc(
-                doc(db, "users", candidatoParaAceitar.userId, "minhasCandidaturas", id),
-                { status: "aceito" }
+                doc(
+                    db,
+                    'users',
+                    candidatoParaAceitar.userId,
+                    'minhasCandidaturas',
+                    id
+                ),
+                { status: 'aceito' }
             );
 
             setCandidaturas((prev) =>
@@ -549,8 +559,14 @@ function GerenciarProjetoPage() {
             await updateDoc(candidaturaRef, { status: 'rejeitado' });
 
             await updateDoc(
-                doc(db, "users", candidatoParaRejeitar.userId, "minhasCandidaturas", id),
-                { status: "rejeitado" }
+                doc(
+                    db,
+                    'users',
+                    candidatoParaRejeitar.userId,
+                    'minhasCandidaturas',
+                    id
+                ),
+                { status: 'rejeitado' }
             );
 
             setCandidaturas(
@@ -580,10 +596,10 @@ function GerenciarProjetoPage() {
 
             // Buscamos o projeto atual para filtrar manualmente
             const projetoSnap = await getDoc(projetoRef);
-            
+
             if (projetoSnap.exists()) {
                 const data = projetoSnap.data();
-                
+
                 // Filtramos a lista visual ignorando diferenças de dados (cor/nome), olhando só o UID
                 const novosParticipantes = (data.participantes || []).filter(
                     (p) => p.uid !== membroParaRemover.uid
@@ -597,20 +613,30 @@ function GerenciarProjetoPage() {
             }
 
             // Busca a candidatura de forma segura (por query), independente do ID do documento
-            const candidaturasRef = collection(db, 'projetos', id, 'candidaturas');
-            const qCandidatura = query(candidaturasRef, where('userId', '==', membroParaRemover.uid));
+            const candidaturasRef = collection(
+                db,
+                'projetos',
+                id,
+                'candidaturas'
+            );
+            const qCandidatura = query(
+                candidaturasRef,
+                where('userId', '==', membroParaRemover.uid)
+            );
             const querySnapshotCand = await getDocs(qCandidatura);
 
             if (!querySnapshotCand.empty) {
                 // Se encontrou a candidatura, marca como removido
                 const docRef = querySnapshotCand.docs[0].ref;
-                await updateDoc(docRef, { 
+                await updateDoc(docRef, {
                     status: 'removido',
-                    dataAtualizacao: new Date() 
+                    dataAtualizacao: new Date(),
                 });
             } else {
                 // Se não existe candidatura (ex: membro adicionado manualmente no banco)
-                console.log("Nenhuma candidatura encontrada para marcar como removida.");
+                console.log(
+                    'Nenhuma candidatura encontrada para marcar como removida.'
+                );
             }
 
             // Atualiza o CHAT
@@ -623,9 +649,9 @@ function GerenciarProjetoPage() {
                 const conversaRef = doc(db, 'conversas', conversaDoc.id);
                 const chatData = conversaDoc.data();
 
-                const novaListaParticipantesInfo = (chatData.participantesInfo || []).filter(
-                    (p) => p.uid !== membroParaRemover.uid
-                );
+                const novaListaParticipantesInfo = (
+                    chatData.participantesInfo || []
+                ).filter((p) => p.uid !== membroParaRemover.uid);
 
                 await updateDoc(conversaRef, {
                     participantes: arrayRemove(membroParaRemover.uid),
@@ -633,14 +659,33 @@ function GerenciarProjetoPage() {
                 });
             }
 
-            addToast(`${membroParaRemover.nome} foi removido(a) do projeto.`, 'success');
+            // Atualiza o estado local imediatamente para refletir a mudança na tela
+            // ou seja, dps de remover o membro, ele desaparece dos membros do projeto
+            setProjeto((prevProjeto) => ({
+                ...prevProjeto,
+                // Remove o membro da lista visual de participantes
+                participantes: prevProjeto.participantes.filter(
+                    (p) => p.uid !== membroParaRemover.uid
+                ),
+                // Remove o ID da lista de IDs
+                participantIds: prevProjeto.participantIds.filter(
+                    (id) => id !== membroParaRemover.uid
+                ),
+            }));
+
+            addToast(
+                `${membroParaRemover.nome} foi removido(a) do projeto.`,
+                'success'
+            );
             setIsRemoverMembroModalOpen(false);
             setMembroParaRemover(null);
-
         } catch (err) {
             console.error('Erro ao remover membro:', err);
             if (err.code === 'permission-denied') {
-                addToast('Erro de permissão. Verifique as regras do Firestore.', 'error');
+                addToast(
+                    'Erro de permissão. Verifique as regras do Firestore.',
+                    'error'
+                );
             } else {
                 addToast('Ocorreu um erro ao remover o membro.', 'error');
             }

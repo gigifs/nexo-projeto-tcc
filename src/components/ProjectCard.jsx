@@ -174,7 +174,6 @@ function ProjectCard({ projeto }) {
         status,
         habilidades,
         interesses,
-        corProjeto,
     } = projeto;
 
     // EFEITO PARA BUSCAR OS DADOS ATUALIZADOS DO DONO
@@ -209,8 +208,6 @@ function ProjectCard({ projeto }) {
     const nomeCompletoDono =
         `${donoInfo.nome || ''} ${donoInfo.sobrenome || ''}`.trim();
     const avatarInicial = getInitials(donoInfo.nome, donoInfo.sobrenome);
-
-    const corExibicao = corProjeto || donoInfo.avatarColor || '#0a528a';
 
     const tagsParaExibir = [
         ...(habilidades || [])
@@ -253,7 +250,7 @@ function ProjectCard({ projeto }) {
                             <span>{curso || 'Curso não informado'}</span>
                         </FooterText>
                         <FooterText>
-                            <Avatar $bgColor={corExibicao}>
+                            <Avatar $bgColor={donoInfo.avatarColor}>
                                 {avatarInicial}
                             </Avatar>
                             <span>{nomeCompletoDono || 'Nome do Dono'}</span>

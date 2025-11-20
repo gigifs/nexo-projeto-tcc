@@ -25,7 +25,7 @@ function BuscarProjetosPage() {
             <DashboardHeader
                 titulo="Buscar Projetos"
                 botaoTexto="+ Criar Projeto"
-                onClick={() => setIsCriarProjetoModalOpen(true)}
+                onBotaoClick={() => setIsCriarProjetoModalOpen(true)}
                 semFundo
             >
                 Explore e encontre o projeto perfeito para você!

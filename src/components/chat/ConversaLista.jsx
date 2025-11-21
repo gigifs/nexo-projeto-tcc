@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiSearch } from 'react-icons/fi';
+import { getInitials } from '../../utils/iniciaisNome'; // Importação
 
 const ColunaEsquerda = styled.div`
     width: 450px;
@@ -223,15 +224,6 @@ const BadgeNaoLido = styled.div`
     justify-content: center;
     flex-shrink: 0;
 `;
-
-const getInitials = (name = '', sobrenome = '') => {
-    if (!name) return '?';
-    const parts = name.split(' ');
-    if (parts.length > 1 && parts[1]) {
-        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-};
 
 function ConversaLista({
     conversas,

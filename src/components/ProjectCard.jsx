@@ -1,11 +1,14 @@
 import styled from 'styled-components';
 import Botao from './Botao';
 import { FaGraduationCap } from 'react-icons/fa';
-import { useState, useEffect } from 'react'; // Adicionado useEffect
+import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import VerDetalhesModal from './VerDetalhesModal';
-import { doc, getDoc } from 'firebase/firestore'; // Importações do Firestore
-import { db } from '../firebase'; // Importação da instância do DB
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+// Importações das novas Utils
+import { getInitials } from '../utils/iniciaisNome';
+import { getStatusStyle } from '../utils/tagStatus';
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -133,30 +136,6 @@ const DetalhesBotao = styled(Botao)`
     padding: 6px 10px;
     border-radius: 10px;
 `;
-
-//Pega as iniciais do nome de quem criou o projeto, e as deixam maiúsculas.
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    const parts = nome.split(' ');
-    if (parts.length > 1 && parts[1]) {
-        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return nome.substring(0, 2).toUpperCase();
-};
-
-//Condição para a cor da tag de status do projeto
-const getStatusStyle = (status) => {
-    switch (status) {
-        case 'Novo':
-            return { $color: '#FFE0B2', $textColor: '#E65100' };
-        case 'Em Andamento':
-            return { $color: '#786de080', $textColor: '#372b9cff' };
-        case 'Concluido':
-            return { $color: '', $textColor: '' };
-        default:
-            return { $color: '#e0e0e0', $textColor: '#000' };
-    }
-};
 
 function ProjectCard({ projeto }) {
     const [modalAberto, setModalAberto] = useState(false);

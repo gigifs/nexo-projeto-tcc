@@ -58,12 +58,10 @@ function ListaProjetosRecomendados() {
                     'minhasCandidaturas'
                 );
                 const candidaturasSnapshot = await getDocs(minhasCandidaturasRef);
-                
-                // Cria um Conjunto(Set) com os IDs dos projetos que o usuário já se candidatou
-                // Sets são rápidos para verificar existência (.has)
-                // busca instantânea O(1)
-                const projetosCandidatadosIds = new Set(
-                    candidaturasSnapshot.docs.map((doc) => doc.id)
+                const projetosPendentesIds = new Set(
+                    candidaturasSnapshot.docs
+                        .filter(doc => doc.data().status === 'pendente')
+                        .map((doc) => doc.id)
                 );
 
                 // Busca projetos que não são do usuário
@@ -86,10 +84,9 @@ function ListaProjetosRecomendados() {
                         p.participantIds &&
                         p.participantIds.includes(currentUser.uid);
 
-                    // Verifica se já se candidatou usando nosso Set otimizado
-                    const jaCandidatou = projetosCandidatadosIds.has(p.id);
-
-                    return !jaParticipa && !jaCandidatou;
+                    // Verifica se tem candidatura PENDENTE
+                    const temCandidaturaPendente = projetosPendentesIds.has(p.id);
+                    return !jaParticipa && !temCandidaturaPendente;
                 });
 
                 // LÓGICA DE RECOMENDAÇÃO

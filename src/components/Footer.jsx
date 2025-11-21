@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components';
 import logoQuadrada from '../assets/logoQuadrada.svg';
 import { FiLinkedin } from 'react-icons/fi';
 import { FiInstagram } from 'react-icons/fi';
-import { FiFacebook } from 'react-icons/fi';
+import { FaXTwitter } from 'react-icons/fa6';
 
 const FooterContainer = styled.footer`
     background-color: #383838;
@@ -117,25 +117,25 @@ function Footer() {
                 <FooterColuna>
                     <TituloColuna>Redes Sociais</TituloColuna>
                     <RedesSocias
-                        href="#"
+                        href="https://www.linkedin.com/in/nexo-oficial"
                         target="_blank"
                         rel="noonpener noreferrer"
                     >
                         <FiLinkedin size={20} /> LinkedIn
                     </RedesSocias>
                     <RedesSocias
-                        href="#"
+                        href="https://www.instagram.com/nexo.app.ofc/"
                         target="_blank"
                         rel="noonpener noreferrer"
                     >
                         <FiInstagram size={20} /> Instagram
                     </RedesSocias>
                     <RedesSocias
-                        href="#"
+                        href="https://x.com/Nexo165471"
                         target="_blank"
                         rel="noonpener noreferrer"
                     >
-                        <FiFacebook size={20} /> Facebook
+                        <FaXTwitter size={20} /> X
                     </RedesSocias>
                 </FooterColuna>
             </FooterConteudo>

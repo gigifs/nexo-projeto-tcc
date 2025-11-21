@@ -4,6 +4,7 @@ import { FiUsers, FiUserX } from 'react-icons/fi';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { getInitials } from '../utils/iniciaisNome'; // Importação
 
 const SecaoMembros = styled.div`
     background-color: #e6ebf0;
@@ -62,13 +63,6 @@ const BotaoRemover = styled.button`
     cursor: pointer;
     padding: 5px;
 `;
-
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    return `${nome.charAt(0)}${
-        sobrenome ? sobrenome.charAt(0) : ''
-    }`.toUpperCase();
-};
 
 function MembrosProjeto({ projeto, currentUserId, onRemoverMembro }) {
     const { userData } = useAuth();

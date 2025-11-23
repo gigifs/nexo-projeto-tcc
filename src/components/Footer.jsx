@@ -96,15 +96,27 @@ function Footer() {
 
                 <FooterColuna>
                     <TituloColuna>Navegação</TituloColuna>
-                    <FooterLink href="#inicio">Início</FooterLink>
-                    <FooterLink href="#como-funciona">Como Funciona</FooterLink>
-                    <FooterLink href="#sobre-nos">Sobre nós</FooterLink>
+                    <FooterLink href="/#inicio">Início</FooterLink>
+                    <FooterLink href="/#como-funciona">Como Funciona</FooterLink>
+                    <FooterLink href="/#sobre-nos">Sobre nós</FooterLink>
                 </FooterColuna>
 
                 <FooterColuna>
                     <TituloColuna>Legal</TituloColuna>
-                    <FooterLink href="#">Política de Pivacidade</FooterLink>
-                    <FooterLink href="#">Termos de Uso</FooterLink>
+                    <FooterLink 
+                        href="/politica-privacidade" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        Política de Privacidade
+                    </FooterLink>
+                    <FooterLink 
+                        href="/termos-de-uso" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        Termos de Uso
+                    </FooterLink>
                 </FooterColuna>
 
                 <FooterColuna>
@@ -119,14 +131,14 @@ function Footer() {
                     <RedesSocias
                         href="https://www.linkedin.com/in/nexo-oficial"
                         target="_blank"
-                        rel="noonpener noreferrer"
+                        rel="noopener noreferrer"
                     >
                         <FiLinkedin size={20} /> LinkedIn
                     </RedesSocias>
                     <RedesSocias
                         href="https://www.instagram.com/nexo.app.ofc/"
                         target="_blank"
-                        rel="noonpener noreferrer"
+                        rel="noopener noreferrer"
                     >
                         <FiInstagram size={20} /> Instagram
                     </RedesSocias>

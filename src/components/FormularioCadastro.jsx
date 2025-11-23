@@ -302,8 +302,20 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
             <TextoTermos>
                 Ao preencher o formulário acima você concorda com os nossos{' '}
                 <br />
-                <a href="#">Termos de uso</a> e nossa{' '}
-                <a href="#">Política de Privacidade</a>
+                <a 
+                    href="/termos-de-uso" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                >
+                    Termos de uso
+                </a> e nossa{' '}
+                <a 
+                    href="/politica-privacidade" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                >
+                    Política de Privacidade
+                </a>
             </TextoTermos>
 
             <ButtonContainer>

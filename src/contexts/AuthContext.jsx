@@ -73,8 +73,59 @@ export function AuthProvider({ children }) {
             setLoading(false); // nessa altura ja temos uma resposta definitiva do status do usuario, por isso false
         });
 
-        return unsubscribe; // limpa o ouvinte quando ele for removido da tela, previne vazamento de memoria
-    }, []); // [] = garante que o trecho so seja executado uma vez
+        const handleTabClose = () => {
+            if (auth.currentUser) {
+                const userDocRef = doc(db, 'users', auth.currentUser.uid);
+                setDoc(
+                    userDocRef,
+                    {
+                        status: {
+                            online: false,
+                            vistoPorUltimo: serverTimestamp(),
+                        },
+                    },
+                    { merge: true }
+                ).catch((err) =>
+                    console.error('Erro ao definir offline no fecho:', err)
+                );
+            }
+        };
+
+        window.addEventListener('beforeunload', handleTabClose);
+
+        return () => {
+            unsubscribe();
+            window.removeEventListener('beforeunload', handleTabClose);
+        };
+    }, [fetchUserData]); // [] = garante que o trecho so seja executado uma vez
+
+    useEffect(() => {
+        let interval;
+        if (currentUser) {
+            interval = setInterval(async () => {
+                try {
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    await setDoc(
+                        userDocRef,
+                        {
+                            status: {
+                                online: true,
+                                vistoPorUltimo: serverTimestamp(),
+                            },
+                        },
+                        { merge: true }
+                    );
+                    console.log('Heartbeat enviado: Status online atualizado.');
+                } catch (error) {
+                    console.error('Erro no heartbeat:', error);
+                }
+            }, 120000); // 120.000 ms = 2 minutos
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [currentUser]);
 
     // função de logout
     const logout = async () => {

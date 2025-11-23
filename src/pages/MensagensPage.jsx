@@ -244,32 +244,57 @@ function MensagensPage() {
 
     // Efeito para ouvir apenas mensagens NOVAS
     useEffect(() => {
-        if (!conversaAtivaId || !ultimaMensagemVisivel) return;
-        const q = query(
-            collection(db, 'conversas', conversaAtivaId, 'mensagens'),
-            where('timestamp', '>', ultimaMensagemVisivel.data().timestamp)
-        );
+        if (!conversaAtivaId) return;
+        let q;
+        if (ultimaMensagemVisivel) {
+            q = query(
+                collection(db, 'conversas', conversaAtivaId, 'mensagens'),
+                where('timestamp', '>', ultimaMensagemVisivel.data().timestamp),
+                orderBy('timestamp', 'asc')
+            );
+        } else {
+            q = query(
+                collection(db, 'conversas', conversaAtivaId, 'mensagens'),
+                orderBy('timestamp', 'asc')
+            );
+        }
+
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            if (querySnapshot.empty) return;
+
             const novasMensagens = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
             }));
-            if (novasMensagens.length > 0) {
-                setMensagens((mensagensAtuais) => [
-                    ...mensagensAtuais,
-                    ...novasMensagens,
-                ]);
-                setUltimaMensagemVisivel(
-                    querySnapshot.docs[querySnapshot.docs.length - 1]
+
+            setMensagens((mensagensAtuais) => {
+                const idsExistentes = new Set(mensagensAtuais.map((m) => m.id));
+
+                const mensagensRealmenteNovas = novasMensagens.filter(
+                    (m) => !idsExistentes.has(m.id)
                 );
+
+                if (mensagensRealmenteNovas.length === 0)
+                    return mensagensAtuais;
+
+                const ultimoDoc =
+                    querySnapshot.docs[querySnapshot.docs.length - 1];
+                setUltimaMensagemVisivel(ultimoDoc);
+
+                if (mensagensAtuais.length === 0) {
+                    setPrimeiraMensagemVisivel(querySnapshot.docs[0]);
+                }
+
                 setTimeout(() => {
                     if (mensagensAreaRef.current) {
                         mensagensAreaRef.current.scrollTop =
                             mensagensAreaRef.current.scrollHeight;
                     }
-                }, 0);
-            }
+                }, 100);
+                return [...mensagensAtuais, ...mensagensRealmenteNovas];
+            });
         });
+
         return () => unsubscribe();
     }, [conversaAtivaId, ultimaMensagemVisivel]);
 

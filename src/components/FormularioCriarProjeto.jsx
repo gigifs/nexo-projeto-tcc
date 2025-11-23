@@ -216,6 +216,7 @@ function FormularioCriarProjeto({ onClose }) {
     const [erro, setErro] = useState('');
     const [todasAsHabilidades, setTodasAsHabilidades] = useState([]);
     const [todosOsInteresses, setTodosOsInteresses] = useState([]);
+    const [todasAsAreas, setTodasAsAreas] = useState([]);
     const [buscaHabilidade, setBuscaHabilidade] = useState('');
     const [buscaInteresse, setBuscaInteresse] = useState('');
     const [sugestoesH, setSugestoesH] = useState([]);
@@ -226,11 +227,17 @@ function FormularioCriarProjeto({ onClose }) {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
                 const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
+
+                tagsDoBanco.sort((a, b) => a.nome.localeCompare(b.nome));
+
                 setTodasAsHabilidades(
                     tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')
                 );
                 setTodosOsInteresses(
                     tagsDoBanco.filter((tag) => tag.tipo === 'interesse')
+                );
+                setTodasAsAreas(
+                    tagsDoBanco.filter((tag) => tag.tipo === 'area')
                 );
             } catch (error) {
                 console.error('Erro ao buscar tags:', error);
@@ -417,14 +424,11 @@ function FormularioCriarProjeto({ onClose }) {
                     <option value="" disabled>
                         Selecione uma área
                     </option>
-                    <option value="Desenvolvimento de Software">
-                        Desenvolvimento de Software
-                    </option>
-                    <option value="Pesquisa Acadêmica">
-                        Pesquisa Acadêmica
-                    </option>
-                    <option value="Design/UX">Design/UX</option>
-                    <option value="Marketing">Marketing</option>
+                    {todasAsAreas.map((itemArea) => (
+                        <option key={itemArea.nome} value={itemArea.nome}>
+                            {itemArea.nome}
+                        </option>
+                    ))}
                 </Select>
             </InputGroup>
 

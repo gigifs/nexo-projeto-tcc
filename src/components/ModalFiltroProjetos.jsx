@@ -144,27 +144,19 @@ const ButtonGroup = styled.div`
     padding-top: 20px;
 `;
 
-const areasDisponiveis = [
-    'Desenvolvimento de Software',
-    'Pesquisa Acadêmica',
-    'Design/UX',
-    'Marketing',
-];
-
 function ModalFiltroBuscarProjeto({ onApplyFilters, onClose, initialFilters }) {
     const [filters, setFilters] = useState(initialFilters);
     const [interestSearch, setInterestSearch] = useState('');
     const [skillSearch, setSkillSearch] = useState('');
     const [interessesDisponiveis, setInteressesDisponiveis] = useState([]);
     const [habilidadesDisponiveis, setHabilidadesDisponiveis] = useState([]);
+    const [areasDisponiveis, setAreasDisponiveis] = useState([]);
 
     useEffect(() => {
         const buscarTags = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
-                const tagsDoBanco = querySnapshot.docs.map((doc) =>
-                    doc.data()
-                );
+                const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
                 setHabilidadesDisponiveis(
                     tagsDoBanco
                         .filter((tag) => tag.tipo === 'habilidade')
@@ -173,6 +165,11 @@ function ModalFiltroBuscarProjeto({ onApplyFilters, onClose, initialFilters }) {
                 setInteressesDisponiveis(
                     tagsDoBanco
                         .filter((tag) => tag.tipo === 'interesse')
+                        .map((t) => t.nome)
+                );
+                setAreasDisponiveis(
+                    tagsDoBanco
+                        .filter((tag) => tag.tipo === 'area')
                         .map((t) => t.nome)
                 );
             } catch (error) {
@@ -285,7 +282,9 @@ function ModalFiltroBuscarProjeto({ onApplyFilters, onClose, initialFilters }) {
                             {interestSuggestions.map((s) => (
                                 <SuggestionItem
                                     key={s}
-                                    onClick={() => handleAddTag('interesses', s)}
+                                    onClick={() =>
+                                        handleAddTag('interesses', s)
+                                    }
                                 >
                                     {s}
                                 </SuggestionItem>

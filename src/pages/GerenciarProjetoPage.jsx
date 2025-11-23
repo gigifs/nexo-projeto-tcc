@@ -222,13 +222,15 @@ function GerenciarProjetoPage() {
     // para alimentar as sugestões dos inputs
     const [todasAsHabilidades, setTodasAsHabilidades] = useState([]);
     const [todosOsInteresses, setTodosOsInteresses] = useState([]);
+    const [todasAsAreas, setTodasAsAreas] = useState([]);
     const [sugestoesH, setSugestoesH] = useState([]);
     const [sugestoesI, setSugestoesI] = useState([]);
     // Controlam a visibilidade dos modais de confirmação
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [membroParaRemover, setMembroParaRemover] = useState(null);
-    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] = useState(false);
+    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] =
+        useState(false);
     const [isRemovingMember, setIsRemovingMember] = useState(false);
     // Estado para o modal de confirmação
     const [showConfirmConcluir, setShowConfirmConcluir] = useState(false);
@@ -238,11 +240,16 @@ function GerenciarProjetoPage() {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
                 const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
+
+                tagsDoBanco.sort((a, b) => a.nome.localeCompare(b.nome));
                 setTodasAsHabilidades(
                     tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')
                 );
                 setTodosOsInteresses(
                     tagsDoBanco.filter((tag) => tag.tipo === 'interesse')
+                );
+                setTodasAsAreas(
+                    tagsDoBanco.filter((tag) => tag.tipo === 'area')
                 );
             } catch (error) {
                 console.error('Erro ao buscar tags:', error);
@@ -318,7 +325,7 @@ function GerenciarProjetoPage() {
         setIsSaving(true);
         try {
             const projetoRef = doc(db, 'projetos', id);
-            
+
             // Atualiza os dados do projeto
             await updateDoc(projetoRef, {
                 nome: nomeEditavel,
@@ -331,27 +338,45 @@ function GerenciarProjetoPage() {
 
             // Se o status novo for "Concluído", limpar as candidaturas pendentes
             if (statusEditavel === 'Concluído') {
-                const candidaturasRef = collection(db, 'projetos', id, 'candidaturas');
-                const qPendentes = query(candidaturasRef, where('status', '==', 'pendente'));
+                const candidaturasRef = collection(
+                    db,
+                    'projetos',
+                    id,
+                    'candidaturas'
+                );
+                const qPendentes = query(
+                    candidaturasRef,
+                    where('status', '==', 'pendente')
+                );
                 const snapshotPendentes = await getDocs(qPendentes);
 
                 if (!snapshotPendentes.empty) {
                     const batch = writeBatch(db);
-                    
+
                     snapshotPendentes.docs.forEach((docCandidato) => {
                         // Atualiza o status na coleção do projeto
-                        batch.update(docCandidato.ref, { 
+                        batch.update(docCandidato.ref, {
                             status: 'projeto_encerrado',
-                            lida: true
-                         });
-                        
+                            lida: true,
+                        });
+
                         // Atualiza o status no perfil do usuário (minhasCandidaturas)
-                        const userCandidaturaRef = doc(db, 'users', docCandidato.data().userId, 'minhasCandidaturas', id);
-                        batch.update(userCandidaturaRef, { status: 'projeto_encerrado' });
+                        const userCandidaturaRef = doc(
+                            db,
+                            'users',
+                            docCandidato.data().userId,
+                            'minhasCandidaturas',
+                            id
+                        );
+                        batch.update(userCandidaturaRef, {
+                            status: 'projeto_encerrado',
+                        });
                     });
 
                     await batch.commit();
-                    console.log('Candidaturas pendentes encerradas automaticamente.');
+                    console.log(
+                        'Candidaturas pendentes encerradas automaticamente.'
+                    );
                 }
             }
 
@@ -383,7 +408,7 @@ function GerenciarProjetoPage() {
             return;
         }
         // se não for "concluir", salva direto
-       await executarSalvamento();
+        await executarSalvamento();
     };
 
     const handleBuscaHabilidadeChange = (e) => {
@@ -891,14 +916,14 @@ function GerenciarProjetoPage() {
                                         setAreaEditavel(e.target.value)
                                     }
                                 >
-                                    <option value="Desenvolvimento de Software">
-                                        Desenvolvimento de Software
-                                    </option>
-                                    <option value="Pesquisa Acadêmica">
-                                        Pesquisa Acadêmica
-                                    </option>
-                                    <option value="Design/UX">Design/UX</option>
-                                    <option value="Marketing">Marketing</option>
+                                    {todasAsAreas.map((itemArea) => (
+                                        <option
+                                            key={itemArea.nome}
+                                            value={itemArea.nome}
+                                        >
+                                            {itemArea.nome}
+                                        </option>
+                                    ))}
                                 </Select>
                             </InputGroup>
 

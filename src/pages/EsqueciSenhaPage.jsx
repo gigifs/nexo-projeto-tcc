@@ -128,7 +128,7 @@ function EsqueciSenhaPage() {
 
         try {
             const actionCodeSettings = {
-                url: 'http://localhost:5173/', // Após redefinir a senha, o utilizador volta para a Landing Page
+                url: '${window.location.origin}/', // Após redefinir a senha, o utilizador volta para a Landing Page
             };
             await sendPasswordResetEmail(auth, email, actionCodeSettings);
             setView('success');

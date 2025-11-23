@@ -157,6 +157,9 @@ function ModalFiltroBuscarProjeto({ onApplyFilters, onClose, initialFilters }) {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
                 const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
+
+                tagsDoBanco.sort((a, b) => a.nome.localeCompare(b.nome));
+
                 setHabilidadesDisponiveis(
                     tagsDoBanco
                         .filter((tag) => tag.tipo === 'habilidade')

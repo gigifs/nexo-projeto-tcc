@@ -13,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 // Importações do Firebase necessárias para verificar mensagens
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getInitials } from '../utils/iniciaisNome'; // Importação
 
 const MenuEstilizado = styled.aside`
     background-color: #f5fafc;
@@ -138,11 +139,6 @@ const BolinhaNotificacao = styled.div`
     border: 2px solid #f5fafc; /* Borda da mesma cor do fundo do menu para dar destaque */
     z-index: 10;
 `;
-
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
-};
 
 function Menu() {
     // Adicionamos currentUser para pegar o UID

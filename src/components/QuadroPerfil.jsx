@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import { FiUser, FiGithub, FiLinkedin } from 'react-icons/fi';
 import { FaGraduationCap } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { getInitials } from '../utils/iniciaisNome'; // Importação
 
 const QuadroPerfilContainer = styled.div`
     background-color: #f5fafc;
@@ -181,11 +182,6 @@ const Tag = styled.span`
         font-size: 0.8rem;
     }
 `;
-
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
-};
 
 function QuadroPerfil() {
     const { userData } = useAuth();

@@ -92,6 +92,7 @@ function ListaProjetosRecomendados() {
 
                     // Só mostra se NÃO participa E NÃO está pendente E NÃO está concluído
                     return !jaParticipa && !temCandidaturaPendente && !estaConcluido;
+
                 });
 
                 // LÓGICA DE RECOMENDAÇÃO

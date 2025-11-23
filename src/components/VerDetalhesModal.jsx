@@ -22,6 +22,9 @@ import {
 } from 'firebase/firestore';
 import PerfilUsuarioModal from './PerfilUsuarioModal';
 import { useNavigate } from 'react-router-dom';
+// Importações das novas Utils
+import { getInitials } from '../utils/iniciaisNome';
+import { getStatusStyle } from '../utils/tagStatus';
 
 const ModalWrapper = styled.div`
     padding: 0.6rem 1.875rem 1.25rem 1.875rem;
@@ -250,19 +253,6 @@ const Footer = styled.div`
     padding-top: 1.25rem;
     border-top: 2px solid #eee;
 `;
-
-const getStatusStyle = (status) => {
-    switch (status) {
-        case 'Novo':
-            return { $color: '#FFE0B2', $textColor: '#E65100' };
-        case 'Em Andamento':
-            return { $color: '#D1C4E9', $textColor: '#4527A0' };
-        case 'Concluído':
-            return { $color: '#C8E6C9', $textColor: '#2E7D32' };
-        default:
-            return { $color: '#e0e0e0', $textColor: '#000' };
-    }
-};
 
 function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const { currentUser, userData } = useAuth();
@@ -694,11 +684,6 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         } finally {
             setLoadingIntegrante(false);
         }
-    };
-
-    const getInitials = (nome, sobrenome) => {
-        if (!nome) return '?';
-        return `${nome.charAt(0)}${sobrenome ? sobrenome.charAt(0) : ''}`.toUpperCase();
     };
 
     return (

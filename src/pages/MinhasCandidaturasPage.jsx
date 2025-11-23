@@ -7,7 +7,7 @@ import VerDetalhesModal from '../components/VerDetalhesModal';
 import DashboardHeader from '../components/DashboardHeader';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
-import { FiLoader, FiTrash2, FiFilePlus, FiFileMinus, FiUserX } from 'react-icons/fi';
+import { FiLoader, FiTrash2, FiFilePlus, FiFileMinus, FiUserX, FiLock } from 'react-icons/fi';
 import { LuFileX } from 'react-icons/lu';
 import { HiArrowsUpDown, HiArrowLongUp, HiArrowLongDown } from 'react-icons/hi2';
 import { useToast } from '../contexts/ToastContext';
@@ -359,6 +359,14 @@ function MinhasCandidaturasPage() {
                     $bgColor: '#bdbdbd',
                     $textColor: '#424242',
                 };
+
+            case 'projeto_encerrado':
+                return {
+                    texto: 'Projeto Encerrado',
+                    icone: <FiLock size={20} />,
+                    $bgColor: '#e2ebabff',
+                    $textColor: '#877413ff',
+                };
             default:
                 return {
                     texto: status,
@@ -471,10 +479,11 @@ function MinhasCandidaturasPage() {
                                         </Botao>
                                     )}
 
-                                    {/* Ícone Lixeira para limpar da lista (status: Rejeitado, Removido ou Excluído) */}
+                                    {/* Ícone Lixeira para limpar da lista (status: Rejeitado, Removido, Excluído, Encerrado) */}
                                     {(cand.status === 'rejeitado' ||
                                         cand.status === 'removido' ||
-                                        cand.status === 'excluido') && (
+                                        cand.status === 'excluido' ||
+                                        cand.status === 'projeto_encerrado') && (
                                         <FiTrash2
                                             size={25}
                                             onClick={() =>

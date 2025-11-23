@@ -66,14 +66,10 @@ const Nome = styled.span`
 `;
 
 const Curso = styled.span`
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 450;
     color: #6a6767ff;
     padding: 5px 3px 3px 0;
-
-    @media (max-width: 1300px) {
-        font-size: 1.1rem;
-    }
 `;
 
 const MenuLista = styled.ul`

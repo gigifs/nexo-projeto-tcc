@@ -22,6 +22,7 @@ import {
     query,
     where,
     addDoc,
+    writeBatch,
 } from 'firebase/firestore';
 import Modal from '../components/Modal';
 import TemCertezaModal from '../components/TemCertezaModal';
@@ -227,9 +228,10 @@ function GerenciarProjetoPage() {
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [membroParaRemover, setMembroParaRemover] = useState(null);
-    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] =
-        useState(false);
+    const [isRemoverMembroModalOpen, setIsRemoverMembroModalOpen] = useState(false);
     const [isRemovingMember, setIsRemovingMember] = useState(false);
+    // Estado para o modal de confirmação
+    const [showConfirmConcluir, setShowConfirmConcluir] = useState(false);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -280,7 +282,7 @@ function GerenciarProjetoPage() {
                     return;
                 }
 
-                // Adicionamos a query para filtrar apenas status 'pendente'
+                // Query para filtrar apenas status 'pendente'
                 const candidaturasRef = collection(
                     db,
                     'projetos',
@@ -292,7 +294,6 @@ function GerenciarProjetoPage() {
                     where('status', '==', 'pendente')
                 );
                 const candidaturasSnap = await getDocs(qCandidaturas);
-                // ---------------------
 
                 const listaCandidaturas = candidaturasSnap.docs.map((doc) => ({
                     id: doc.id,
@@ -312,20 +313,13 @@ function GerenciarProjetoPage() {
         buscarDados();
     }, [id, userData]);
 
-    const handleSalvar = async (evento) => {
-        evento.preventDefault();
-        // validações antes de salvar
-        if (!nomeEditavel.trim()) {
-            return addToast('O nome do projeto é obrigatório.', 'error');
-        }
-        if (!descricaoEditavel.trim()) {
-            return addToast('A descrição é obrigatória.', 'error');
-        }
-
-        setIsSaving(true); // bloqueia botão de salvar
+    // Executa o salvamento de verdade (chamada direta ou dps da confirmação)
+    const executarSalvamento = async () => {
+        setIsSaving(true);
         try {
             const projetoRef = doc(db, 'projetos', id);
-            // atualiza apenas os campos editáveis no documento do projeto
+            
+            // Atualiza os dados do projeto
             await updateDoc(projetoRef, {
                 nome: nomeEditavel,
                 descricao: descricaoEditavel,
@@ -334,15 +328,62 @@ function GerenciarProjetoPage() {
                 habilidades: habilidadesEditaveis,
                 interesses: interessesEditaveis,
             });
+
+            // Se o status novo for "Concluído", limpar as candidaturas pendentes
+            if (statusEditavel === 'Concluído') {
+                const candidaturasRef = collection(db, 'projetos', id, 'candidaturas');
+                const qPendentes = query(candidaturasRef, where('status', '==', 'pendente'));
+                const snapshotPendentes = await getDocs(qPendentes);
+
+                if (!snapshotPendentes.empty) {
+                    const batch = writeBatch(db);
+                    
+                    snapshotPendentes.docs.forEach((docCandidato) => {
+                        // Atualiza o status na coleção do projeto
+                        batch.update(docCandidato.ref, { 
+                            status: 'projeto_encerrado',
+                            lida: true
+                         });
+                        
+                        // Atualiza o status no perfil do usuário (minhasCandidaturas)
+                        const userCandidaturaRef = doc(db, 'users', docCandidato.data().userId, 'minhasCandidaturas', id);
+                        batch.update(userCandidaturaRef, { status: 'projeto_encerrado' });
+                    });
+
+                    await batch.commit();
+                    console.log('Candidaturas pendentes encerradas automaticamente.');
+                }
+            }
+
             addToast('Projeto atualizado com sucesso!', 'success');
-            navigate('/dashboard/meus-projetos'); // redireciona depois do sucesso
+            setShowConfirmConcluir(false); // Fecha o modal se estiver aberto
+            navigate('/dashboard/meus-projetos');
         } catch (err) {
-            // tratamento de erro
-            console.error('Erro ao atualizar o projeto!');
-            addToast('ERRO, ALTERAÇÕES NÃO FORAM SALVAS!!!', 'error');
+            console.error('Erro ao atualizar o projeto!', err);
+            addToast('ERRO: Alterações não foram salvas.', 'error');
         } finally {
-            setIsSaving(false); // libera UI/botão salvar
+            setIsSaving(false);
         }
+    };
+
+    const handleSalvar = async (evento) => {
+        evento.preventDefault();
+
+        // Validações antes de salvar
+        if (!nomeEditavel.trim()) {
+            return addToast('O nome do projeto é obrigatório.', 'error');
+        }
+        if (!descricaoEditavel.trim()) {
+            return addToast('A descrição é obrigatória.', 'error');
+        }
+
+        // Verificação de status - intercepta se estiver mudando para Concluído
+        if (projeto.status !== 'Concluído' && statusEditavel === 'Concluído') {
+            setShowConfirmConcluir(true);
+            return;
+        }
+        // se não for "concluir", salva direto
+       await executarSalvamento();
     };
 
     const handleBuscaHabilidadeChange = (e) => {
@@ -1008,10 +1049,27 @@ function GerenciarProjetoPage() {
                 />
             </Modal>
 
+            {/* Modal de Confirmação de "Conclusão" do projeto */}
+            <Modal
+                isOpen={showConfirmConcluir}
+                onClose={() => setShowConfirmConcluir(false)}
+                size="excluir-projeto"
+            >
+                <TemCertezaModal
+                    titulo="Concluir Projeto?"
+                    mensagem="Ao marcar como concluído, este projeto deixará de aceitar novas candidaturas e não aparecerá mais nas recomendações. Todas as candidaturas pendentes serão encerradas. Deseja continuar?"
+                    onConfirm={executarSalvamento}
+                    onClose={() => setShowConfirmConcluir(false)}
+                    loading={isSaving}
+                    textoConfirmar="sim"
+                    textoCancelar="não"
+                />
+            </Modal>
+
             <PerfilUsuarioModal
                 isOpen={!!candidatoSelecionado}
                 onClose={() => setCandidatoSelecionado(null)}
-                usuario={candidatoSelecionado} // A prop agora é 'usuario'
+                usuario={candidatoSelecionado}
                 onAceitar={handleAceitar}
                 onRejeitar={handleRejeitar}
                 loading={isActionLoading}

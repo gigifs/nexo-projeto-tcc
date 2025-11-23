@@ -32,9 +32,9 @@ const Logo = styled.img`
 
 const LoadingText = styled.p`
   position: absolute;
-  bottom: 2rem;
-  font-size: 1rem;
-  color: #555;
+  bottom: 3rem;
+  font-size: 1.5rem;
+  color: #313030ff;
   opacity: 0.8;
 `;
 

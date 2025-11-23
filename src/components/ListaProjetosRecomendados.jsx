@@ -58,12 +58,10 @@ function ListaProjetosRecomendados() {
                     'minhasCandidaturas'
                 );
                 const candidaturasSnapshot = await getDocs(minhasCandidaturasRef);
-                
-                // Cria um Conjunto(Set) com os IDs dos projetos que o usuário já se candidatou
-                // Sets são rápidos para verificar existência (.has)
-                // busca instantânea O(1)
-                const projetosCandidatadosIds = new Set(
-                    candidaturasSnapshot.docs.map((doc) => doc.id)
+                const projetosPendentesIds = new Set(
+                    candidaturasSnapshot.docs
+                        .filter(doc => doc.data().status === 'pendente')
+                        .map((doc) => doc.id)
                 );
 
                 // Busca projetos que não são do usuário
@@ -82,14 +80,18 @@ function ListaProjetosRecomendados() {
                 // Filtragem em Memória
                 const projetosDisponiveis = projetosList.filter((p) => {
                     // Verifica se já é participante
-                    const jaParticipa =
-                        p.participantIds &&
-                        p.participantIds.includes(currentUser.uid);
+                    const jaParticipa = p.participantIds?.includes(currentUser.uid);
 
-                    // Verifica se já se candidatou usando nosso Set otimizado
-                    const jaCandidatou = projetosCandidatadosIds.has(p.id);
+                    // Verifica se tem candidatura PENDENTE usando o Set de cima
+                    // Se foi recusado/removido, o ID não estará neste Set, então passa no filtro (aparece de novo)
+                    const temCandidaturaPendente = projetosPendentesIds.has(p.id);
 
-                    return !jaParticipa && !jaCandidatou;
+                    // Verifica se está concluído
+                    const statusNormalizado = p.status ? p.status.toLowerCase() : '';
+                    const estaConcluido = statusNormalizado === 'concluido' || statusNormalizado === 'concluído';
+
+                    // Só mostra se NÃO participa E NÃO está pendente E NÃO está concluído
+                    return !jaParticipa && !temCandidaturaPendente && !estaConcluido;
                 });
 
                 // LÓGICA DE RECOMENDAÇÃO

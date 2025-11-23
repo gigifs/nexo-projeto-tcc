@@ -377,6 +377,31 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         }
 
         try {
+
+            // Verificação de segurança - busca dados frescos
+            // Buscamos o projeto novamente no banco para garantir que o status não mudou
+            // enquanto o usuário estava com a página aberta
+            const projetoRef = doc(db, 'projetos', projetoId);
+            const projetoSnapAtual = await getDoc(projetoRef);
+
+            if (!projetoSnapAtual.exists()) {
+                addToast('Este projeto não existe mais.', 'error');
+                setLoading(false);
+                if (onClose) onClose();
+                return;
+            }
+
+            const dadosAtuais = projetoSnapAtual.data();
+            const statusNormalizado = dadosAtuais.status ? dadosAtuais.status.toLowerCase() : '';
+
+            // Se o projeto foi "concluído" nesse meio tempo, bloqueamos
+            if (statusNormalizado === 'concluido' || statusNormalizado === 'concluído') {
+                addToast('Este projeto foi marcado como Concluído e não aceita mais candidaturas.', 'error');
+                setLoading(false);
+                if (onClose) onClose(); // Fecha o modal para forçar atualização visual se quiser
+                return;
+            }
+            
             // Referência ao possível documento de candidatura deste usuário para este projeto
             const candidaturaRef = doc(
                 db,
@@ -804,14 +829,34 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                         </Botao>
                     )}
 
+                    {/* Lógica para quem NÃO é participante e NÃO é dono */}
                     {!isParticipant && !isOwner && (
-                        <Botao
-                            variant="hab-int"
-                            onClick={handleCandidatura}
-                            disabled={loading}
-                        >
-                            {loading ? 'Enviando...' : 'Candidatar-se'}
-                        </Botao>
+                        <>
+                            {projeto.status === 'Concluído' ? (
+                                /* Botão visualmente desativado */
+                                <Botao
+                                    variant="hab-int"
+                                    disabled={true}
+                                    style={{ 
+                                        backgroundColor: '#736f6fff', 
+                                        cursor: 'not-allowed', 
+                                        opacity: 0.7,
+                                        border: 'none'
+                                    }}
+                                >
+                                    Projeto Concluído
+                                </Botao>
+                            ) : (
+                                /* SE O STATUS = NOVO OU EM ANDAMENTO: Botão normal de candidatura */
+                                <Botao
+                                    variant="hab-int"
+                                    onClick={handleCandidatura}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Enviando...' : 'Candidatar-se'}
+                                </Botao>
+                            )}
+                        </>
                     )}
                 </Footer>
             </ModalWrapper>

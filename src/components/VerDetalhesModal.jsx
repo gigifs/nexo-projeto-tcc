@@ -428,6 +428,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
 
             // Cria o documento da candidatura
             await setDoc(candidaturaRef, {
+                donoId: projeto.donoId,
                 userId: currentUser.uid,
                 nome: userData.nome,
                 sobrenome: userData.sobrenome,

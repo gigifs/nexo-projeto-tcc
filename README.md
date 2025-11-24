@@ -1,6 +1,6 @@
 # NEXO - Conecte-se, colabore, conquiste.
 
-![Logo Nexo](public/logo_por_extenso.png)
+![Logo Nexo](public/logo_por_extenso.svg)
 
 > 🚀 **Aplicação disponível online:** [CLIQUE AQUI PARA ACESSAR O PROJETO](https://nexo-projeto-tcc.web.app/)
 

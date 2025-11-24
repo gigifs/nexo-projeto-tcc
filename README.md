@@ -1,103 +1,49 @@
-rules_version = '2';
+# NEXO - Conecte-se, colabore, conquiste.
 
-service cloud.firestore {
-  match /databases/{database}/documents {
+![Logo Nexo](public/logo_por_extenso.png)
 
-    // --- FUNÇÕES AUXILIARES ---
-    
-    // Verifica se o usuário está autenticado
-    function isSignedIn() {
-      return request.auth != null;
-    }
+> 🚀 **Aplicação disponível online:** [CLIQUE AQUI PARA ACESSAR O PROJETO](https://nexo-projeto-tcc.web.app/)
 
-    // Verifica se o usuário é o dono do documento
-    function isUser(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
+## 📖 Sobre o Projeto
 
-    // Busca os dados de um projeto específico
-    function getProjectData(projetoId) {
-      return get(/databases/$(database)/documents/projetos/$(projetoId)).data;
-    }
+O **NEXO** é uma plataforma web desenvolvida como Trabalho de Conclusão de Curso (TCC) em Ciência da Computação. O objetivo da aplicação é conectar estudantes universitários a projetos acadêmicos, facilitando a formação de grupos baseados em habilidades e interesses em comum.
 
-    // Verifica se o usuário logado é o dono do projeto
-    function isProjectOwner(projetoId) {
-      return isSignedIn() && request.auth.uid == getProjectData(projetoId).donoId;
-    }
+A plataforma é uma alternativa para encontrar colegas com afinidade acadêmica, promovendo a colaboração e o networking dentro da universidade.
 
-    // --- REGRAS DAS COLEÇÕES ---
+## ✨ Funcionalidades Principais
 
-    // ======= USUÁRIOS =======
-    
-    match /users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isUser(userId);
-      
-      match /minhasCandidaturas/{projetoId} {
-        allow read, create, delete: if isUser(userId);
-        allow update: if isUser(userId) || isProjectOwner(projetoId);
-      }
-    }
+* **Autenticação:** Login e cadastro via E-mail/Senha com verificação de e-mail.
+* **Sistema de Match:** Recomendação de projetos baseada em tags de habilidades e interesses.
+* **Chat em Tempo Real:** Mensagens diretas e grupos de projeto instantâneos.
+* **Gerenciamento de Projetos:** Criação, edição e exclusão de projetos.
+* **Candidaturas:** Sistema de aplicar para vagas e gerenciamento de aprovação/rejeição pelo dono do projeto.
+* **Perfil Completo:** Personalização de avatar, bio, links sociais (GitHub/LinkedIn).
 
-    // ======= PROJETOS =======
-     
-    match /projetos/{projetoId} {
-      allow read: if isSignedIn();
+## 🛠️ Tecnologias Utilizadas
 
-      allow create: if isSignedIn() 
-                    && request.resource.data.donoId == request.auth.uid;
+O projeto foi desenvolvido utilizando as seguintes tecnologias modernas:
 
-      allow update: if isSignedIn() && (
-        resource.data.donoId == request.auth.uid ||
-        (
-          request.auth.uid in resource.data.participantIds &&
-          !(request.auth.uid in request.resource.data.participantIds) &&
-          request.resource.data.donoId == resource.data.donoId &&
-          request.resource.data.nome == resource.data.nome
-        )
-      );
+* **Prototipagem:** [Figma](link)
+* **Frontend:** [React](https://reactjs.org/) (Vite)
+* **Linguagem:** JavaScript (ES6+)
+* **Estilização:** [Styled Components](https://styled-components.com/)
+* **Backend & Banco de Dados:** [Firebase](https://firebase.google.com/) (Authentication, Firestore)
+* **Deploy/Hospedagem:** Firebase Hosting
 
-      allow delete: if isSignedIn() && resource.data.donoId == request.auth.uid;
+## 📄 Documentação do Projeto
 
-      // ======= SUBCOLEÇÃO Candidaturas =======
-      match /candidaturas/{candidaturaId} {
-        allow create: if isUser(candidaturaId);
+### Prototipagem do nosso Projeto:
+* **Link do Figma:** [Figma](https://www.figma.com/design/hy8ZBXRpvZSutcLDjUVqkH/PROJETO-TCC-OFICIAL?node-id=1-27&t=KjsJHcoseCuR5PmW-1)
 
-        allow read: if (resource.data.donoId == request.auth.uid) || 
-                       isProjectOwner(projetoId) || 
-                       isUser(candidaturaId);
+### Regras do nosso Banco de Dados:
+* **Link das Regras:** [Clique aqui para abrir o PDF](public/regras_firestore.pdf)
 
-        allow update, delete: if (resource.data.donoId == request.auth.uid) || 
-                                 isProjectOwner(projetoId) || 
-                                 isUser(candidaturaId);
-      }
-    }
+## 👥 Autores
 
-    // ======= TAGS =======
-    match /tags/{tagId} {
-      allow read: if isSignedIn();
-    }
+* **[Anthony Souza Arantes de Jesus]** - *Product Designer + Dev Fullstack* - [GitHub](https://github.com/Anthony-Arantes)
+* **[Giovana Celestino Ramalho]** - *Product Designer + Dev Fullstack* - [GitHub](https://github.com/gi-celeste) | [LinkedIn](https://www.linkedin.com/in/giovana-celestino-ramalho/)
+* **[Giovanna Freitas Silva]** - *Product Designer + Dev Fullstack* - [GitHub](https://github.com/gigifs) | [LinkedIn](http://linkedin.com/in/giovannafreitas-silva/)
 
-    // ======= CONVERSAS =======
 
-    match /conversas/{conversaId} {
-      allow read, update: if isSignedIn() && (
-        (request.auth.uid in resource.data.participantes) ||
-        (resource.data.projetoId != null && isProjectOwner(resource.data.projetoId))
-      );
-
-      allow create: if isSignedIn() && 
-                    (request.auth.uid in request.resource.data.participantes);
-
-      allow delete: if isSignedIn() && 
-                    isProjectOwner(resource.data.projetoId);
-
-      match /mensagens/{mensagemId} {
-        allow read, create: if isSignedIn() && 
-                            (request.auth.uid in get(/databases/$(database)/documents/conversas/$(conversaId)).data.participantes);
-
-        allow update, delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
-      }
-    }
-  }
-}
+---
+Desenvolvido para o TCC de Ciência da Computação - 2025.

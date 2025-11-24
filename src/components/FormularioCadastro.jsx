@@ -191,7 +191,7 @@ function FormularioCadastro({ onSwitchToLogin, initialEmail, onSuccess }) {
             });
 
             const actionCodeSettings = {
-                url: '${window.location.origin}/verificacao-concluida', // define onde o usuario vai parar apos clicar no link de confirmação
+                url: `${window.location.origin}/verificacao-concluida`, // define onde o usuario vai parar apos clicar no link de confirmação
             };
 
             // função para garantir que o usuario é real, envia um email automatico

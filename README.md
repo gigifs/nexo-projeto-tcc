@@ -23,7 +23,7 @@ A plataforma é uma alternativa para encontrar colegas com afinidade acadêmica,
 
 O projeto foi desenvolvido utilizando as seguintes tecnologias modernas:
 
-* **Prototipagem:** [Figma](link)
+* **Prototipagem:** [Figma](https://www.figma.com/)
 * **Frontend:** [React](https://reactjs.org/) (Vite)
 * **Linguagem:** JavaScript (ES6+)
 * **Estilização:** [Styled Components](https://styled-components.com/)

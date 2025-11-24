@@ -22,6 +22,9 @@ import {
 } from 'firebase/firestore';
 import PerfilUsuarioModal from './PerfilUsuarioModal';
 import { useNavigate } from 'react-router-dom';
+// Importações das novas Utils
+import { getInitials } from '../utils/iniciaisNome';
+import { getStatusStyle } from '../utils/tagStatus';
 
 const ModalWrapper = styled.div`
     padding: 0.6rem 1.875rem 1.25rem 1.875rem;
@@ -251,19 +254,6 @@ const Footer = styled.div`
     border-top: 2px solid #eee;
 `;
 
-const getStatusStyle = (status) => {
-    switch (status) {
-        case 'Novo':
-            return { $color: '#FFE0B2', $textColor: '#E65100' };
-        case 'Em Andamento':
-            return { $color: '#D1C4E9', $textColor: '#4527A0' };
-        case 'Concluído':
-            return { $color: '#C8E6C9', $textColor: '#2E7D32' };
-        default:
-            return { $color: '#e0e0e0', $textColor: '#000' };
-    }
-};
-
 function VerDetalhesModal({ projeto, projetoId, onClose }) {
     const { currentUser, userData } = useAuth();
     const navigate = useNavigate();
@@ -296,7 +286,7 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
     } = projeto;
 
     const statusStyle = getStatusStyle(projeto.status);
-    // Verifica se o usuário atual é o dono do projeto.
+    // Verifica se o usuário atual é o dono do projeto
     const isOwner = currentUser?.uid === donoId;
     const isParticipant = participantIds.includes(currentUser?.uid);
 
@@ -354,9 +344,9 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         fetchIntegrantesData();
     }, [projeto]); // Roda sempre que o projeto mudar
 
-    /* Função executada quando o usuário clica em Candidatar-se.
+    /* Função executada quando o usuário clica em Candidatar-se
      * Verifica se o usuário pode se candidatar e cria um documento na subcoleção
-     *'candidaturas' do projeto no Firestore.*/
+     *'candidaturas' do projeto no Firestore*/
 
     const handleCandidatura = async () => {
         setLoading(true);
@@ -377,6 +367,31 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         }
 
         try {
+
+            // Verificação de segurança - busca dados frescos
+            // Buscamos o projeto novamente no banco para garantir que o status não mudou
+            // enquanto o usuário estava com a página aberta
+            const projetoRef = doc(db, 'projetos', projetoId);
+            const projetoSnapAtual = await getDoc(projetoRef);
+
+            if (!projetoSnapAtual.exists()) {
+                addToast('Este projeto não existe mais.', 'error');
+                setLoading(false);
+                if (onClose) onClose();
+                return;
+            }
+
+            const dadosAtuais = projetoSnapAtual.data();
+            const statusNormalizado = dadosAtuais.status ? dadosAtuais.status.toLowerCase() : '';
+
+            // Se o projeto foi "concluído" nesse meio tempo, bloqueamos
+            if (statusNormalizado === 'concluido' || statusNormalizado === 'concluído') {
+                addToast('Este projeto foi marcado como Concluído e não aceita mais candidaturas.', 'error');
+                setLoading(false);
+                if (onClose) onClose(); // Fecha o modal para forçar atualização visual se quiser
+                return;
+            }
+            
             // Referência ao possível documento de candidatura deste usuário para este projeto
             const candidaturaRef = doc(
                 db,
@@ -395,16 +410,25 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                 projetoId // Salva usando o ID do projeto
             );
 
-            // Verifica se já existe uma candidatura
             const candidaturaSnap = await getDoc(candidaturaRef);
+            
             if (candidaturaSnap.exists()) {
-                addToast('Você já se candidatou a este projeto.', 'info');
-                setLoading(false);
-                return;
+                const dados = candidaturaSnap.data();
+                // Se já estiver pendente ou aceito, bloqueia
+                // Se estiver rejeitado ou removido, permite tentar de novo
+                if (dados.status === 'pendente' || dados.status === 'aceito') {
+                    const msg = dados.status === 'aceito' 
+                        ? 'Você já faz parte deste projeto.' 
+                        : 'Sua candidatura já está em análise.';
+                    addToast(msg, 'info');
+                    setLoading(false);
+                    return;
+                }
             }
 
             // Cria o documento da candidatura
             await setDoc(candidaturaRef, {
+                donoId: projeto.donoId,
                 userId: currentUser.uid,
                 nome: userData.nome,
                 sobrenome: userData.sobrenome,
@@ -663,11 +687,6 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
         }
     };
 
-    const getInitials = (nome, sobrenome) => {
-        if (!nome) return '?';
-        return `${nome.charAt(0)}${sobrenome ? sobrenome.charAt(0) : ''}`.toUpperCase();
-    };
-
     return (
         <>
             <ModalWrapper>
@@ -796,14 +815,34 @@ function VerDetalhesModal({ projeto, projetoId, onClose }) {
                         </Botao>
                     )}
 
+                    {/* Lógica para quem NÃO é participante e NÃO é dono */}
                     {!isParticipant && !isOwner && (
-                        <Botao
-                            variant="hab-int"
-                            onClick={handleCandidatura}
-                            disabled={loading}
-                        >
-                            {loading ? 'Enviando...' : 'Candidatar-se'}
-                        </Botao>
+                        <>
+                            {projeto.status === 'Concluído' ? (
+                                /* Botão visualmente desativado */
+                                <Botao
+                                    variant="hab-int"
+                                    disabled={true}
+                                    style={{ 
+                                        backgroundColor: '#736f6fff', 
+                                        cursor: 'not-allowed', 
+                                        opacity: 0.7,
+                                        border: 'none'
+                                    }}
+                                >
+                                    Projeto Concluído
+                                </Botao>
+                            ) : (
+                                /* SE O STATUS = NOVO OU EM ANDAMENTO: Botão normal de candidatura */
+                                <Botao
+                                    variant="hab-int"
+                                    onClick={handleCandidatura}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Enviando...' : 'Candidatar-se'}
+                                </Botao>
+                            )}
+                        </>
                     )}
                 </Footer>
             </ModalWrapper>

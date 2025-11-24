@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado useLocation
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/header.jsx';
 import Inicio from '../components/Inicio.jsx';
@@ -21,6 +21,7 @@ function LandingPage() {
 
     const { currentUser } = useAuth(); // Pegamos o utilizador do nosso "cérebro"
     const navigate = useNavigate();
+    const location = useLocation(); // Hook para saber qual URL estamos acessando
 
     //logica de redirecionamento
     useEffect(() => {
@@ -70,7 +71,11 @@ function LandingPage() {
                     setSignupModalOpen(true);
                 }}
             />
-            <SobreNos />
+
+            <div id="sobre-nos">
+                <SobreNos />
+            </div>
+
             <Footer />
 
             {/* modal de login: visibilidade controlada pelo estado loginModalOpen */}

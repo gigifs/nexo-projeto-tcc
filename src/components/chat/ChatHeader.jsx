@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiArrowLeft } from 'react-icons/fi';
+import { getInitials } from '../../utils/iniciaisNome'; // Importação
 
 const ChatHeaderContainer = styled.div`
     display: flex;
@@ -101,7 +102,6 @@ function ChatHeader({
     conversa,
     getSubtituloConversa,
     handleHeaderClick,
-    getInitials,
     getAvatarColorConversa,
     onCloseChat,
 }) {

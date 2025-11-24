@@ -4,9 +4,7 @@ import {
     collection,
     query,
     where,
-    getDocs,
-    getDoc,
-    doc,
+    getDocs
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,6 +50,20 @@ function ListaProjetosRecomendados() {
             setError('');
 
             try {
+                // Busca todas as candidaturas do usuário
+                const minhasCandidaturasRef = collection(
+                    db,
+                    'users',
+                    currentUser.uid,
+                    'minhasCandidaturas'
+                );
+                const candidaturasSnapshot = await getDocs(minhasCandidaturasRef);
+                const projetosPendentesIds = new Set(
+                    candidaturasSnapshot.docs
+                        .filter(doc => doc.data().status === 'pendente')
+                        .map((doc) => doc.id)
+                );
+
                 // Busca projetos que não são do usuário
                 const projetosRef = collection(db, 'projetos');
                 const q = query(
@@ -60,53 +72,35 @@ function ListaProjetosRecomendados() {
                 );
                 const querySnapshot = await getDocs(q);
 
-                let projetosList = querySnapshot.docs.map((doc) => ({
+                const projetosList = querySnapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
 
-                // Filtra projetos onde o usuário já é participante
-                const projetosFiltrados = projetosList.filter(
-                    (p) =>
-                        !(
-                            p.participantIds &&
-                            p.participantIds.includes(currentUser.uid)
-                        )
-                );
+                // Filtragem em Memória
+                const projetosDisponiveis = projetosList.filter((p) => {
+                    // Verifica se já é participante
+                    const jaParticipa = p.participantIds?.includes(currentUser.uid);
 
-                // Verifica as candidaturas para os projetos restantes
-                const verificacaoCandidaturas = projetosFiltrados.map(
-                    async (projeto) => {
-                        const candidaturaRef = doc(
-                            db,
-                            'projetos',
-                            projeto.id,
-                            'candidaturas',
-                            currentUser.uid
-                        );
-                        const candidaturaSnap = await getDoc(candidaturaRef);
-                        return {
-                            ...projeto,
-                            jaCandidatou: candidaturaSnap.exists(),
-                        };
-                    }
-                );
+                    // Verifica se tem candidatura PENDENTE usando o Set de cima
+                    // Se foi recusado/removido, o ID não estará neste Set, então passa no filtro (aparece de novo)
+                    const temCandidaturaPendente = projetosPendentesIds.has(p.id);
 
-                const projetosComStatusCandidatura = await Promise.all(
-                    verificacaoCandidaturas
-                );
+                    // Verifica se está concluído
+                    const statusNormalizado = p.status ? p.status.toLowerCase() : '';
+                    const estaConcluido = statusNormalizado === 'concluido' || statusNormalizado === 'concluído';
 
-                // Filtro final, remove os projetos onde o usuário já se candidatou
-                const projetosDisponiveis = projetosComStatusCandidatura.filter(
-                    (p) => !p.jaCandidatou
-                );
+                    // Só mostra se NÃO participa E NÃO está pendente E NÃO está concluído
+                    return !jaParticipa && !temCandidaturaPendente && !estaConcluido;
 
-                //LÓGICA DE RECOMENDAÇÃO
+                });
+
+                // LÓGICA DE RECOMENDAÇÃO
                 const userHabilidades = userData.habilidades || [];
                 const userInteresses = userData.interesses || [];
                 const userCurso = userData.curso || '';
 
-                //Filtragem Primária (obrigatória)
+                // Filtragem Primária
                 const projetosComHabilidadeCompativeis =
                     projetosDisponiveis.filter((projeto) => {
                         const projetoHabilidades = projeto.habilidades || [];
@@ -116,7 +110,7 @@ function ListaProjetosRecomendados() {
                         );
                     });
 
-                //Cálculo de Pontuação
+                // Cálculo de Pontuação
                 const projetosPontuados = projetosComHabilidadeCompativeis.map(
                     (projeto) => {
                         let score = 0;
@@ -151,7 +145,7 @@ function ListaProjetosRecomendados() {
                     }
                 );
 
-                //Ordenação dos projetos pela pontuação
+                // Ordenação dos projetos pela pontuação
                 const projetosOrdenados = projetosPontuados.sort(
                     (a, b) => b.score - a.score
                 );

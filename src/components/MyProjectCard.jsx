@@ -16,6 +16,9 @@ import {
     getDoc,
 } from 'firebase/firestore'; // Adicionado doc e getDoc
 import { useToast } from '../contexts/ToastContext';
+// Importações das novas Utils
+import { getInitials } from '../utils/iniciaisNome';
+import { getStatusStyle } from '../utils/tagStatus';
 
 const CardWrapper = styled.div`
     background-color: #f5fafc;
@@ -181,25 +184,6 @@ const GerenciarButton = styled(DetalhesBotao)`
         }
     }
 `;
-
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    if (!sobrenome) return nome.substring(0, 2).toUpperCase();
-    return `${nome[0]}${sobrenome[0]}`.toUpperCase();
-};
-
-const getStatusStyle = (status) => {
-    switch (status) {
-        case 'Novo':
-            return { $color: '#FFE0B2', $textColor: '#E65100' };
-        case 'Em Andamento':
-            return { $color: '#C9B7F4', $textColor: '#5824d2ff' };
-        case 'Concluído':
-            return { $color: '#B7F4BB', $textColor: '#18a422ff' };
-        default:
-            return { $color: '#e0e0e0', $textColor: '#000' };
-    }
-};
 
 function MyProjectCard({ projeto, currentUserId }) {
     const [modalAberto, setModalAberto] = useState(false);

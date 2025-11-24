@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import DashboardHeader from '../components/DashboardHeader';
@@ -27,7 +27,6 @@ import JanelaChat from '../components/chat/JanelaChat';
 import Modal from '../components/Modal';
 import VerDetalhesModal from '../components/VerDetalhesModal';
 import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
-import { gerarCorPorNome } from '../utils/geradorCores';
 import { FiMessageSquare } from 'react-icons/fi';
 
 const ChatLayout = styled.div`
@@ -125,12 +124,14 @@ function MensagensPage() {
         dados: null,
     });
     const typingTimeoutRef = useRef(null);
-    const navigate = useNavigate();
 
     const conversaAtiva = conversas.find((c) => c.id === conversaAtivaId);
 
-    // Todas as funções e efeitos que estavam no seu arquivo original
-    // são adaptados para esta nova estrutura.
+    useEffect(() => {
+        if (location.state?.activeChatId) {
+            setConversaAtivaId(location.state.activeChatId);
+        }
+    }, [location.state]);
 
     // Efeito para buscar TODAS as conversas do usuário
     useEffect(() => {
@@ -175,7 +176,6 @@ function MensagensPage() {
                                     `Cor desatualizada detectada para ${outroUsuarioInfo.nome}. Corrigindo...`
                                 );
 
-                                // Cria a nova lista de participantes com a cor corrigida
                                 const novaListaParticipantes =
                                     conversa.participantesInfo.map((p) =>
                                         p.uid === outroUsuarioInfo.uid
@@ -244,32 +244,57 @@ function MensagensPage() {
 
     // Efeito para ouvir apenas mensagens NOVAS
     useEffect(() => {
-        if (!conversaAtivaId || !ultimaMensagemVisivel) return;
-        const q = query(
-            collection(db, 'conversas', conversaAtivaId, 'mensagens'),
-            where('timestamp', '>', ultimaMensagemVisivel.data().timestamp)
-        );
+        if (!conversaAtivaId) return;
+        let q;
+        if (ultimaMensagemVisivel) {
+            q = query(
+                collection(db, 'conversas', conversaAtivaId, 'mensagens'),
+                where('timestamp', '>', ultimaMensagemVisivel.data().timestamp),
+                orderBy('timestamp', 'asc')
+            );
+        } else {
+            q = query(
+                collection(db, 'conversas', conversaAtivaId, 'mensagens'),
+                orderBy('timestamp', 'asc')
+            );
+        }
+
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            if (querySnapshot.empty) return;
+
             const novasMensagens = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
             }));
-            if (novasMensagens.length > 0) {
-                setMensagens((mensagensAtuais) => [
-                    ...mensagensAtuais,
-                    ...novasMensagens,
-                ]);
-                setUltimaMensagemVisivel(
-                    querySnapshot.docs[querySnapshot.docs.length - 1]
+
+            setMensagens((mensagensAtuais) => {
+                const idsExistentes = new Set(mensagensAtuais.map((m) => m.id));
+
+                const mensagensRealmenteNovas = novasMensagens.filter(
+                    (m) => !idsExistentes.has(m.id)
                 );
+
+                if (mensagensRealmenteNovas.length === 0)
+                    return mensagensAtuais;
+
+                const ultimoDoc =
+                    querySnapshot.docs[querySnapshot.docs.length - 1];
+                setUltimaMensagemVisivel(ultimoDoc);
+
+                if (mensagensAtuais.length === 0) {
+                    setPrimeiraMensagemVisivel(querySnapshot.docs[0]);
+                }
+
                 setTimeout(() => {
                     if (mensagensAreaRef.current) {
                         mensagensAreaRef.current.scrollTop =
                             mensagensAreaRef.current.scrollHeight;
                     }
-                }, 0);
-            }
+                }, 100);
+                return [...mensagensAtuais, ...mensagensRealmenteNovas];
+            });
         });
+
         return () => unsubscribe();
     }, [conversaAtivaId, ultimaMensagemVisivel]);
 
@@ -282,7 +307,6 @@ function MensagensPage() {
         }
     }, [conversaAtivaId, currentUser]);
 
-    // ✅ EFEITO CORRIGIDO: Ouve o status e DADOS do outro usuário
     useEffect(() => {
         if (!conversaAtiva || conversaAtiva.isGrupo) {
             setStatusOutroUsuario(null);
@@ -327,9 +351,8 @@ function MensagensPage() {
         });
 
         return () => unsubscribe();
-    }, [conversaAtivaId, currentUser, conversaAtiva]); // Adicionado conversaAtiva como dependência
+    }, [conversaAtivaId, currentUser, conversaAtiva]);
 
-    // Funções passadas como props
     const getNomeConversa = useCallback(
         (conversa) => {
             if (conversa.isGrupo) return conversa.nomeGrupo;
@@ -348,16 +371,13 @@ function MensagensPage() {
             if (!conversa) return '#0a528a';
 
             if (conversa.isGrupo) {
-                // Lógica corrigida: se existir cor no chat, usa ela. Se existir no projeto, usa ela.
                 if (conversa.avatarColor && conversa.avatarColor !== '#0a528a')
                     return conversa.avatarColor;
                 if (conversa.corProjeto && conversa.corProjeto !== '#0a528a')
                     return conversa.corProjeto;
-                // Caso contrário, azul padrão
                 return '#0a528a';
             }
 
-            // Conversa privada: Usa a cor do perfil do usuário, ou azul se não tiver.
             const outroUsuario = conversa.participantesInfo?.find(
                 (p) => p.uid !== currentUser.uid
             );
@@ -400,7 +420,6 @@ function MensagensPage() {
             return;
         }
 
-        // 1. Guarda a posição e altura do scroll ANTES de adicionar novos itens
         const alturaScrollAntiga = scrollContainer.scrollHeight;
         const posicaoScrollAntiga = scrollContainer.scrollTop;
 
@@ -422,16 +441,13 @@ function MensagensPage() {
                 querySnapshot.docs[querySnapshot.docs.length - 1]
             );
 
-            // 2. Adiciona as mensagens antigas no início do array de estado
             setMensagens((mensagensAtuais) => [
                 ...novasMensagens,
                 ...mensagensAtuais,
             ]);
 
-            // Garante que o DOM foi atualizado antes de ajustar o scroll
             requestAnimationFrame(() => {
                 const alturaScrollNova = scrollContainer.scrollHeight;
-                // AQUI ESTÁ A CORREÇÃO: Usamos '=' em vez de '+='
                 scrollContainer.scrollTop =
                     alturaScrollNova - alturaScrollAntiga;
             });

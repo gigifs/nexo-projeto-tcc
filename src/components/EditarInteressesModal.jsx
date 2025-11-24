@@ -175,6 +175,9 @@ function EditarInteressesModal({ onSuccess }) {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tags'));
                 const tagsDoBanco = querySnapshot.docs.map((doc) => doc.data());
+
+                tagsDoBanco.sort((a, b) => a.nome.localeCompare(b.nome));
+
                 // Separa as tags em duas listas
                 setTodasAsHabilidades(
                     tagsDoBanco.filter((tag) => tag.tipo === 'habilidade')

@@ -15,6 +15,9 @@ import PerfilPage from './pages/PerfilPage.jsx';
 import EsqueciSenhaPage from './pages/EsqueciSenhaPage.jsx';
 import GerenciarProjetoPage from './pages/GerenciarProjetoPage.jsx';
 import MinhasCandidaturasPage from './pages/MinhasCandidaturasPage.jsx';
+import OnboardingPage from './pages/OnBoardingPage.jsx';
+import TermosDeUsoPage from './pages/TermosDeUsoPage.jsx';
+import PoliticaPrivacidadePage from './pages/PoliticaPrivacidadePage.jsx';
 
 function App() {
     return (
@@ -22,6 +25,9 @@ function App() {
             <Routes>
                 {/* rota principal */}
                 <Route path="/" element={<LandingPage />} />
+                
+                <Route path="/termos-de-uso" element={<TermosDeUsoPage />} />
+                <Route path="/politica-privacidade" element={<PoliticaPrivacidadePage />} />
 
                 <Route
                     path="/aguardando-verificacao"
@@ -32,6 +38,15 @@ function App() {
                     element={<VerificacaoConcluidaPage />}
                 />
                 <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />
+
+                <Route
+                    path="/onboarding"
+                    element={
+                        <ProtetorRota>
+                            <OnboardingPage />
+                        </ProtetorRota>
+                    }
+                />
 
                 <Route
                     path="/dashboard"

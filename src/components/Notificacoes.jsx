@@ -219,7 +219,11 @@ function Notificacoes({ onClose }) {
 
             const unsubscribes = projetosDoUsuario.map(projeto => {
                 const candidaturasRef = collection(db, 'projetos', projeto.id, 'candidaturas');
-                return onSnapshot(candidaturasRef, (snapshot) => {
+                
+                // Filtra apenas as candidaturas que estão com status 'pendente'
+                const qCandidaturas = query(candidaturasRef, where('status', '==', 'pendente'));
+
+                return onSnapshot(qCandidaturas, (snapshot) => {
                     const novasCandidaturas = snapshot.docs.map(doc => ({
                         id: doc.id,
                         projetoId: projeto.id,

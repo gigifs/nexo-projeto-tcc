@@ -8,6 +8,7 @@ import React, {
 import { onAuthStateChanged, signOut } from 'firebase/auth'; // função de autenticação em tempo real
 import { auth, db } from '../firebase'; // aqui sao as instancias de autenticação e banco de dados
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'; // ferramentas que leem dados para o firebase
+import PageLoader from '../pages/PageLoader';
 
 // a criação do contexto, como um armazém de dados ainda vazio
 const AuthContext = createContext();
@@ -72,8 +73,59 @@ export function AuthProvider({ children }) {
             setLoading(false); // nessa altura ja temos uma resposta definitiva do status do usuario, por isso false
         });
 
-        return unsubscribe; // limpa o ouvinte quando ele for removido da tela, previne vazamento de memoria
-    }, []); // [] = garante que o trecho so seja executado uma vez
+        const handleTabClose = () => {
+            if (auth.currentUser) {
+                const userDocRef = doc(db, 'users', auth.currentUser.uid);
+                setDoc(
+                    userDocRef,
+                    {
+                        status: {
+                            online: false,
+                            vistoPorUltimo: serverTimestamp(),
+                        },
+                    },
+                    { merge: true }
+                ).catch((err) =>
+                    console.error('Erro ao definir offline no fecho:', err)
+                );
+            }
+        };
+
+        window.addEventListener('beforeunload', handleTabClose);
+
+        return () => {
+            unsubscribe();
+            window.removeEventListener('beforeunload', handleTabClose);
+        };
+    }, [fetchUserData]); // [] = garante que o trecho so seja executado uma vez
+
+    useEffect(() => {
+        let interval;
+        if (currentUser) {
+            interval = setInterval(async () => {
+                try {
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    await setDoc(
+                        userDocRef,
+                        {
+                            status: {
+                                online: true,
+                                vistoPorUltimo: serverTimestamp(),
+                            },
+                        },
+                        { merge: true }
+                    );
+                    console.log('Heartbeat enviado: Status online atualizado.');
+                } catch (error) {
+                    console.error('Erro no heartbeat:', error);
+                }
+            }, 120000); // 120.000 ms = 2 minutos
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [currentUser]);
 
     // função de logout
     const logout = async () => {
@@ -112,7 +164,8 @@ export function AuthProvider({ children }) {
     // finalmente ele passa o objeto para o nosso contexto
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {/* Se estiver carregando, mostra o Loader. Se não, mostra o app */}
+            {loading ? <PageLoader /> : children}
         </AuthContext.Provider>
     );
 }

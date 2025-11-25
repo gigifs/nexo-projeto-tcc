@@ -62,7 +62,7 @@ const ButtonGroup = styled.div`
 const MensagemErro = styled.p`
     color: red;
     font-size: 14px;
-    margin-top: -15px;
+    margin-top: 15px;
     margin-bottom: 15px;
     min-height: 20px;
 `;

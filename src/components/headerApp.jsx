@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import logoNexo from '../assets/logo.svg';
-import { FiBell, FiChevronDown, FiMenu, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
+import {
+    FiBell,
+    FiChevronDown,
+    FiMenu,
+    FiChevronsLeft,
+    FiChevronsRight,
+} from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import MenuSuspenso from './MenuSuspenso.jsx';
 import Notificacoes from './Notificacoes.jsx';
@@ -14,6 +20,7 @@ import {
     onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { getInitials } from '../utils/iniciaisNome.js';
 
 const HeaderEstilizado = styled.header`
     display: flex;
@@ -45,9 +52,9 @@ const MenuToggleButton = styled.button`
     color: #7c2256;
 
     &:hover {
-    color: #a21065ff;
-    background-color: #c56ca02f;
-  }
+        color: #a21065ff;
+        background-color: #c56ca02f;
+    }
 
     @media (max-width: 1024px) {
         display: block; /* Mostra em telas menores */
@@ -135,12 +142,6 @@ const Nome = styled.span`
     }
 `;
 
-// Função para pegar as iniciais do nome
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
-};
-
 function HeaderApp({ isMenuOpen, onToggleMenu }) {
     const { userData, currentUser } = useAuth();
     const [menuAberto, setMenuAberto] = useState(false);
@@ -224,7 +225,11 @@ function HeaderApp({ isMenuOpen, onToggleMenu }) {
                 {/* Botão do Menu Hambúrguer */}
                 <MenuToggleButton onClick={onToggleMenu}>
                     {/* Muda o ícone baseado no estado isMenuOpen */}
-                    {isMenuOpen ? <FiChevronsRight size={30}/> : <FiMenu size={30} />}
+                    {isMenuOpen ? (
+                        <FiChevronsRight size={30} />
+                    ) : (
+                        <FiMenu size={30} />
+                    )}
                 </MenuToggleButton>
                 <Logo src={logoNexo} alt="Logo da empresa Nexo" />
             </LeftSection>

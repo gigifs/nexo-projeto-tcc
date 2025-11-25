@@ -3,6 +3,7 @@ import Modal from './Modal';
 import Botao from './Botao';
 import { FiGithub, FiLinkedin, FiUser } from 'react-icons/fi';
 import { FaGraduationCap } from 'react-icons/fa';
+import { getInitials } from '../utils/iniciaisNome';
 
 const ModalWrapper = styled.div`
     display: flex;
@@ -153,11 +154,6 @@ const FooterAcoes = styled.div`
     padding-top: 0.95rem;
     border-top: 1px solid #eee;
 `;
-
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    return `${nome.charAt(0)}${sobrenome ? sobrenome.charAt(0) : ''}`.toUpperCase();
-};
 
 // função para o modal tipo integrante, já que ele tem botões + ações
 function PerfilUsuarioModal({

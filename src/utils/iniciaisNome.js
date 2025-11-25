@@ -1,11 +1,21 @@
 export const getInitials = (nome, sobrenome) => {
     if (!nome) return '?';
+
+    const nomeLimpo = nome.trim();
+
     if (sobrenome) {
-        return `${nome[0]}${sobrenome[0]}`.toUpperCase();
+        const sobrenomeLimpo = sobrenome.trim();
+        if (sobrenomeLimpo.length > 0) {
+            return `${nomeLimpo[0]}${sobrenomeLimpo[0]}`.toUpperCase();
+        }
     }
-    const parts = nome.trim().split(/\s+/);
-    if (parts.length > 1 && parts[1]) {
-        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+
+    const partes = nomeLimpo.split(/\s+/);
+
+    if (partes.length >= 2) {
+        // Pega a primeira letra do primeiro nome e a primeira do segundo nome
+        return `${partes[0][0]}${partes[1][0]}`.toUpperCase();
     }
-    return nome.substring(0, 2).toUpperCase();
+
+    return nomeLimpo.substring(0, 2).toUpperCase();
 };

@@ -36,7 +36,7 @@ O projeto foi desenvolvido utilizando as seguintes tecnologias modernas:
 * **Link do Figma:** [Figma](https://www.figma.com/design/hy8ZBXRpvZSutcLDjUVqkH/PROJETO-TCC-OFICIAL?node-id=1-27&t=KjsJHcoseCuR5PmW-1)
 
 ### Regras do nosso Banco de Dados:
-* **Link das Regras:** [Clique aqui para abrir o PDF](public/regrasFirestore.pdf)
+* **Link das Regras:** [Clique aqui para abrir o PDF](public/regras_firestore.txt)
 
 ## 👥 Autores
 

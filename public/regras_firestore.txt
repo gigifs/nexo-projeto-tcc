@@ -91,7 +91,7 @@ service cloud.firestore {
                             (request.auth.uid in get(/databases/$(database)/documents/conversas/$(conversaId)).data.participantes);
 
         allow update, delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
-      }
-    }
-  }
+      }
+    }
+  }
 }

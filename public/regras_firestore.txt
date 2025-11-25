@@ -1,0 +1,102 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- FUNÇÕES AUXILIARES ---
+    
+    // Verifica se o usuário está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+		// Verifica se o usuário é o dono do documento
+    function isUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+		// Busca os dados de um projeto específico
+    function getProjectData(projetoId) {
+      return get(/databases/$(database)/documents/projetos/$(projetoId)).data;
+    }
+
+		// Verifica se o usuário logado é o dono do projeto
+    function isProjectOwner(projetoId) {
+      return isSignedIn() && request.auth.uid == getProjectData(projetoId).donoId;
+    }
+
+    // --- REGRAS DAS COLEÇÕES ---
+
+    // ======= USUÁRIOS =======
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isUser(userId);
+      
+      match /minhasCandidaturas/{projetoId} {
+        allow read, create, delete: if isUser(userId);
+        allow update: if isUser(userId) || isProjectOwner(projetoId);
+      }
+    }
+
+    // ======= PROJETOS =======
+    match /projetos/{projetoId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn() 
+                    && request.resource.data.donoId == request.auth.uid;
+
+      allow update: if isSignedIn() && (
+        resource.data.donoId == request.auth.uid ||
+        (
+          request.auth.uid in resource.data.participantIds &&
+          !(request.auth.uid in request.resource.data.participantIds) &&
+          request.resource.data.donoId == resource.data.donoId &&
+          request.resource.data.nome == resource.data.nome
+        )
+      );
+
+      allow delete: if isSignedIn() && resource.data.donoId == request.auth.uid;
+
+      // ======= SUBCOLEÇÃO Candidaturas =======
+      match /candidaturas/{candidaturaId} {
+        allow create: if isUser(candidaturaId);
+
+        allow read: if (resource.data.donoId == request.auth.uid) || 
+                       isProjectOwner(projetoId) || 
+                       isUser(candidaturaId);
+
+        allow update, delete: if (resource.data.donoId == request.auth.uid) || 
+                                 isProjectOwner(projetoId) || 
+                                 isUser(candidaturaId);
+      }
+    }
+
+    // ======= TAGS =======
+    match /tags/{tagId} {
+      allow read: if isSignedIn();
+    }
+
+    // ======= CONVERSAS =======
+    match /conversas/{conversaId} {
+      allow read, update: if isSignedIn() && (
+        (request.auth.uid in resource.data.participantes) ||
+        (resource.data.projetoId != null && isProjectOwner(resource.data.projetoId))
+      );
+
+      allow create: if isSignedIn() && 
+                    (request.auth.uid in request.resource.data.participantes);
+
+      allow delete: if isSignedIn() && (
+        (resource.data.projetoId != null && isProjectOwner(resource.data.projetoId)) ||
+        (request.auth.uid in resource.data.participantes)
+      );
+
+      match /mensagens/{mensagemId} {
+        allow read, create: if isSignedIn() && 
+                            (request.auth.uid in get(/databases/$(database)/documents/conversas/$(conversaId)).data.participantes);
+
+        allow update, delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
+      }
+    }
+  }
+}

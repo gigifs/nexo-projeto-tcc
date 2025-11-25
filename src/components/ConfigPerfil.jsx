@@ -2,13 +2,21 @@ import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
 import Botao from './Botao';
 import Modal from './Modal';
 import EditarInteressesModal from './EditarInteressesModal';
 import { FiEdit, FiGithub, FiLinkedin, FiEdit3 } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
 import { getInitials } from '../utils/iniciaisNome';
+import {
+    doc,
+    setDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    writeBatch,
+} from 'firebase/firestore';
 
 // Container principal
 const FormContainer = styled.div`
@@ -400,8 +408,83 @@ function ConfigPerfil() {
 
         setLoading(true);
         try {
-            const userDocRef = doc(db, 'users', currentUser.uid);
-            await setDoc(userDocRef, formData, { merge: true });
+            const batch = writeBatch(db);
+            const uid = currentUser.uid;
+
+            const userDocRef = doc(db, 'users', uid);
+            batch.set(userDocRef, formData, { merge: true });
+
+            const projetosRef = collection(db, 'projetos');
+            const qProjetos = query(
+                projetosRef,
+                where('participantIds', 'array-contains', uid)
+            );
+            const projetosSnapshot = await getDocs(qProjetos);
+
+            projetosSnapshot.docs.forEach((docProjeto) => {
+                const dadosProjeto = docProjeto.data();
+                const updates = {};
+                let mudouAlgo = false;
+
+                // Atualiza se for Dono
+                if (dadosProjeto.donoId === uid) {
+                    updates.donoNome = formData.nome;
+                    updates.donoSobrenome = formData.sobrenome;
+                    mudouAlgo = true;
+                }
+
+                // Atualiza array de participantes visual
+                if (dadosProjeto.participantes) {
+                    const novosParticipantes = dadosProjeto.participantes.map(
+                        (p) => {
+                            if (p.uid === uid) {
+                                return {
+                                    ...p,
+                                    nome: formData.nome,
+                                    sobrenome: formData.sobrenome,
+                                };
+                            }
+                            return p;
+                        }
+                    );
+                    updates.participantes = novosParticipantes;
+                    mudouAlgo = true;
+                }
+
+                if (mudouAlgo) {
+                    batch.update(docProjeto.ref, updates);
+                }
+            });
+
+            const conversasRef = collection(db, 'conversas');
+            const qConversas = query(
+                conversasRef,
+                where('participantes', 'array-contains', uid)
+            );
+            const conversasSnapshot = await getDocs(qConversas);
+
+            conversasSnapshot.docs.forEach((docConversa) => {
+                const dadosChat = docConversa.data();
+                if (dadosChat.participantesInfo) {
+                    const novosInfos = dadosChat.participantesInfo.map((p) => {
+                        if (p.uid === uid) {
+                            return {
+                                ...p,
+                                nome: formData.nome,
+                                sobrenome: formData.sobrenome,
+                            };
+                        }
+                        return p;
+                    });
+                    batch.update(docConversa.ref, {
+                        participantesInfo: novosInfos,
+                    });
+                }
+            });
+
+            // Executa todas as mudanças de uma vez
+            await batch.commit();
+
             await refreshUserData();
             addToast('Informações salvas com sucesso!', 'success');
         } catch (error) {
@@ -409,8 +492,8 @@ function ConfigPerfil() {
             addToast('Ocorreu um erro ao salvar. Tente novamente.', 'error');
         } finally {
             setLoading(false);
-        }
-    };
+        }
+    };
 
     const handleCancel = () => {
         if (userData) {

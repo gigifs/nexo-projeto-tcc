@@ -47,14 +47,9 @@ service cloud.firestore {
 
       allow update: if isSignedIn() && (
         resource.data.donoId == request.auth.uid ||
-        (
-          request.auth.uid in resource.data.participantIds &&
-          !(request.auth.uid in request.resource.data.participantIds) &&
-          request.resource.data.donoId == resource.data.donoId &&
-          request.resource.data.nome == resource.data.nome
-        )
+        (request.auth.uid in resource.data.participantIds)
       );
-
+      
       allow delete: if isSignedIn() && resource.data.donoId == request.auth.uid;
 
       // ======= SUBCOLEÇÃO Candidaturas =======
@@ -96,7 +91,7 @@ service cloud.firestore {
                             (request.auth.uid in get(/databases/$(database)/documents/conversas/$(conversaId)).data.participantes);
 
         allow update, delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
-      }
-    }
-  }
+      }
+    }
+  }
 }

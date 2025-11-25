@@ -10,10 +10,18 @@ import {
     updatePassword,
     deleteUser,
 } from 'firebase/auth';
-import { auth, db } from '../firebase';
-import { doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import {
+    doc,
+    deleteDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    updateDoc,
+} from 'firebase/firestore';
 import { useToast } from '../contexts/ToastContext';
-import { FiMail, FiLock } from "react-icons/fi";
+import { FiMail, FiLock } from 'react-icons/fi';
 
 const LayoutContainer = styled.div`
     background-color: #f5fafc;
@@ -21,7 +29,7 @@ const LayoutContainer = styled.div`
     padding: 2.5rem 10rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     display: flex;
-    gap: 11.25rem; /* Espaço entre as colunas */
+    gap: 11.25rem;
 
     @media (max-width: 1600px) {
         padding: 2.5rem 5rem;
@@ -46,24 +54,23 @@ const LayoutContainer = styled.div`
 `;
 
 const Coluna = styled.div`
-    flex: 1; /* Faz as duas colunas terem a mesma largura */
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Espaço vertical entre as seções */
+    gap: 1rem;
 `;
 
 const Secao = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 0.6rem; /* Espaço entre o título e o conteúdo da seção */
+    gap: 0.6rem;
 `;
 
 const TituloSecao = styled.h3`
     font-size: 1.25rem;
     font-weight: 500;
-    color: #7c2256; /* Cor roxa */
+    color: #7c2256;
     margin: 0;
-
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -96,7 +103,7 @@ const Input = styled.input`
         box-shadow 0.2s;
 
     &::placeholder {
-        color: #999999; /* cor do placeholder!! */
+        color: #999999;
         opacity: 1;
     }
 
@@ -124,7 +131,7 @@ const InfoBox = styled.div`
 const Mensagem = styled.p`
     font-size: 0.875rem;
     text-align: left;
-    min-height: 1.25rem; // Garante que o layout não "pule" quando a mensagem aparece
+    min-height: 1.25rem;
     color: ${(props) => (props.$sucesso ? 'green' : 'red')};
     margin: 0.5rem 0 0 0;
 `;
@@ -139,7 +146,6 @@ const ButtonContainer = styled.div`
 `;
 
 function PrivacidadeSeguranca() {
-    // Usamos o 'logout' do nosso AuthContext para deslogar o usuário após a exclusão
     const { currentUser, logout } = useAuth();
 
     // ESTADOS PARA O FORMULÁRIO DE ALTERAR SENHA
@@ -157,7 +163,6 @@ function PrivacidadeSeguranca() {
 
     const { addToast } = useToast();
 
-    // Função para limpar as mensagens de feedback após um tempo
     const limparMensagem = () => {
         setTimeout(() => {
             setMensagemSenha('');
@@ -166,9 +171,8 @@ function PrivacidadeSeguranca() {
 
     const handleAlterarSenha = async (evento) => {
         evento.preventDefault();
-        setMensagemSenha(''); // Limpa mensagens antigas
+        setMensagemSenha('');
 
-        // Validações iniciais
         if (novaSenha !== confirmarSenha) {
             setSucessoSenha(false);
             setMensagemSenha('A nova senha e a confirmação não coincidem.');
@@ -180,22 +184,16 @@ function PrivacidadeSeguranca() {
             return;
         }
 
-        setLoadingSenha(true); // Ativa o estado de carregamento
+        setLoadingSenha(true);
 
         try {
-            // Cria a "credencial" para verificar a identidade do usuário com a senha atual
             const credencial = EmailAuthProvider.credential(
                 currentUser.email,
                 senhaAtual
             );
-
-            // Reautentica o usuário para garantir que é ele mesmo
             await reauthenticateWithCredential(currentUser, credencial);
-
-            // Se a reautenticação for bem-sucedida, atualiza a senha
             await updatePassword(currentUser, novaSenha);
 
-            // Feedback de sucesso
             setSucessoSenha(true);
             setMensagemSenha('Senha atualizada com sucesso!');
             setSenhaAtual('');
@@ -210,14 +208,13 @@ function PrivacidadeSeguranca() {
                 setMensagemSenha('Ocorreu um erro. Tente novamente.');
             }
         } finally {
-            setLoadingSenha(false); // Desativa o estado de carregamento, mesmo se der erro
-            limparMensagem(); // Agenda a limpeza da mensagem
+            setLoadingSenha(false);
+            limparMensagem();
         }
     };
 
-    // Função que será chamada pelo formulário dentro do modal de exclusão
     const handleConfirmarExclusao = async (senhaParaExcluir) => {
-        setDeleteError(''); // Limpa erros antigos
+        setDeleteError('');
         if (!senhaParaExcluir) {
             setDeleteError('Você precisa digitar sua senha para confirmar.');
             return;
@@ -226,32 +223,137 @@ function PrivacidadeSeguranca() {
         setDeleteLoading(true);
 
         try {
-            // Reautentica o usuário para confirmar a identidade antes da exclusão
             const credencial = EmailAuthProvider.credential(
                 currentUser.email,
                 senhaParaExcluir
             );
             await reauthenticateWithCredential(currentUser, credencial);
 
-            // Cria uma referência para o documento do usuário na coleção 'usuarios'
-            const userDocRef = doc(db, 'users', currentUser.uid);
+            const uid = currentUser.uid;
+            const projetosRef = collection(db, 'projetos');
+            const conversasRef = collection(db, 'conversas');
 
+            const qDono = query(projetosRef, where('donoId', '==', uid));
+            const snapshotDono = await getDocs(qDono);
+
+            for (const projetoDoc of snapshotDono.docs) {
+                const qChatProjeto = query(
+                    conversasRef,
+                    where('projetoId', '==', projetoDoc.id)
+                );
+                const snapChat = await getDocs(qChatProjeto);
+                const deleteChatsPromises = snapChat.docs.map((c) =>
+                    deleteDoc(c.ref)
+                );
+                await Promise.all(deleteChatsPromises);
+
+                const candidaturasRef = collection(
+                    db,
+                    'projetos',
+                    projetoDoc.id,
+                    'candidaturas'
+                );
+                const snapCand = await getDocs(candidaturasRef);
+                const deleteCandPromises = snapCand.docs.map((c) =>
+                    deleteDoc(c.ref)
+                );
+                await Promise.all(deleteCandPromises);
+
+                await deleteDoc(projetoDoc.ref);
+            }
+
+            const qParticipante = query(
+                projetosRef,
+                where('participantIds', 'array-contains', uid)
+            );
+            const snapshotParticipante = await getDocs(qParticipante);
+
+            for (const projetoDoc of snapshotParticipante.docs) {
+                const dados = projetoDoc.data();
+
+                const novosParticipantes = (dados.participantes || []).filter(
+                    (p) => p.uid !== uid
+                );
+                const novosParticipantIds = (dados.participantIds || []).filter(
+                    (id) => id !== uid
+                );
+
+                await updateDoc(projetoDoc.ref, {
+                    participantes: novosParticipantes,
+                    participantIds: novosParticipantIds,
+                });
+
+                const qChat = query(
+                    conversasRef,
+                    where('projetoId', '==', projetoDoc.id)
+                );
+                const snapChat = await getDocs(qChat);
+
+                if (!snapChat.empty) {
+                    const chatDoc = snapChat.docs[0];
+                    const chatData = chatDoc.data();
+
+                    const novosPartChat = (chatData.participantes || []).filter(
+                        (id) => id !== uid
+                    );
+                    const novosPartInfoChat = (
+                        chatData.participantesInfo || []
+                    ).filter((p) => p.uid !== uid);
+
+                    const newUnread = { ...chatData.unreadCounts };
+                    delete newUnread[uid];
+
+                    await updateDoc(chatDoc.ref, {
+                        participantes: novosPartChat,
+                        participantesInfo: novosPartInfoChat,
+                        unreadCounts: newUnread,
+                    });
+                }
+            }
+
+            const qPrivadas = query(
+                conversasRef,
+                where('isGrupo', '==', false),
+                where('participantes', 'array-contains', uid)
+            );
+            const snapshotPrivadas = await getDocs(qPrivadas);
+
+            const deletePrivadasPromises = snapshotPrivadas.docs.map((doc) =>
+                deleteDoc(doc.ref)
+            );
+            await Promise.all(deletePrivadasPromises);
+
+            const minhasCandidaturasRef = collection(
+                db,
+                'users',
+                uid,
+                'minhasCandidaturas'
+            );
+            const snapMinhasCand = await getDocs(minhasCandidaturasRef);
+            const deleteMinhasCandPromises = snapMinhasCand.docs.map((c) =>
+                deleteDoc(c.ref)
+            );
+            await Promise.all(deleteMinhasCandPromises);
+
+            const userDocRef = doc(db, 'users', uid);
             await deleteDoc(userDocRef);
 
-            // Se a reautenticação der certo, exclui o usuário
             await deleteUser(currentUser);
 
-            // Se a exclusão der certo, fecha o modal e desloga
-            addToast('Sua conta foi excluída com sucesso.', 'success');
+            addToast('Sua conta e todos os dados foram excluídos.', 'success');
             setShowDeleteModal(false);
             await logout();
         } catch (error) {
             console.error('Erro ao excluir conta:', error);
-            if (error.code === 'auth/wrong-password') {
+            if (
+                error.code === 'auth/wrong-password' ||
+                error.code === 'auth/invalid-credential' ||
+                error.code === 'auth/invalid-login-credentials'
+            ) {
                 setDeleteError('A senha está incorreta.');
             } else {
                 setDeleteError(
-                    'Ocorreu um erro. A conta pode não ter sido excluída completamente.'
+                    'Erro ao limpar dados. Verifique permissões ou tente novamente.'
                 );
             }
         } finally {
@@ -264,17 +366,16 @@ function PrivacidadeSeguranca() {
             <Coluna>
                 <Secao>
                     <TituloSecao>
-                        <FiMail size={20}/> E-mail
-                        </TituloSecao>
-                    {/* Exibe o e-mail do usuário logado, desabilitado para edição */}
+                        <FiMail size={20} /> E-mail
+                    </TituloSecao>
                     <Input value={currentUser?.email || ''} disabled />
                 </Secao>
 
                 <form onSubmit={handleAlterarSenha}>
                     <Secao>
                         <TituloSecao>
-                            <FiLock size={20}/> Alterar Senha
-                            </TituloSecao>
+                            <FiLock size={20} /> Alterar Senha
+                        </TituloSecao>
                         <InputGroup>
                             <Label>Senha Atual</Label>
                             <Input
@@ -312,12 +413,11 @@ function PrivacidadeSeguranca() {
                             <Botao
                                 variant="hab-int"
                                 type="submit"
-                                disabled={loadingSenha} // Desabilita o botão enquanto carrega
+                                disabled={loadingSenha}
                             >
                                 {loadingSenha ? 'A atualizar...' : 'Atualizar'}
                             </Botao>
                         </div>
-                        {/* Exibe a mensagem de feedback (sucesso ou erro) */}
                         <Mensagem $sucesso={sucessoSenha}>
                             {mensagemSenha}
                         </Mensagem>
@@ -345,7 +445,6 @@ function PrivacidadeSeguranca() {
                 <Secao>
                     <TituloSecao>Gerenciamento de Conta</TituloSecao>
                     <ButtonContainer>
-                        {/* Botão para abrir o modal de exclusão */}
                         <Botao
                             variant="excluir"
                             onClick={() => setShowDeleteModal(true)}
@@ -356,7 +455,6 @@ function PrivacidadeSeguranca() {
                 </Secao>
             </Coluna>
 
-            {/* O Modal de exclusão só é renderizado se showDeleteModal for true */}
             <Modal
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}

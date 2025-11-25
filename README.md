@@ -38,7 +38,8 @@ O projeto foi desenvolvido utilizando as seguintes tecnologias modernas:
 
 ### Regras do nosso Banco de Dados:
 
-- **Link das Regras:** [Clique aqui para abrir o PDF](public/regras-firestore.pdf)
+* **Link das Regras:** [Clique aqui para abrir o TXT](public/regras_firestore.txt)
+
 
 ## 👥 Autores
 

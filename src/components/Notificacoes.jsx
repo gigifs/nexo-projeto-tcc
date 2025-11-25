@@ -15,6 +15,7 @@ import {
     deleteDoc,
     writeBatch,
 } from 'firebase/firestore';
+import { getInitials } from '../utils/iniciaisNome';
 
 const NotificacaoContainer = styled.div`
     position: absolute;
@@ -29,7 +30,7 @@ const NotificacaoContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 0.95rem;
-    
+
     @media (max-width: 768px) {
         position: fixed; /* ocupa a tela toda */
         top: 0;
@@ -42,7 +43,6 @@ const NotificacaoContainer = styled.div`
         z-index: 2100; /* garante que fica acima de tudo */
         padding: 1.25rem;
     }
-
 `;
 
 const Header = styled.div`
@@ -59,7 +59,7 @@ const Titulo = styled.h2`
 `;
 
 const BotaoLimpar = styled.button`
-    background-color: #7C2256;
+    background-color: #7c2256;
     color: #f5fafc;
     border: none;
     border-radius: 0.5rem;
@@ -124,8 +124,8 @@ const ItemNotificacao = styled.button`
     padding: 0;
     margin: 0;
     font-family: inherit; /* Usa a mesma fonte do resto da página */
-    text-align: left;   /* Alinha o texto à esquerda */
-    width: 100%;        /* Ocupa toda a largura */
+    text-align: left; /* Alinha o texto à esquerda */
+    width: 100%; /* Ocupa toda a largura */
     display: flex;
     align-items: center;
     gap: 0.95rem;
@@ -175,11 +175,11 @@ const Acoes = styled.div`
 const IconeLixeira = styled.div`
     color: #555;
     transition: color 0.2s;
-    
+
     /* O hover agora é no container do ícone, não no botão pai */
     ${ItemNotificacao}:hover & {
         &:hover {
-             color: #d9534f;
+            color: #d9534f;
         }
     }
 `;
@@ -190,11 +190,6 @@ const BolinhaNaoLida = styled.div`
     background-color: #28a745;
     border-radius: 50%;
 `;
-
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    return `${nome.charAt(0)}${sobrenome ? sobrenome.charAt(0) : ''}`.toUpperCase();
-};
 
 function Notificacoes({ onClose }) {
     const { currentUser } = useAuth();
@@ -207,84 +202,126 @@ function Notificacoes({ onClose }) {
         if (!currentUser) return;
         setLoading(true);
         const projetosRef = collection(db, 'projetos');
-        const qProjetos = query(projetosRef, where('donoId', '==', currentUser.uid));
+        const qProjetos = query(
+            projetosRef,
+            where('donoId', '==', currentUser.uid)
+        );
 
         const getProjetosEInscrever = async () => {
             const projetosSnapshot = await getDocs(qProjetos);
-            const projetosDoUsuario = projetosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const projetosDoUsuario = projetosSnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
             if (projetosDoUsuario.length === 0) {
                 setLoading(false);
                 return () => {};
             }
 
-            const unsubscribes = projetosDoUsuario.map(projeto => {
-                const candidaturasRef = collection(db, 'projetos', projeto.id, 'candidaturas');
-                
+            const unsubscribes = projetosDoUsuario.map((projeto) => {
+                const candidaturasRef = collection(
+                    db,
+                    'projetos',
+                    projeto.id,
+                    'candidaturas'
+                );
+
                 // Filtra apenas as candidaturas que estão com status 'pendente'
-                const qCandidaturas = query(candidaturasRef, where('status', '==', 'pendente'));
+                const qCandidaturas = query(
+                    candidaturasRef,
+                    where('status', '==', 'pendente')
+                );
 
                 return onSnapshot(qCandidaturas, (snapshot) => {
-                    const novasCandidaturas = snapshot.docs.map(doc => ({
+                    const novasCandidaturas = snapshot.docs.map((doc) => ({
                         id: doc.id,
                         projetoId: projeto.id,
                         projetoNome: projeto.nome,
-                        ...doc.data()
+                        ...doc.data(),
                     }));
-                    
-                    setNotificacoes(prev => {
-                        const outrasNotificacoes = prev.filter(n => n.projetoId !== projeto.id);
+
+                    setNotificacoes((prev) => {
+                        const outrasNotificacoes = prev.filter(
+                            (n) => n.projetoId !== projeto.id
+                        );
                         return [...outrasNotificacoes, ...novasCandidaturas];
                     });
                     setLoading(false);
                 });
             });
-            return () => unsubscribes.forEach(unsub => unsub());
+            return () => unsubscribes.forEach((unsub) => unsub());
         };
 
         const unsubscribePromise = getProjetosEInscrever();
         return () => {
-            unsubscribePromise.then(cleanup => cleanup && cleanup());
+            unsubscribePromise.then((cleanup) => cleanup && cleanup());
         };
     }, [currentUser]);
 
     const handleNotificacaoClick = async (notif) => {
         // Este log nos dirá se a função está sendo chamada e qual o ID do projeto, pro debug
-        console.log('Notificação clicada! Tentando navegar para o projeto com ID:', notif.projetoId);
+        console.log(
+            'Notificação clicada! Tentando navegar para o projeto com ID:',
+            notif.projetoId
+        );
 
         if (!notif.projetoId) {
-            console.error("Erro: ID do projeto não encontrado na notificação!");
+            console.error('Erro: ID do projeto não encontrado na notificação!');
             return;
         }
 
-        const notifRef = doc(db, 'projetos', notif.projetoId, 'candidaturas', notif.id);
+        const notifRef = doc(
+            db,
+            'projetos',
+            notif.projetoId,
+            'candidaturas',
+            notif.id
+        );
         if (!notif.lida) {
             await updateDoc(notifRef, { lida: true });
         }
-        
+
         navigate(`/dashboard/meus-projetos/${notif.projetoId}/gerenciar`);
         onClose();
     };
 
     const handleDelete = async (e, notif) => {
         e.stopPropagation();
-        const notifRef = doc(db, 'projetos', notif.projetoId, 'candidaturas', notif.id);
+        const notifRef = doc(
+            db,
+            'projetos',
+            notif.projetoId,
+            'candidaturas',
+            notif.id
+        );
         await deleteDoc(notifRef);
     };
 
     const handleLimparTudo = async () => {
-        if (notificacoes.length === 0 || !window.confirm("Tem certeza que deseja limpar todas as notificações?")) {
+        if (
+            notificacoes.length === 0 ||
+            !window.confirm(
+                'Tem certeza que deseja limpar todas as notificações?'
+            )
+        ) {
             return;
         }
         const batch = writeBatch(db);
-        notificacoes.forEach(notif => {
-            const notifRef = doc(db, 'projetos', notif.projetoId, 'candidaturas', notif.id);
+        notificacoes.forEach((notif) => {
+            const notifRef = doc(
+                db,
+                'projetos',
+                notif.projetoId,
+                'candidaturas',
+                notif.id
+            );
             batch.delete(notifRef);
         });
         await batch.commit();
-    }
+    };
 
     const notificacoesOrdenadas = notificacoes
-        .filter(notif => {
+        .filter((notif) => {
             if (abaAtiva === 'nao_lidas') {
                 return !notif.lida;
             }
@@ -300,38 +337,65 @@ function Notificacoes({ onClose }) {
         <NotificacaoContainer>
             <Header>
                 <Titulo>Notificações</Titulo>
-                <div style={{display: 'flex', alignItems: 'center', gap: '0.95rem'}}>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.95rem',
+                    }}
+                >
                     <BotaoLimpar onClick={handleLimparTudo}>Limpar</BotaoLimpar>
-                    <CloseButton onClick={onClose}><FiX /></CloseButton>
+                    <CloseButton onClick={onClose}>
+                        <FiX />
+                    </CloseButton>
                 </div>
             </Header>
             <AbasContainer>
-                <Aba $ativo={abaAtiva === 'todas'} onClick={() => setAbaAtiva('todas')}>
+                <Aba
+                    $ativo={abaAtiva === 'todas'}
+                    onClick={() => setAbaAtiva('todas')}
+                >
                     Todas
                 </Aba>
-                <Aba $ativo={abaAtiva === 'nao_lidas'} onClick={() => setAbaAtiva('nao_lidas')}>
+                <Aba
+                    $ativo={abaAtiva === 'nao_lidas'}
+                    onClick={() => setAbaAtiva('nao_lidas')}
+                >
                     Não Lidas
                 </Aba>
             </AbasContainer>
             <ListaNotificacoes>
                 {loading && <p>Carregando...</p>}
-                {!loading && notificacoesOrdenadas.length === 0 && <p>Nenhuma notificação para exibir.</p>}
+                {!loading && notificacoesOrdenadas.length === 0 && (
+                    <p>Nenhuma notificação para exibir.</p>
+                )}
 
-                {!loading && notificacoesOrdenadas.map((notif) => (
-                    <ItemNotificacao key={`${notif.projetoId}-${notif.id}`} onClick={() => handleNotificacaoClick(notif)}>
-                        <Avatar $bgColor={notif.avatarColor}>{getInitials(notif.nome, notif.sobrenome)}</Avatar>
-                        <ConteudoTexto>
-                            <b>{notif.nome} {notif.sobrenome}</b> gostaria de participar do projeto <NomeProjeto>{notif.projetoNome}</NomeProjeto>
-                        </ConteudoTexto>
-                        <Acoes>
-                            {!notif.lida && <BolinhaNaoLida />}
-                            <IconeLixeira onClick={(e) => handleDelete(e, notif)}>
-                                <FiTrash2 size={20} />
-                            </IconeLixeira>
-                        </Acoes>
-                    </ItemNotificacao>
-
-                ))}
+                {!loading &&
+                    notificacoesOrdenadas.map((notif) => (
+                        <ItemNotificacao
+                            key={`${notif.projetoId}-${notif.id}`}
+                            onClick={() => handleNotificacaoClick(notif)}
+                        >
+                            <Avatar $bgColor={notif.avatarColor}>
+                                {getInitials(notif.nome, notif.sobrenome)}
+                            </Avatar>
+                            <ConteudoTexto>
+                                <b>
+                                    {notif.nome} {notif.sobrenome}
+                                </b>{' '}
+                                gostaria de participar do projeto{' '}
+                                <NomeProjeto>{notif.projetoNome}</NomeProjeto>
+                            </ConteudoTexto>
+                            <Acoes>
+                                {!notif.lida && <BolinhaNaoLida />}
+                                <IconeLixeira
+                                    onClick={(e) => handleDelete(e, notif)}
+                                >
+                                    <FiTrash2 size={20} />
+                                </IconeLixeira>
+                            </Acoes>
+                        </ItemNotificacao>
+                    ))}
             </ListaNotificacoes>
         </NotificacaoContainer>
     );

@@ -27,6 +27,7 @@ import JanelaChat from '../components/chat/JanelaChat';
 import Modal from '../components/Modal';
 import VerDetalhesModal from '../components/VerDetalhesModal';
 import PerfilUsuarioModal from '../components/PerfilUsuarioModal';
+import { getInitials } from '../utils/iniciaisNome';
 import { FiMessageSquare } from 'react-icons/fi';
 
 const ChatLayout = styled.div`
@@ -85,12 +86,6 @@ const Placeholder = styled.div`
         display: none;
     }
 `;
-
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '?';
-    if (!sobrenome) return nome.substring(0, 2).toUpperCase();
-    return `${nome[0]}${sobrenome[0]}`.toUpperCase();
-};
 
 const formatarTimestamp = (timestamp) => {
     if (!timestamp) return '';
@@ -154,50 +149,48 @@ function MensagensPage() {
         if (!currentUser || conversas.length === 0) return;
 
         const sincronizarCores = async () => {
-            const conversasParaChecar = conversas.filter((c) => !c.isGrupo);
+            const conversasParaChecar = conversas;
 
             for (const conversa of conversasParaChecar) {
-                const outroUsuarioInfo = conversa.participantesInfo.find(
-                    (p) => p.uid !== currentUser.uid
+                let houveMudanca = false;
+
+                const novosParticipantesInfo = await Promise.all(
+                    conversa.participantesInfo.map(async (p) => {
+                        try {
+                            if (!p.uid) return p;
+
+                            const userRef = doc(db, 'users', p.uid);
+                            const userSnap = await getDoc(userRef);
+
+                            if (userSnap.exists()) {
+                                const dadosReais = userSnap.data();
+                                const corReal =
+                                    dadosReais.avatarColor || '#0a528a';
+
+                                if (p.avatarColor !== corReal) {
+                                    houveMudanca = true;
+                                    return { ...p, avatarColor: corReal };
+                                }
+                            }
+                            return p;
+                        } catch (error) {
+                            console.error(
+                                `Erro ao verificar usuário ${p.uid}:`,
+                                error
+                            );
+                            return p;
+                        }
+                    })
                 );
 
-                if (outroUsuarioInfo) {
-                    try {
-                        const userRef = doc(db, 'users', outroUsuarioInfo.uid);
-                        const userSnap = await getDoc(userRef);
-
-                        if (userSnap.exists()) {
-                            const dadosReais = userSnap.data();
-                            // Define a cor real (ou azul se não tiver)
-                            const corReal = dadosReais.avatarColor || '#0a528a';
-
-                            if (outroUsuarioInfo.avatarColor !== corReal) {
-                                console.log(
-                                    `Cor desatualizada detectada para ${outroUsuarioInfo.nome}. Corrigindo...`
-                                );
-
-                                const novaListaParticipantes =
-                                    conversa.participantesInfo.map((p) =>
-                                        p.uid === outroUsuarioInfo.uid
-                                            ? { ...p, avatarColor: corReal }
-                                            : p
-                                    );
-                                const conversaRef = doc(
-                                    db,
-                                    'conversas',
-                                    conversa.id
-                                );
-                                await updateDoc(conversaRef, {
-                                    participantesInfo: novaListaParticipantes,
-                                });
-                            }
-                        }
-                    } catch (error) {
-                        console.error(
-                            'Erro silencioso ao sincronizar cor:',
-                            error
-                        );
-                    }
+                if (houveMudanca) {
+                    console.log(
+                        `Atualizando cores na conversa: ${conversa.id}`
+                    );
+                    const conversaRef = doc(db, 'conversas', conversa.id);
+                    await updateDoc(conversaRef, {
+                        participantesInfo: novosParticipantesInfo,
+                    });
                 }
             }
         };

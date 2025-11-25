@@ -8,6 +8,7 @@ import Modal from './Modal';
 import EditarInteressesModal from './EditarInteressesModal';
 import { FiEdit, FiGithub, FiLinkedin, FiEdit3 } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
+import { getInitials } from '../utils/iniciaisNome';
 
 // Container principal
 const FormContainer = styled.div`
@@ -74,7 +75,7 @@ const FormContent = styled.form`
     grid-template-columns: 2fr 1.5fr;
     gap: 2.188rem;
     /* Garante que o formulário nunca exceda a largura do pai */
-    width: 100%; 
+    width: 100%;
     max-width: 100%;
     box-sizing: border-box;
 
@@ -128,12 +129,12 @@ const InputGroup = styled.div`
 
     @media (max-width: 390px) {
         width: 90%;
-        min-width: 0; 
+        min-width: 0;
     }
 
     @media (max-width: 350px) {
         width: 80%;
-        min-width: 0; 
+        min-width: 0;
     }
 `;
 const Label = styled.label`
@@ -159,7 +160,9 @@ const Input = styled.input`
     border: 1px solid #ccc;
     border-radius: 0.6rem;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     &:focus {
         border-color: #7c2256;
         box-shadow: 0 0 0 3px rgba(124, 34, 86, 0.2);
@@ -179,7 +182,9 @@ const Textarea = styled.textarea`
     resize: vertical;
     min-height: 10rem;
     font-family: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     &:focus {
         border-color: #7c2256;
         box-shadow: 0 0 0 3px rgba(124, 34, 86, 0.2);
@@ -254,11 +259,6 @@ const StyledColorInput = styled.input`
     }
 `;
 
-const getInitials = (nome, sobrenome) => {
-    if (!nome) return '';
-    return `${nome[0]}${sobrenome ? sobrenome[0] : ''}`.toUpperCase();
-};
-
 // Função para verificar se a cor é muito clara
 const isColorTooLight = (hexColor) => {
     const hex = hexColor.replace('#', '');
@@ -320,7 +320,8 @@ function ConfigPerfil() {
     const handleConfirmColor = async () => {
         if (isColorTooLight(tempAvatarColor)) {
             addToast(
-                'A cor escolhida é muito clara e pode não ser visível. Por favor, escolha uma cor mais escura.', 'info'
+                'A cor escolhida é muito clara e pode não ser visível. Por favor, escolha uma cor mais escura.',
+                'info'
             );
             return;
         }
@@ -342,7 +343,10 @@ function ConfigPerfil() {
             setIsColorModalOpen(false);
         } catch (error) {
             console.error('Erro ao salvar a cor do avatar:', error);
-            addToast('Não foi possível salvar a nova cor. Tente novamente.', 'error');
+            addToast(
+                'Não foi possível salvar a nova cor. Tente novamente.',
+                'error'
+            );
         }
     };
 
@@ -371,7 +375,8 @@ function ConfigPerfil() {
         // Valida GitHub: A URL deve conter "github.com"
         if (
             github &&
-            (!isValidURL(github) || !github.toLowerCase().includes('github.com'))
+            (!isValidURL(github) ||
+                !github.toLowerCase().includes('github.com'))
         ) {
             addToast(
                 'Por favor, insira um link válido do GitHub (ex: https://github.com/seu-usuario).',
@@ -520,7 +525,7 @@ function ConfigPerfil() {
                                 onChange={handleChange}
                             />
                         </InputGroup>
-                        
+
                         <InputGroup>
                             <Label>Meus Interesses</Label>
                             <Section>
@@ -593,7 +598,13 @@ function ConfigPerfil() {
                         value={tempAvatarColor}
                         onChange={(e) => setTempAvatarColor(e.target.value)}
                     />
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1.25rem' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '1rem',
+                            marginTop: '1.25rem',
+                        }}
+                    >
                         <Botao variant="Cancelar" onClick={handleCancelColor}>
                             Cancelar
                         </Botao>

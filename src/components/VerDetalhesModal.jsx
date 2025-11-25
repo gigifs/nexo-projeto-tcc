@@ -145,18 +145,18 @@ const Tag = styled.span`
         props.$tipo === 'status'
             ? props.$bgColor
             : props.$tipo === 'habilidade'
-              ? '#aed9f4'
+              ? '#4AACF266'
               : props.$tipo === 'area'
                 ? '#eba7b18f'
-                : '#ffcced'};
+                : '#ff8eda66'};
     color: ${(props) =>
         props.$tipo === 'status'
             ? props.$textColor
             : props.$tipo === 'habilidade'
-              ? '#0b5394'
+              ? '#234DD7'
               : props.$tipo === 'area'
                 ? '#7B1B4C'
-                : '#9c27b0'};
+                : '#FE3F85'};
 `;
 
 const IntegrantesLista = styled.div`

@@ -96,8 +96,8 @@ const Tag = styled.span`
     font-size: 0.875rem;
     font-weight: 500;
     background-color: ${(props) =>
-        props.$tipo === 'habilidade' ? '#aed9f4' : '#ffcced'};
-    color: ${(props) => (props.$tipo === 'habilidade' ? '#0b5394' : '#9c27b0')};
+        props.$tipo === 'habilidade' ? '#4AACF266' : '#ff8eda66'};
+    color: ${(props) => (props.$tipo === 'habilidade' ? '#234DD7' : '#FE3F85')};
 `;
 
 const CardFooter = styled.div`

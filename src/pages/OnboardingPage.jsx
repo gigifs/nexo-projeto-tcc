@@ -190,13 +190,13 @@ const Tag = styled.span`
     transition: all 0.2s;
 
     ${props => props.$tipo === 'habilidade' && css`
-        background-color: #d1e7ff;
-        color: #0d6efd;
+        background-color: #4AACF266;
+        color: #234DD7;
     `}
 
     ${props => props.$tipo === 'interesse' && css`
-        background-color: #ffcced;
-        color: #9c27b0;
+        background-color: #ff8eda66;
+        color: #FE3F85;
     `}
 `;
 
@@ -448,11 +448,10 @@ function OnboardingPage() {
                 {buscaHab && (
                     <SugestoesList>
                         {filtrarTags('habilidade', buscaHab).map(tag => (
-                            <SugestaoItem key={tag.nome} onClick={() => addTag('habilidade', tag.nome)}>{tag.nome}</SugestaoItem>
+                            <SugestaoItem key={tag.nome} onClick={() => addTag('habilidade', tag.nome)}>
+                                {tag.nome}
+                            </SugestaoItem>
                         ))}
-                         {filtrarTags('habilidade', buscaHab).length === 0 && (
-                             <SugestaoItem onClick={() => addTag('habilidade', buscaHab)}>Adicionar "{buscaHab}"</SugestaoItem>
-                        )}
                     </SugestoesList>
                 )}
             </InputGroup>
@@ -480,11 +479,10 @@ function OnboardingPage() {
                  {buscaInt && (
                     <SugestoesList>
                         {filtrarTags('interesse', buscaInt).map(tag => (
-                            <SugestaoItem key={tag.nome} onClick={() => addTag('interesse', tag.nome)}>{tag.nome}</SugestaoItem>
+                            <SugestaoItem key={tag.nome} onClick={() => addTag('interesse', tag.nome)}>
+                                {tag.nome}
+                            </SugestaoItem>
                         ))}
-                         {filtrarTags('interesse', buscaInt).length === 0 && (
-                             <SugestaoItem onClick={() => addTag('interesse', buscaInt)}>Adicionar "{buscaInt}"</SugestaoItem>
-                        )}
                     </SugestoesList>
                 )}
             </InputGroup>

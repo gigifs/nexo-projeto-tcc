@@ -330,9 +330,29 @@ function PrivacidadeSeguranca() {
                 'minhasCandidaturas'
             );
             const snapMinhasCand = await getDocs(minhasCandidaturasRef);
-            const deleteMinhasCandPromises = snapMinhasCand.docs.map((c) =>
-                deleteDoc(c.ref)
-            );
+
+            // Mapeia cada candidatura para remover, tanto do projeto quanto do perfil
+            const deleteMinhasCandPromises = snapMinhasCand.docs.map(async (cDoc) => {
+                const projetoId = cDoc.id; // Na sua lógica, o ID do doc em minhasCandidaturas é o ID do projeto
+
+                try {
+                    // Tenta remover a candidatura de dentro do projeto (para sumir do Gerenciar/Notificações do dono)
+                    const candidaturaNoProjetoRef = doc(
+                        db,
+                        'projetos',
+                        projetoId,
+                        'candidaturas',
+                        uid
+                    );
+                    await deleteDoc(candidaturaNoProjetoRef);
+                } catch (err) {
+                    console.log(`Erro ou candidatura já inexistente no projeto ${projetoId}`, err);
+                }
+
+                // Remove da sua lista pessoal
+                return deleteDoc(cDoc.ref);
+            });
+
             await Promise.all(deleteMinhasCandPromises);
 
             const userDocRef = doc(db, 'users', uid);

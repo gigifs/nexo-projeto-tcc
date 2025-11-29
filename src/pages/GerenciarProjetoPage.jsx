@@ -781,6 +781,14 @@ function GerenciarProjetoPage() {
                 console.log('Nenhuma conversa encontrada para este projeto.'); // Log para depuração
             }
 
+            // Apaga subcoleção de candidaturas antes de apagar o projeto
+            const candidaturasRef = collection(db, 'projetos', id, 'candidaturas');
+            const candidaturasSnap = await getDocs(candidaturasRef);
+            
+            // Deleta cada candidatura individualmente
+            const deletePromises = candidaturasSnap.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+
             const projetoRef = doc(db, 'projetos', id);
             await deleteDoc(projetoRef);
 

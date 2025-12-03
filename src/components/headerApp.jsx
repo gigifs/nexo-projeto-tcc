@@ -188,7 +188,11 @@ function HeaderApp({ isMenuOpen, onToggleMenu }) {
 
                 unsubscribes = projetos.map((id) => {
                     const ref = collection(db, 'projetos', id, 'candidaturas');
-                    const q = query(ref, where('lida', '==', false));
+                    const q = query(
+                        ref, 
+                        where('lida', '==', false),
+                        where('status', '==', 'pendente') 
+                    );
 
                     return onSnapshot(q, (snapshot) => {
                         console.log('Snapshot do projeto', id, snapshot.size);
